@@ -1,0 +1,21 @@
+module.exports = {
+  reactStrictMode: true,
+  transpilePackages: ['@repo/ui'],
+  turbopack: {
+    resolveAlias: {
+      // Transform all direct `react-native` imports to `react-native-web`
+      'react-native': 'react-native-web',
+    },
+    resolveExtensions: [
+      '.web.js',
+      '.web.jsx',
+      '.web.ts',
+      '.web.tsx',
+      '.js',
+      '.jsx',
+      '.ts',
+      '.tsx',
+      '.json',
+    ],
+  },
+};
