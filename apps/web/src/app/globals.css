@@ -1,3 +1,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  /* True black dark mode defaults */
+  html.dark {
+    color-scheme: dark;
+  }
+
+  html.dark body {
+    background-color: #000000;
+    color: #e5e5e5;
+  }
+
+  /* Smooth transition when toggling */
+  html {
+    transition: background-color 0.2s ease, color 0.2s ease;
+  }
+}

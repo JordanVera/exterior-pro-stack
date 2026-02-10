@@ -1,0 +1,293 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Enums ──────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  CUSTOMER
+  PROVIDER
+  ADMIN
+}
+
+enum QuoteStatus {
+  PENDING
+  SENT
+  ACCEPTED
+  DECLINED
+  EXPIRED
+}
+
+enum JobStatus {
+  PENDING
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum RecurringFrequency {
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+}
+
+enum PriceUnit {
+  SQFT
+  HOUR
+  FLAT
+}
+
+enum NotificationType {
+  QUOTE_RECEIVED
+  QUOTE_ACCEPTED
+  QUOTE_DECLINED
+  JOB_SCHEDULED
+  JOB_IN_PROGRESS
+  JOB_COMPLETED
+  JOB_CANCELLED
+  NEW_QUOTE_REQUEST
+  JOB_REMINDER
+  SCHEDULE_CHANGE
+  NEW_PROVIDER_SIGNUP
+  GENERAL
+}
+
+// ─── Core User ──────────────────────────────────────────────────────────────
+
+model User {
+  id        String    @id @default(cuid())
+  phone     String    @unique
+  role      UserRole?
+  verified  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  customerProfile CustomerProfile?
+  providerProfile ProviderProfile?
+  notifications   Notification[]
+  pushTokens      PushToken[]
+}
+
+// ─── Profiles ───────────────────────────────────────────────────────────────
+
+model CustomerProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  firstName String
+  lastName  String
+  email     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  properties Property[]
+}
+
+model ProviderProfile {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  businessName String
+  description  String?  @db.Text
+  serviceArea  String?
+  verified     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quotes   Quote[]
+  crews    Crew[]
+  services ProviderService[]
+}
+
+// ─── Properties ─────────────────────────────────────────────────────────────
+
+model Property {
+  id         String   @id @default(cuid())
+  customerId String
+  address    String
+  city       String
+  state      String
+  zip        String
+  notes      String?  @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  customer CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  quotes   Quote[]
+}
+
+// ─── Service Catalog ────────────────────────────────────────────────────────
+
+model ServiceCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?  @db.Text
+  icon        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  services Service[]
+}
+
+model Service {
+  id          String    @id @default(cuid())
+  categoryId  String
+  name        String
+  description String?   @db.Text
+  basePrice   Decimal   @db.Decimal(10, 2)
+  unit        PriceUnit @default(FLAT)
+  active      Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  category         ServiceCategory   @relation(fields: [categoryId], references: [id])
+  quotes           Quote[]
+  providerServices ProviderService[]
+}
+
+model ProviderService {
+  id          String   @id @default(cuid())
+  providerId  String
+  serviceId   String
+  customPrice Decimal? @db.Decimal(10, 2)
+
+  provider ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  service  Service         @relation(fields: [serviceId], references: [id])
+
+  @@unique([providerId, serviceId])
+}
+
+// ─── Quotes & Jobs ──────────────────────────────────────────────────────────
+
+model Quote {
+  id            String      @id @default(cuid())
+  propertyId    String
+  serviceId     String
+  providerId    String
+  customPrice   Decimal?    @db.Decimal(10, 2)
+  status        QuoteStatus @default(PENDING)
+  notes         String?     @db.Text
+  customerNotes String?     @db.Text
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  property Property        @relation(fields: [propertyId], references: [id])
+  service  Service         @relation(fields: [serviceId], references: [id])
+  provider ProviderProfile @relation(fields: [providerId], references: [id])
+  job      Job?
+}
+
+model Job {
+  id            String    @id @default(cuid())
+  quoteId       String    @unique
+  status        JobStatus @default(PENDING)
+  scheduledDate DateTime?
+  scheduledTime String?
+  completedAt   DateTime?
+  notes         String?   @db.Text
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  quote             Quote              @relation(fields: [quoteId], references: [id])
+  assignments       JobAssignment[]
+  recurringSchedule RecurringSchedule?
+}
+
+// ─── Crews ──────────────────────────────────────────────────────────────────
+
+model Crew {
+  id         String   @id @default(cuid())
+  providerId String
+  name       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  provider    ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  members     CrewMember[]
+  assignments JobAssignment[]
+}
+
+model CrewMember {
+  id        String   @id @default(cuid())
+  crewId    String
+  name      String
+  phone     String?
+  role      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  crew Crew @relation(fields: [crewId], references: [id], onDelete: Cascade)
+}
+
+// ─── Scheduling ─────────────────────────────────────────────────────────────
+
+model JobAssignment {
+  id         String   @id @default(cuid())
+  jobId      String
+  crewId     String
+  assignedAt DateTime @default(now())
+
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  crew Crew @relation(fields: [crewId], references: [id])
+
+  @@unique([jobId, crewId])
+}
+
+model RecurringSchedule {
+  id        String             @id @default(cuid())
+  jobId     String             @unique
+  frequency RecurringFrequency
+  nextDate  DateTime
+  active    Boolean            @default(true)
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+}
+
+// ─── Notifications ──────────────────────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String           @db.Text
+  read      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+}
+
+// ─── Auth ───────────────────────────────────────────────────────────────────
+
+model VerificationCode {
+  id        String   @id @default(cuid())
+  phone     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([phone, code])
+}
+
+// ─── Push Tokens ────────────────────────────────────────────────────────────
+
+model PushToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  platform  String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

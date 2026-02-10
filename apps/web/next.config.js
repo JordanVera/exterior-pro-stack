@@ -1,6 +1,6 @@
 module.exports = {
   reactStrictMode: true,
-  transpilePackages: ['@repo/ui'],
+  transpilePackages: ['@repo/ui', '@repo/api', '@repo/db', '@repo/validators'],
   turbopack: {
     resolveAlias: {
       // Transform all direct `react-native` imports to `react-native-web`
