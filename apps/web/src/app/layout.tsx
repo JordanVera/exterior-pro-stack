@@ -8,6 +8,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/logos/logo-icon.ico" sizes="any" />
         {/* Inline script to set theme before paint — prevents flash */}
         <script
           dangerouslySetInnerHTML={{
