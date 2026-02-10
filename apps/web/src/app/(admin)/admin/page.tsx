@@ -8,46 +8,37 @@ export default function AdminDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    trpc.admin.getStats
-      .query()
-      .then(setStats)
-      .catch(console.error)
-      .finally(() => setLoading(false));
+    trpc.admin.getStats.query().then(setStats).catch(console.error).finally(() => setLoading(false));
   }, []);
 
   if (loading) {
-    return <div className="text-gray-500">Loading stats...</div>;
+    return <div className="text-gray-500 dark:text-neutral-400">Loading stats...</div>;
   }
 
   const statCards = [
-    { label: "Total Users", value: stats?.totalUsers ?? 0, color: "text-gray-900" },
-    { label: "Customers", value: stats?.totalCustomers ?? 0, color: "text-blue-600" },
-    { label: "Providers", value: stats?.totalProviders ?? 0, color: "text-green-600" },
-    { label: "Verified Providers", value: stats?.verifiedProviders ?? 0, color: "text-green-700" },
-    { label: "Total Jobs", value: stats?.totalJobs ?? 0, color: "text-gray-900" },
-    { label: "Active Jobs", value: stats?.activeJobs ?? 0, color: "text-blue-600" },
-    { label: "Completed Jobs", value: stats?.completedJobs ?? 0, color: "text-green-600" },
-    { label: "Total Quotes", value: stats?.totalQuotes ?? 0, color: "text-gray-900" },
-    { label: "Pending Quotes", value: stats?.pendingQuotes ?? 0, color: "text-orange-600" },
+    { label: "Total Users", value: stats?.totalUsers ?? 0, color: "text-gray-900 dark:text-white" },
+    { label: "Customers", value: stats?.totalCustomers ?? 0, color: "text-blue-600 dark:text-blue-400" },
+    { label: "Providers", value: stats?.totalProviders ?? 0, color: "text-green-600 dark:text-green-400" },
+    { label: "Verified Providers", value: stats?.verifiedProviders ?? 0, color: "text-green-700 dark:text-green-400" },
+    { label: "Total Jobs", value: stats?.totalJobs ?? 0, color: "text-gray-900 dark:text-white" },
+    { label: "Active Jobs", value: stats?.activeJobs ?? 0, color: "text-blue-600 dark:text-blue-400" },
+    { label: "Completed Jobs", value: stats?.completedJobs ?? 0, color: "text-green-600 dark:text-green-400" },
+    { label: "Total Quotes", value: stats?.totalQuotes ?? 0, color: "text-gray-900 dark:text-white" },
+    { label: "Pending Quotes", value: stats?.pendingQuotes ?? 0, color: "text-orange-600 dark:text-orange-400" },
   ];
 
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Platform Overview</h2>
-        <p className="text-gray-500 mt-1">Key metrics across the platform</p>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Platform Overview</h2>
+        <p className="text-gray-500 dark:text-neutral-400 mt-1">Key metrics across the platform</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
         {statCards.map((stat) => (
-          <div
-            key={stat.label}
-            className="bg-white rounded-xl p-5 border border-gray-200"
-          >
-            <div className="text-sm text-gray-500">{stat.label}</div>
-            <div className={`text-3xl font-bold mt-1 ${stat.color}`}>
-              {stat.value}
-            </div>
+          <div key={stat.label} className="bg-white dark:bg-neutral-900 rounded-xl p-5 border border-gray-200 dark:border-neutral-800">
+            <div className="text-sm text-gray-500 dark:text-neutral-400">{stat.label}</div>
+            <div className={`text-3xl font-bold mt-1 ${stat.color}`}>{stat.value}</div>
           </div>
         ))}
       </div>
