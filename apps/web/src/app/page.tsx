@@ -19,7 +19,9 @@ export default function HomePage() {
     trpc.auth.me
       .query()
       .then((user) => {
-        if (!user.role) {
+        if (user.role === "ADMIN") {
+          router.push("/admin");
+        } else if (!user.role) {
           router.push("/onboarding/role");
         } else if (!user.hasProfile) {
           router.push("/onboarding/profile");
@@ -27,8 +29,6 @@ export default function HomePage() {
           router.push("/customer");
         } else if (user.role === "PROVIDER") {
           router.push("/provider");
-        } else if (user.role === "ADMIN") {
-          router.push("/admin");
         }
       })
       .catch(() => {

@@ -51,11 +51,11 @@ export default function LoginPage() {
     try {
       const result = await trpc.auth.verifyCode.mutate({ phone: fullPhone, code });
       setToken(result.token);
-      if (result.user.isNewUser || !result.user.role) router.push("/onboarding/role");
+      if (result.user.role === "ADMIN") router.push("/admin");
+      else if (result.user.isNewUser || !result.user.role) router.push("/onboarding/role");
       else if (!result.user.hasProfile) router.push("/onboarding/profile");
       else if (result.user.role === "CUSTOMER") router.push("/customer");
       else if (result.user.role === "PROVIDER") router.push("/provider");
-      else if (result.user.role === "ADMIN") router.push("/admin");
     } catch (err: any) {
       setError(err.message || "Invalid verification code");
     } finally {
