@@ -78,7 +78,7 @@ export default function AdminServicesPage() {
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{category.name}</h3>
               {category.description && <p className="text-sm text-gray-500 dark:text-neutral-400">{category.description}</p>}
             </div>
-            <button onClick={() => setAddingServiceCatId(addingServiceCatId === category.id ? null : category.id)} className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300">
+            <button onClick={() => setAddingServiceCatId(addingServiceCatId === category.id ? null : category.id)} className="text-sm font-medium text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300">
               + Add Service
             </button>
           </div>

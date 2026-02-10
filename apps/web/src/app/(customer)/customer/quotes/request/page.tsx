@@ -45,7 +45,7 @@ export default function RequestQuotePage() {
     finally { setSubmitting(false); }
   };
 
-  const selectClass = "block w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-4 py-2.5 text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none";
+  const selectClass = "block w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-4 py-2.5 text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none";
   const labelClass = "block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1";
 
   if (loading) {
@@ -97,7 +97,7 @@ export default function RequestQuotePage() {
         </div>
 
         <div className="flex gap-3">
-          <button type="submit" disabled={submitting || properties.length === 0} className="px-6 py-2.5 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors">
+          <button type="submit" disabled={submitting || properties.length === 0} className="px-6 py-2.5 bg-cyan-600 text-white font-medium rounded-lg hover:bg-cyan-700 disabled:opacity-50 transition-colors">
             {submitting ? "Requesting..." : "Request Quote"}
           </button>
           <button type="button" onClick={() => router.back()} className="px-6 py-2.5 text-gray-700 dark:text-neutral-300 font-medium rounded-lg border border-gray-300 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors">

@@ -35,7 +35,7 @@ export default function ProviderDashboard() {
         </div>
         <div className="bg-white dark:bg-neutral-900 rounded-xl p-5 border border-gray-200 dark:border-neutral-800">
           <div className="text-sm text-gray-500 dark:text-neutral-400">Active Jobs</div>
-          <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mt-1">{stats?.activeJobs ?? 0}</div>
+          <div className="text-3xl font-bold text-cyan-600 dark:text-cyan-400 mt-1">{stats?.activeJobs ?? 0}</div>
         </div>
         <div className="bg-white dark:bg-neutral-900 rounded-xl p-5 border border-gray-200 dark:border-neutral-800">
           <div className="text-sm text-gray-500 dark:text-neutral-400">Completed Jobs</div>
@@ -53,7 +53,7 @@ export default function ProviderDashboard() {
           <h3 className="font-semibold text-gray-900 dark:text-white">Review Quotes</h3>
           <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">Respond to pending quote requests</p>
         </button>
-        <button onClick={() => router.push("/provider/jobs")} className="bg-white dark:bg-neutral-900 rounded-xl p-5 border border-gray-200 dark:border-neutral-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-sm transition-all text-left">
+        <button onClick={() => router.push("/provider/jobs")} className="bg-white dark:bg-neutral-900 rounded-xl p-5 border border-gray-200 dark:border-neutral-800 hover:border-cyan-300 dark:hover:border-cyan-700 hover:shadow-sm transition-all text-left">
           <div className="text-xl mb-2">📋</div>
           <h3 className="font-semibold text-gray-900 dark:text-white">Manage Jobs</h3>
           <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">Schedule and dispatch crews</p>

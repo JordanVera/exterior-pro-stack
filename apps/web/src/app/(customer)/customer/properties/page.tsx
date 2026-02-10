@@ -40,7 +40,7 @@ export default function PropertiesPage() {
     catch (err: any) { alert(err.message || "Failed to delete property"); }
   };
 
-  const inputClass = "block w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-4 py-2 text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none";
+  const inputClass = "block w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-4 py-2 text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none";
   const labelClass = "block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1";
 
   if (loading) {
@@ -54,7 +54,7 @@ export default function PropertiesPage() {
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white">My Properties</h2>
           <p className="text-gray-500 dark:text-neutral-400 mt-1">Manage properties for service requests</p>
         </div>
-        <button onClick={() => setShowForm(!showForm)} className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors">
+        <button onClick={() => setShowForm(!showForm)} className="px-4 py-2 bg-cyan-600 text-white font-medium rounded-lg hover:bg-cyan-700 transition-colors">
           {showForm ? "Cancel" : "+ Add Property"}
         </button>
       </div>
@@ -70,7 +70,7 @@ export default function PropertiesPage() {
             <div><label className={labelClass}>ZIP *</label><input type="text" value={zip} onChange={(e) => setZip(e.target.value)} maxLength={10} placeholder="75001" className={inputClass} required /></div>
           </div>
           <div><label className={labelClass}>Notes</label><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={2} className={`${inputClass} resize-none`} placeholder="Gate code, special instructions, etc." /></div>
-          <button type="submit" disabled={saving} className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors">
+          <button type="submit" disabled={saving} className="px-6 py-2 bg-cyan-600 text-white font-medium rounded-lg hover:bg-cyan-700 disabled:opacity-50 transition-colors">
             {saving ? "Adding..." : "Add Property"}
           </button>
         </form>
@@ -91,7 +91,7 @@ export default function PropertiesPage() {
         {properties.length === 0 && !showForm && (
           <div className="text-center py-12 text-gray-500 dark:text-neutral-400">
             <p>No properties added yet.</p>
-            <button onClick={() => setShowForm(true)} className="mt-2 text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">Add your first property</button>
+            <button onClick={() => setShowForm(true)} className="mt-2 text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 font-medium">Add your first property</button>
           </div>
         )}
       </div>

@@ -66,20 +66,20 @@ export default function ProfileOnboardingPage() {
   };
 
   const inputClass =
-    'block w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-4 py-3 text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none';
+    'block w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-4 py-3 text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none';
   const labelClass =
     'block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1';
 
   if (!role) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 dark:from-black dark:to-black">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 to-green-50 dark:from-black dark:to-black">
         <div className="text-gray-500 dark:text-neutral-400">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 dark:from-black dark:to-black">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 to-green-50 dark:from-black dark:to-black">
       <div className="w-full max-w-md mx-4">
         <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl dark:shadow-neutral-900/50 p-8 border border-transparent dark:border-neutral-800">
           <div className="text-center mb-8">
@@ -133,7 +133,7 @@ export default function ProfileOnboardingPage() {
               <button
                 type="submit"
                 disabled={loading || !firstName || !lastName}
-                className="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-6"
+                className="w-full py-3 px-4 bg-cyan-600 text-white font-semibold rounded-lg hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-6"
               >
                 {loading ? 'Saving...' : 'Continue'}
               </button>

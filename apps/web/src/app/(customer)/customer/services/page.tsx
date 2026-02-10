@@ -34,13 +34,13 @@ export default function ServicesPage() {
                 <h4 className="font-semibold text-gray-900 dark:text-white">{service.name}</h4>
                 {service.description && <p className="mt-1 text-sm text-gray-500 dark:text-neutral-400">{service.description}</p>}
                 <div className="flex items-center justify-between mt-3">
-                  <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                  <div className="text-lg font-bold text-cyan-600 dark:text-cyan-400">
                     ${Number(service.basePrice).toFixed(2)}
                     <span className="text-sm font-normal text-gray-400 dark:text-neutral-500">
                       /{service.unit === "SQFT" ? "sq ft" : service.unit === "HOUR" ? "hr" : "flat"}
                     </span>
                   </div>
-                  <button onClick={() => router.push(`/customer/quotes/request?serviceId=${service.id}`)} className="px-4 py-2 text-sm font-medium text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700">
+                  <button onClick={() => router.push(`/customer/quotes/request?serviceId=${service.id}`)} className="px-4 py-2 text-sm font-medium text-white transition-colors bg-cyan-600 rounded-lg hover:bg-cyan-700">
                     Get Quote
                   </button>
                 </div>

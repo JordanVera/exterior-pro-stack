@@ -25,7 +25,7 @@ export default function RoleSelectionPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 dark:from-black dark:to-black">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 to-green-50 dark:from-black dark:to-black">
       <div className="w-full max-w-lg mx-4">
         <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl dark:shadow-neutral-900/50 p-8 border border-transparent dark:border-neutral-800">
           <div className="text-center mb-8">
@@ -43,10 +43,10 @@ export default function RoleSelectionPage() {
             <button
               onClick={() => handleSelectRole("CUSTOMER")}
               disabled={loading}
-              className="w-full p-6 border-2 border-gray-200 dark:border-neutral-800 rounded-xl hover:border-blue-500 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/30 transition-all text-left group disabled:opacity-50"
+              className="w-full p-6 border-2 border-gray-200 dark:border-neutral-800 rounded-xl hover:border-cyan-500 dark:hover:border-cyan-500 hover:bg-cyan-50 dark:hover:bg-cyan-950/30 transition-all text-left group disabled:opacity-50"
             >
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-950 rounded-xl flex items-center justify-center text-2xl group-hover:bg-blue-200 dark:group-hover:bg-blue-900 transition-colors">
+                <div className="w-12 h-12 bg-cyan-100 dark:bg-cyan-950 rounded-xl flex items-center justify-center text-2xl group-hover:bg-cyan-200 dark:group-hover:bg-cyan-900 transition-colors">
                   🏠
                 </div>
                 <div>

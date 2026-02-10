@@ -5,7 +5,7 @@ import { trpc } from "../../../../lib/trpc";
 
 const statusColors: Record<string, string> = {
   PENDING: "bg-gray-100 text-gray-700 dark:bg-neutral-800 dark:text-neutral-300",
-  SCHEDULED: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  SCHEDULED: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400",
   IN_PROGRESS: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
   COMPLETED: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
   CANCELLED: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
@@ -78,7 +78,7 @@ export default function AdminJobsPage() {
       </div>
 
       {data.nextCursor && (
-        <button onClick={() => fetchJobs(data.nextCursor)} className="px-4 py-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium">Load more</button>
+        <button onClick={() => fetchJobs(data.nextCursor)} className="px-4 py-2 text-sm text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 font-medium">Load more</button>
       )}
     </div>
   );

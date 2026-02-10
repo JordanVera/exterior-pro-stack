@@ -77,9 +77,9 @@ export default function LoginPage() {
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute w-1 h-1 bg-white rounded-full animate-pulse" style={{ top: "10%", left: "15%", animationDelay: "0s", animationDuration: "3s" }} />
         <div className="absolute w-0.5 h-0.5 bg-white rounded-full animate-pulse" style={{ top: "25%", left: "80%", animationDelay: "1s", animationDuration: "4s" }} />
-        <div className="absolute w-1 h-1 bg-blue-300 rounded-full animate-pulse" style={{ top: "60%", left: "10%", animationDelay: "2s", animationDuration: "3.5s" }} />
+        <div className="absolute w-1 h-1 bg-cyan-300 rounded-full animate-pulse" style={{ top: "60%", left: "10%", animationDelay: "2s", animationDuration: "3.5s" }} />
         <div className="absolute w-0.5 h-0.5 bg-white rounded-full animate-pulse" style={{ top: "80%", left: "70%", animationDelay: "0.5s", animationDuration: "5s" }} />
-        <div className="absolute w-1 h-1 bg-blue-200 rounded-full animate-pulse" style={{ top: "45%", left: "90%", animationDelay: "1.5s", animationDuration: "4.5s" }} />
+        <div className="absolute w-1 h-1 bg-cyan-200 rounded-full animate-pulse" style={{ top: "45%", left: "90%", animationDelay: "1.5s", animationDuration: "4.5s" }} />
         <div className="absolute w-0.5 h-0.5 bg-white rounded-full animate-pulse" style={{ top: "15%", left: "50%", animationDelay: "3s", animationDuration: "3s" }} />
         <div className="absolute w-1 h-1 bg-purple-300 rounded-full animate-pulse" style={{ top: "70%", left: "35%", animationDelay: "2.5s", animationDuration: "4s" }} />
         <div className="absolute w-0.5 h-0.5 bg-white rounded-full animate-pulse" style={{ top: "35%", left: "25%", animationDelay: "1s", animationDuration: "5s" }} />
@@ -101,7 +101,7 @@ export default function LoginPage() {
         <div className="bg-white/10 dark:bg-white/5 backdrop-blur-xl rounded-2xl shadow-2xl shadow-black/50 p-8 border border-white/20 dark:border-white/10">
           {/* Logo & Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-600 mb-4 shadow-lg shadow-blue-600/30">
+            <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-cyan-600 mb-4 shadow-lg shadow-cyan-600/30">
               <span className="text-white font-bold text-xl">EP</span>
             </div>
             <h1 className="text-3xl font-bold text-white">Exterior Pro</h1>
@@ -128,7 +128,7 @@ export default function LoginPage() {
                     value={phone}
                     onChange={(e) => setPhone(formatPhone(e.target.value))}
                     placeholder="(555) 123-4567"
-                    className="flex-1 block w-full rounded-r-lg border border-white/20 px-4 py-3 text-white bg-white/5 placeholder-white/30 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none backdrop-blur-sm"
+                    className="flex-1 block w-full rounded-r-lg border border-white/20 px-4 py-3 text-white bg-white/5 placeholder-white/30 focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none backdrop-blur-sm"
                     autoFocus
                   />
                 </div>
@@ -137,7 +137,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading || phone.length !== 10}
-                className="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-lg hover:shadow-blue-600/25"
+                className="w-full py-3 px-4 bg-cyan-600 text-white font-semibold rounded-lg hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-lg hover:shadow-cyan-600/25"
               >
                 {loading ? "Sending..." : "Send Verification Code"}
               </button>
@@ -156,7 +156,7 @@ export default function LoginPage() {
                   value={code}
                   onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
                   placeholder="000000"
-                  className="block w-full rounded-lg border border-white/20 px-4 py-3 text-center text-2xl tracking-[0.5em] text-white bg-white/5 placeholder-white/20 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none backdrop-blur-sm"
+                  className="block w-full rounded-lg border border-white/20 px-4 py-3 text-center text-2xl tracking-[0.5em] text-white bg-white/5 placeholder-white/20 focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none backdrop-blur-sm"
                   autoFocus
                 />
                 <p className="mt-2 text-sm text-white/50">Sent to {fullPhone}</p>
@@ -165,7 +165,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading || code.length !== 6}
-                className="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-lg hover:shadow-blue-600/25"
+                className="w-full py-3 px-4 bg-cyan-600 text-white font-semibold rounded-lg hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all hover:shadow-lg hover:shadow-cyan-600/25"
               >
                 {loading ? "Verifying..." : "Verify Code"}
               </button>

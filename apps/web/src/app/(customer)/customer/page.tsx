@@ -38,7 +38,7 @@ export default function CustomerDashboard() {
         </div>
         <div className="bg-white dark:bg-neutral-900 rounded-xl p-6 border border-gray-200 dark:border-neutral-800">
           <div className="text-sm text-gray-500 dark:text-neutral-400">Active Jobs</div>
-          <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mt-1">{activeJobs.length}</div>
+          <div className="text-3xl font-bold text-cyan-600 dark:text-cyan-400 mt-1">{activeJobs.length}</div>
         </div>
         <div className="bg-white dark:bg-neutral-900 rounded-xl p-6 border border-gray-200 dark:border-neutral-800">
           <div className="text-sm text-gray-500 dark:text-neutral-400">Completed Jobs</div>
@@ -47,12 +47,12 @@ export default function CustomerDashboard() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <button onClick={() => router.push("/customer/services")} className="bg-white dark:bg-neutral-900 rounded-xl p-6 border border-gray-200 dark:border-neutral-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-sm transition-all text-left">
+        <button onClick={() => router.push("/customer/services")} className="bg-white dark:bg-neutral-900 rounded-xl p-6 border border-gray-200 dark:border-neutral-800 hover:border-cyan-300 dark:hover:border-cyan-700 hover:shadow-sm transition-all text-left">
           <div className="text-2xl mb-2">🔧</div>
           <h3 className="font-semibold text-gray-900 dark:text-white">Browse Services</h3>
           <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">Find and request quotes for exterior services</p>
         </button>
-        <button onClick={() => router.push("/customer/properties")} className="bg-white dark:bg-neutral-900 rounded-xl p-6 border border-gray-200 dark:border-neutral-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-sm transition-all text-left">
+        <button onClick={() => router.push("/customer/properties")} className="bg-white dark:bg-neutral-900 rounded-xl p-6 border border-gray-200 dark:border-neutral-800 hover:border-cyan-300 dark:hover:border-cyan-700 hover:shadow-sm transition-all text-left">
           <div className="text-2xl mb-2">📍</div>
           <h3 className="font-semibold text-gray-900 dark:text-white">Manage Properties</h3>
           <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">Add or update your property information</p>
@@ -71,7 +71,7 @@ export default function CustomerDashboard() {
                 </div>
                 <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                   job.status === "SCHEDULED"
-                    ? "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                    ? "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400"
                     : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400"
                 }`}>
                   {job.status.replace("_", " ")}

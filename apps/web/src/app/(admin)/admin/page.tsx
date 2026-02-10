@@ -17,11 +17,11 @@ export default function AdminDashboard() {
 
   const statCards = [
     { label: "Total Users", value: stats?.totalUsers ?? 0, color: "text-gray-900 dark:text-white" },
-    { label: "Customers", value: stats?.totalCustomers ?? 0, color: "text-blue-600 dark:text-blue-400" },
+    { label: "Customers", value: stats?.totalCustomers ?? 0, color: "text-cyan-600 dark:text-cyan-400" },
     { label: "Providers", value: stats?.totalProviders ?? 0, color: "text-green-600 dark:text-green-400" },
     { label: "Verified Providers", value: stats?.verifiedProviders ?? 0, color: "text-green-700 dark:text-green-400" },
     { label: "Total Jobs", value: stats?.totalJobs ?? 0, color: "text-gray-900 dark:text-white" },
-    { label: "Active Jobs", value: stats?.activeJobs ?? 0, color: "text-blue-600 dark:text-blue-400" },
+    { label: "Active Jobs", value: stats?.activeJobs ?? 0, color: "text-cyan-600 dark:text-cyan-400" },
     { label: "Completed Jobs", value: stats?.completedJobs ?? 0, color: "text-green-600 dark:text-green-400" },
     { label: "Total Quotes", value: stats?.totalQuotes ?? 0, color: "text-gray-900 dark:text-white" },
     { label: "Pending Quotes", value: stats?.pendingQuotes ?? 0, color: "text-orange-600 dark:text-orange-400" },

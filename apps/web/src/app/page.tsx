@@ -86,7 +86,7 @@ export default function HomePage() {
             </button>
             <button
               onClick={() => router.push('/login')}
-              className="px-5 py-2.5 bg-blue-600 text-white text-sm font-semibold rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-5 py-2.5 bg-cyan-500 text-black text-sm font-semibold rounded-lg hover:bg-cyan-700 transition-colors"
             >
               Get Started
             </button>
@@ -95,18 +95,27 @@ export default function HomePage() {
       </nav>
 
       {/* ─── HERO ─── */}
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-blue-50 via-white to-green-50 dark:from-blue-950/20 dark:via-black dark:to-green-950/20" />
+      <section className="relative min-h-[80vh] overflow-hidden">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 object-cover w-full h-full"
+        >
+          <source src="/videos/hero.mp4" type="video/mp4" />
+        </video>
+        <div className="absolute inset-0 bg-gradient-to-br from-cyan-50/90 via-white/85 to-green-50/90 dark:from-cyan-950/60 dark:via-black/75 dark:to-green-950/60" />
         <div className="relative px-6 pt-20 pb-20 mx-auto max-w-7xl sm:pt-28">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 text-sm font-medium mb-8">
-              <span className="w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-400 text-sm font-medium mb-8">
+              <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
               Now serving the Dallas-Fort Worth area
             </div>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white leading-[1.1] tracking-tight">
               Your Property&apos;s Exterior,
               <br />
-              <span className="text-transparent bg-gradient-to-r from-blue-600 to-green-500 bg-clip-text">
+              <span className="text-transparent bg-gradient-to-r from-cyan-600 to-green-500 bg-clip-text">
                 Handled by Pros
               </span>
             </h1>
@@ -118,7 +127,7 @@ export default function HomePage() {
             <div className="flex flex-col justify-center gap-4 mt-10 sm:flex-row">
               <button
                 onClick={() => router.push('/login')}
-                className="px-8 py-4 text-lg font-semibold text-white transition-all bg-blue-600 rounded-xl hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/25"
+                className="px-8 py-4 text-lg font-semibold text-black transition-all bg-cyan-500 rounded-xl hover:bg-cyan-700 hover:shadow-lg hover:shadow-cyan-600/25"
               >
                 Book a Service
               </button>
@@ -181,7 +190,7 @@ export default function HomePage() {
       <section id="services" className="py-24 bg-gray-50 dark:bg-neutral-950">
         <div className="px-6 mx-auto max-w-7xl">
           <div className="mb-16 text-center">
-            <p className="mb-3 text-sm font-semibold tracking-wider text-blue-600 uppercase dark:text-blue-400">
+            <p className="mb-3 text-sm font-semibold tracking-wider uppercase text-cyan-600 dark:text-cyan-400">
               All-In-One Platform
             </p>
             <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl dark:text-white">
@@ -230,22 +239,22 @@ export default function HomePage() {
             ].map((service) => (
               <div
                 key={service.title}
-                className="relative p-6 transition-all bg-white border border-gray-100 cursor-pointer group dark:bg-neutral-900 rounded-2xl dark:border-neutral-800 hover:border-blue-200 dark:hover:border-blue-900 hover:shadow-lg dark:hover:shadow-blue-950/20"
+                className="relative p-6 transition-all bg-white border border-gray-100 cursor-pointer group dark:bg-neutral-900 rounded-2xl dark:border-neutral-800 hover:border-cyan-200 dark:hover:border-cyan-900 hover:shadow-lg dark:hover:shadow-cyan-950/20"
                 onClick={() => router.push('/login')}
               >
                 {service.tag && (
-                  <span className="absolute top-4 right-4 text-xs font-semibold px-2.5 py-1 bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400 rounded-full">
+                  <span className="absolute top-4 right-4 text-xs font-semibold px-2.5 py-1 bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-400 rounded-full">
                     {service.tag}
                   </span>
                 )}
                 <div className="mb-4 text-4xl">{service.icon}</div>
-                <h3 className="text-lg font-semibold text-gray-900 transition-colors dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-400">
+                <h3 className="text-lg font-semibold text-gray-900 transition-colors dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400">
                   {service.title}
                 </h3>
                 <p className="mt-2 leading-relaxed text-gray-500 dark:text-neutral-400">
                   {service.desc}
                 </p>
-                <div className="mt-4 text-sm font-medium text-blue-600 transition-opacity opacity-0 dark:text-blue-400 group-hover:opacity-100">
+                <div className="mt-4 text-sm font-medium transition-opacity opacity-0 text-cyan-600 dark:text-cyan-400 group-hover:opacity-100">
                   Get a free quote &rarr;
                 </div>
               </div>
@@ -258,7 +267,7 @@ export default function HomePage() {
       <section id="how-it-works" className="py-24">
         <div className="px-6 mx-auto max-w-7xl">
           <div className="mb-16 text-center">
-            <p className="mb-3 text-sm font-semibold tracking-wider text-blue-600 uppercase dark:text-blue-400">
+            <p className="mb-3 text-sm font-semibold tracking-wider uppercase text-cyan-600 dark:text-cyan-400">
               Simple Process
             </p>
             <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl dark:text-white">
@@ -330,10 +339,10 @@ export default function HomePage() {
               },
             ].map((item) => (
               <div key={item.step} className="relative text-center">
-                <div className="inline-flex items-center justify-center mb-6 text-blue-600 bg-blue-100 w-14 h-14 rounded-2xl dark:bg-blue-950/50 dark:text-blue-400">
+                <div className="inline-flex items-center justify-center mb-6 text-cyan-600 bg-cyan-100 w-14 h-14 rounded-2xl dark:bg-cyan-950/50 dark:text-cyan-400">
                   {item.icon}
                 </div>
-                <div className="mb-2 text-xs font-bold tracking-widest text-blue-600 dark:text-blue-400">
+                <div className="mb-2 text-xs font-bold tracking-widest text-cyan-600 dark:text-cyan-400">
                   STEP {item.step}
                 </div>
                 <h3 className="mb-3 text-xl font-semibold text-gray-900 dark:text-white">
@@ -353,7 +362,7 @@ export default function HomePage() {
         <div className="px-6 mx-auto max-w-7xl">
           <div className="grid items-center grid-cols-1 gap-16 lg:grid-cols-2">
             <div>
-              <p className="mb-3 text-sm font-semibold tracking-wider text-blue-600 uppercase dark:text-blue-400">
+              <p className="mb-3 text-sm font-semibold tracking-wider uppercase text-cyan-600 dark:text-cyan-400">
                 Why Exterior Pro
               </p>
               <h2 className="text-3xl font-bold leading-tight text-gray-900 sm:text-4xl dark:text-white">
@@ -526,7 +535,7 @@ export default function HomePage() {
           <div className="flex flex-col justify-center gap-4 mt-10 sm:flex-row">
             <button
               onClick={() => router.push('/login')}
-              className="px-8 py-4 text-lg font-semibold text-white transition-all bg-blue-600 rounded-xl hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-600/25"
+              className="px-8 py-4 text-lg font-semibold text-white transition-all bg-cyan-600 rounded-xl hover:bg-cyan-700 hover:shadow-lg hover:shadow-cyan-600/25"
             >
               Get Your Free Quote
             </button>
@@ -546,7 +555,7 @@ export default function HomePage() {
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2 mb-4">
-                <div className="flex items-center justify-center w-8 h-8 text-sm font-bold text-white bg-blue-600 rounded-lg">
+                <div className="flex items-center justify-center w-8 h-8 text-sm font-bold text-white rounded-lg bg-cyan-600">
                   EP
                 </div>
                 <span className="text-lg font-bold text-gray-900 dark:text-white">

@@ -5,7 +5,7 @@ import { trpc } from "../../../../lib/trpc";
 
 const statusColors: Record<string, string> = {
   PENDING: "bg-gray-100 text-gray-700 dark:bg-neutral-800 dark:text-neutral-300",
-  SENT: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
+  SENT: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400",
   ACCEPTED: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
   DECLINED: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
   EXPIRED: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
@@ -80,7 +80,7 @@ export default function QuotesPage() {
             )}
 
             {quote.job && (
-              <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-950/30 rounded-lg text-sm text-blue-700 dark:text-blue-400">
+              <div className="mt-3 p-3 bg-cyan-50 dark:bg-cyan-950/30 rounded-lg text-sm text-cyan-700 dark:text-cyan-400">
                 Job Status: {quote.job.status.replace("_", " ")}
                 {quote.job.scheduledDate && ` · Scheduled: ${new Date(quote.job.scheduledDate).toLocaleDateString()}`}
               </div>
