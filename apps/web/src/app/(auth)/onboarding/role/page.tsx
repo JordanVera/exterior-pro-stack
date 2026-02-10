@@ -1,40 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { trpc } from "../../../../lib/trpc";
-import { setToken, isAuthenticated } from "../../../../lib/auth";
+import { setToken } from "../../../../lib/auth";
 
 export default function RoleSelectionPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [checking, setChecking] = useState(true);
   const [error, setError] = useState("");
-
-  // Guard: if user already has a role, redirect them
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push("/login");
-      return;
-    }
-
-    trpc.auth.me.query().then((user) => {
-      if (user.role === "ADMIN") {
-        router.push("/admin");
-      } else if (user.role === "CUSTOMER" && user.hasProfile) {
-        router.push("/customer");
-      } else if (user.role === "PROVIDER" && user.hasProfile) {
-        router.push("/provider");
-      } else if (user.role && !user.hasProfile) {
-        router.push("/onboarding/profile");
-      } else {
-        // No role — show the selection page
-        setChecking(false);
-      }
-    }).catch(() => {
-      router.push("/login");
-    });
-  }, [router]);
 
   const handleSelectRole = async (role: "CUSTOMER" | "PROVIDER") => {
     setLoading(true);
@@ -49,14 +23,6 @@ export default function RoleSelectionPage() {
       setLoading(false);
     }
   };
-
-  if (checking) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 dark:from-black dark:to-black">
-        <div className="text-gray-500 dark:text-neutral-400">Loading...</div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 dark:from-black dark:to-black">

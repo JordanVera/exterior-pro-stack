@@ -24,11 +24,20 @@ export default function AdminLayout({
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated()) { router.push("/login"); return; }
-    trpc.auth.me.query().then((u) => {
-      if (u.role !== "ADMIN") { router.push("/"); return; }
-      setLoading(false);
-    }).catch(() => router.push("/login"));
+    if (!isAuthenticated()) {
+      router.push('/login');
+      return;
+    }
+    trpc.auth.me
+      .query()
+      .then((u) => {
+        if (u.role !== 'ADMIN') {
+          router.push('/');
+          return;
+        }
+        setLoading(false);
+      })
+      .catch(() => router.push('/login'));
   }, [router]);
 
   const handleLogout = () => {

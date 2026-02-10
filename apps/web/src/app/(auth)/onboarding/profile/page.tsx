@@ -20,11 +20,6 @@ export default function ProfileOnboardingPage() {
     trpc.auth.me
       .query()
       .then((user) => {
-        // Admins don't need a profile — send them straight to dashboard
-        if (user.role === 'ADMIN') {
-          router.push('/admin');
-          return;
-        }
         setRole(user.role);
         if (user.hasProfile) {
           if (user.role === 'CUSTOMER') router.push('/customer');
@@ -77,17 +72,17 @@ export default function ProfileOnboardingPage() {
 
   if (!role) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-green-50 dark:from-black dark:to-black">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 dark:from-black dark:to-black">
         <div className="text-gray-500 dark:text-neutral-400">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-blue-50 to-green-50 dark:from-black dark:to-black">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 dark:from-black dark:to-black">
       <div className="w-full max-w-md mx-4">
-        <div className="p-8 bg-white border border-transparent shadow-xl dark:bg-neutral-900 rounded-2xl dark:shadow-neutral-900/50 dark:border-neutral-800">
-          <div className="mb-8 text-center">
+        <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl dark:shadow-neutral-900/50 p-8 border border-transparent dark:border-neutral-800">
+          <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
               Complete Your Profile
             </h1>
@@ -99,7 +94,7 @@ export default function ProfileOnboardingPage() {
           </div>
 
           {error && (
-            <p className="mb-4 text-sm text-center text-red-500 dark:text-red-400">
+            <p className="text-red-500 dark:text-red-400 text-sm text-center mb-4">
               {error}
             </p>
           )}
@@ -138,7 +133,7 @@ export default function ProfileOnboardingPage() {
               <button
                 type="submit"
                 disabled={loading || !firstName || !lastName}
-                className="w-full px-4 py-3 mt-6 font-semibold text-white transition-colors bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 px-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-6"
               >
                 {loading ? 'Saving...' : 'Continue'}
               </button>
@@ -180,7 +175,7 @@ export default function ProfileOnboardingPage() {
               <button
                 type="submit"
                 disabled={loading || !businessName}
-                className="w-full px-4 py-3 mt-6 font-semibold text-white transition-colors bg-green-600 rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-6"
               >
                 {loading ? 'Saving...' : 'Continue'}
               </button>
