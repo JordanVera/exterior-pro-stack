@@ -108,14 +108,14 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-50/90 via-white/85 to-green-50/90 dark:from-cyan-950/60 dark:via-black/75 dark:to-green-950/60" />
         <div className="relative px-6 pt-20 pb-20 mx-auto max-w-7xl sm:pt-28">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-400 text-sm font-medium mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-400 text-sm font-medium mb-2">
               <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
-              Now serving the Dallas-Fort Worth area
+              All-In-One Platform for exterior property services
             </div>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white leading-[1.1] tracking-tight">
-              Your Property&apos;s Exterior,
+              Your Property&apos;s Exterior
               <br />
-              <span className="text-transparent bg-gradient-to-r from-cyan-600 to-green-500 bg-clip-text">
+              <span className="text-transparent bg-gradient-to-r from-cyan-500 via-blue-500 to-green-600 bg-clip-text">
                 Handled by Pros
               </span>
             </h1>
