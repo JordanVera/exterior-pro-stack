@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const navItems = [
   { href: '/customer', label: 'Home' },
@@ -48,13 +49,87 @@ export default function CustomerLayout({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-white dark:bg-black">
-        <div className="flex flex-col items-center gap-3">
-          <div className="w-8 h-8 border-2 rounded-full border-cyan-500/30 border-t-cyan-500 animate-spin" />
-          <p className="text-sm text-neutral-400 dark:text-neutral-500">
-            Loading...
-          </p>
-        </div>
+      <div className="flex flex-col min-h-screen bg-neutral-50 dark:bg-black">
+        {/* Navbar skeleton */}
+        <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-neutral-200/60 dark:border-neutral-800">
+          <div className="container flex items-center justify-between px-5 mx-auto h-14">
+            <div className="flex items-center gap-6">
+              <Skeleton className="w-[72px] h-8 rounded" />
+              <nav className="flex items-center gap-0.5">
+                {navItems.map((item) => (
+                  <Skeleton
+                    key={item.href}
+                    className="h-8 w-14 rounded-full"
+                  />
+                ))}
+              </nav>
+            </div>
+            <div className="flex items-center gap-1.5">
+              <Skeleton className="h-8 w-8 rounded-full" />
+              <Skeleton className="h-8 w-8 rounded-full" />
+            </div>
+          </div>
+        </header>
+
+        {/* Main content skeleton - matches customer page layout */}
+        <main className="container flex-1 w-full px-5 py-6 mx-auto">
+          <div className="space-y-10">
+            {/* Greeting section */}
+            <div className="space-y-2">
+              <Skeleton className="w-48 h-8" />
+              <Skeleton className="w-32 h-4" />
+            </div>
+
+            {/* Stats section - 4 cards */}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-20 rounded-xl" />
+              ))}
+            </div>
+
+            {/* Quote builder section */}
+            <div>
+              <div className="flex items-center justify-between mb-5">
+                <Skeleton className="w-28 h-6" />
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                {[...Array(6)].map((_, i) => (
+                  <Skeleton key={i} className="h-24 rounded-xl" />
+                ))}
+              </div>
+            </div>
+
+            {/* Recent activity section */}
+            <div>
+              <Skeleton className="w-32 h-6 mb-4" />
+              <div className="space-y-2">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="flex items-center gap-3 py-2.5">
+                    <Skeleton className="h-7 w-7 rounded-full flex-shrink-0" />
+                    <div className="flex-1 space-y-1">
+                      <Skeleton className="h-4 w-full max-w-[200px]" />
+                      <Skeleton className="h-3 w-24" />
+                    </div>
+                    <Skeleton className="h-3 w-10 flex-shrink-0" />
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Active jobs section */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <Skeleton className="w-24 h-6" />
+                <Skeleton className="h-4 w-14" />
+              </div>
+              <div className="space-y-2">
+                {[...Array(2)].map((_, i) => (
+                  <Skeleton key={i} className="h-16 rounded-xl" />
+                ))}
+              </div>
+            </div>
+          </div>
+        </main>
       </div>
     );
   }
