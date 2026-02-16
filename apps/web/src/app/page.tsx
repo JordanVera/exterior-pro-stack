@@ -91,7 +91,7 @@ export default function HomePage() {
             </Button>
             <Button
               onClick={() => router.push('/login')}
-              className="bg-cyan-500 text-black hover:bg-cyan-700"
+              className="text-black bg-cyan-500 hover:bg-cyan-700"
             >
               Get Started
             </Button>
@@ -113,7 +113,7 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-50/90 via-white/85 to-green-50/90 dark:from-cyan-950/60 dark:via-black/75 dark:to-green-950/60" />
         <div className="relative px-6 pt-20 pb-20 mx-auto max-w-7xl sm:pt-28">
           <div className="max-w-4xl mx-auto text-center">
-            <Badge className="mb-2 gap-2 bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-400 border-0 hover:bg-cyan-100 dark:hover:bg-cyan-950/50">
+            <Badge className="gap-2 mb-2 border-0 bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-400 hover:bg-cyan-100 dark:hover:bg-cyan-950/50">
               <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
               All-In-One Platform for exterior property services
             </Badge>
@@ -133,7 +133,7 @@ export default function HomePage() {
               <Button
                 size="lg"
                 onClick={() => router.push('/login')}
-                className="text-lg bg-cyan-500 text-black hover:bg-cyan-700 hover:shadow-lg hover:shadow-cyan-600/25 rounded-xl"
+                className="text-lg text-black bg-cyan-500 hover:bg-cyan-700 hover:shadow-lg hover:shadow-cyan-600/25 rounded-xl"
               >
                 Book a Service
               </Button>
@@ -217,17 +217,17 @@ export default function HomePage() {
             ].map((service) => (
               <Card
                 key={service.title}
-                className="relative cursor-pointer transition-all group hover:border-cyan-200 dark:hover:border-cyan-900 hover:shadow-lg dark:hover:shadow-cyan-950/20 rounded-2xl"
+                className="relative transition-all cursor-pointer group hover:border-cyan-200 dark:hover:border-cyan-900 hover:shadow-lg dark:hover:shadow-cyan-950/20 rounded-2xl"
                 onClick={() => router.push('/login')}
               >
                 <CardContent className="p-6">
                   {service.tag && (
-                    <Badge className="absolute top-4 right-4 bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-400 border-0">
+                    <Badge className="absolute border-0 top-4 right-4 bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-400">
                       {service.tag}
                     </Badge>
                   )}
                   <div className="mb-4 text-4xl">{service.icon}</div>
-                  <h3 className="text-lg font-semibold text-foreground transition-colors group-hover:text-cyan-600 dark:group-hover:text-cyan-400">
+                  <h3 className="text-lg font-semibold transition-colors text-foreground group-hover:text-cyan-600 dark:group-hover:text-cyan-400">
                     {service.title}
                   </h3>
                   <p className="mt-2 leading-relaxed text-muted-foreground">
@@ -318,7 +318,7 @@ export default function HomePage() {
                 ),
               },
               ].map((item) => (
-              <Card key={item.step} className="relative text-center border-0 shadow-none bg-transparent">
+              <Card key={item.step} className="relative text-center bg-transparent border-0 shadow-none">
                 <CardContent className="p-0">
                   <div className="inline-flex items-center justify-center mb-6 text-cyan-600 bg-cyan-100 w-14 h-14 rounded-2xl dark:bg-cyan-950/50 dark:text-cyan-400">
                     {item.icon}
@@ -435,7 +435,7 @@ export default function HomePage() {
                   <Button
                     size="lg"
                     onClick={() => router.push('/login')}
-                    className="text-lg bg-white text-green-700 hover:bg-green-50 shadow-lg shadow-green-900/30 rounded-xl"
+                    className="text-lg text-green-700 bg-white shadow-lg hover:bg-green-50 shadow-green-900/30 rounded-xl"
                   >
                     Start for Free
                   </Button>
@@ -637,7 +637,7 @@ export default function HomePage() {
               </ul>
             </div>
           </div>
-          <div className="pt-8 mt-12 text-sm text-center text-muted-foreground border-t border-border">
+          <div className="pt-8 mt-12 text-sm text-center border-t text-muted-foreground border-border">
             &copy; {new Date().getFullYear()} Exterior Pro. All rights reserved.
           </div>
         </div>

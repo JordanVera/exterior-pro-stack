@@ -29,7 +29,7 @@ export const jobRouter = router({
       return ctx.db.job.findMany({
         where: {
           quote: {
-            propertyId: { in: propertyIds.map((p) => p.id) },
+            propertyId: { in: propertyIds.map((p: { id: string }) => p.id) },
           },
           ...(input?.status ? { status: input.status } : {}),
         },
