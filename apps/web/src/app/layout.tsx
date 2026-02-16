@@ -1,4 +1,5 @@
 import './globals.css';
+import { Toaster } from '@/components/ui/sonner';
 
 export default function RootLayout({
   children,
@@ -26,6 +27,7 @@ export default function RootLayout({
         />
       </head>
       <body className="antialiased text-gray-900 bg-white dark:bg-black dark:text-neutral-100">
+        <Toaster />
         {children}
       </body>
     </html>

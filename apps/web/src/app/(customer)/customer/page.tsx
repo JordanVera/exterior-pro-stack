@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
+import { toast } from 'sonner';
 import { trpc } from '../../../lib/trpc';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
@@ -220,13 +221,16 @@ export default function CustomerHomePage() {
         providerId: selectedProvider.id,
         customerNotes: notes || undefined,
       });
+      toast.success('Quote request submitted successfully');
       setSuccess(true);
       trpc.quote.listForCustomer
         .query()
         .then(setQuotes)
         .catch(() => {});
     } catch (err: any) {
-      setError(err.message || 'Failed to submit request');
+      const msg = err.message || 'Failed to submit request';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
