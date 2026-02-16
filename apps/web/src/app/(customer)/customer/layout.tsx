@@ -57,16 +57,13 @@ export default function CustomerLayout({
               <Skeleton className="w-[72px] h-8 rounded" />
               <nav className="flex items-center gap-0.5">
                 {navItems.map((item) => (
-                  <Skeleton
-                    key={item.href}
-                    className="h-8 w-14 rounded-full"
-                  />
+                  <Skeleton key={item.href} className="h-8 rounded-full w-14" />
                 ))}
               </nav>
             </div>
             <div className="flex items-center gap-1.5">
-              <Skeleton className="h-8 w-8 rounded-full" />
-              <Skeleton className="h-8 w-8 rounded-full" />
+              <Skeleton className="w-8 h-8 rounded-full" />
+              <Skeleton className="w-8 h-8 rounded-full" />
             </div>
           </div>
         </header>
@@ -90,7 +87,7 @@ export default function CustomerLayout({
             {/* Quote builder section */}
             <div>
               <div className="flex items-center justify-between mb-5">
-                <Skeleton className="w-28 h-6" />
+                <Skeleton className="h-6 w-28" />
               </div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {[...Array(6)].map((_, i) => (
@@ -105,12 +102,12 @@ export default function CustomerLayout({
               <div className="space-y-2">
                 {[...Array(4)].map((_, i) => (
                   <div key={i} className="flex items-center gap-3 py-2.5">
-                    <Skeleton className="h-7 w-7 rounded-full flex-shrink-0" />
+                    <Skeleton className="flex-shrink-0 rounded-full h-7 w-7" />
                     <div className="flex-1 space-y-1">
                       <Skeleton className="h-4 w-full max-w-[200px]" />
-                      <Skeleton className="h-3 w-24" />
+                      <Skeleton className="w-24 h-3" />
                     </div>
-                    <Skeleton className="h-3 w-10 flex-shrink-0" />
+                    <Skeleton className="flex-shrink-0 w-10 h-3" />
                   </div>
                 ))}
               </div>
@@ -154,7 +151,7 @@ export default function CustomerLayout({
               <Image
                 src="/logos/logo-stacked.png"
                 alt="Exterior Pro"
-                width={72}
+                width={84}
                 height={32}
               />
             </Link>
