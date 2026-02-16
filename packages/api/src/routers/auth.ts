@@ -1,107 +1,115 @@
-import { TRPCError } from "@trpc/server";
-import { router, publicProcedure, protectedProcedure } from "../trpc";
+import chalk from 'chalk';
+import { TRPCError } from '@trpc/server';
+import { router, publicProcedure, protectedProcedure } from '../trpc';
 import {
   sendCodeInput,
   verifyCodeInput,
   selectRoleInput,
   customerOnboardingInput,
   providerOnboardingInput,
-} from "@repo/validators";
-import { signToken } from "../lib/jwt";
-import { sendSMS, generateVerificationCode } from "../lib/sms";
+} from '@repo/validators';
+import { signToken } from '../lib/jwt';
+import { sendSMS, generateVerificationCode } from '../lib/sms';
 
 export const authRouter = router({
   /** Send a 6-digit verification code via SMS */
-  sendCode: publicProcedure.input(sendCodeInput).mutation(async ({ ctx, input }) => {
-    const code = generateVerificationCode();
-    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+  sendCode: publicProcedure
+    .input(sendCodeInput)
+    .mutation(async ({ ctx, input }) => {
+      const code = generateVerificationCode();
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
-    // Invalidate previous unused codes for this phone
-    await ctx.db.verificationCode.updateMany({
-      where: { phone: input.phone, used: false },
-      data: { used: true },
-    });
-
-    await ctx.db.verificationCode.create({
-      data: {
-        phone: input.phone,
-        code,
-        expiresAt,
-      },
-    });
-
-    await sendSMS(input.phone, `Your Exterior Pro verification code is: ${code}`);
-
-    return { success: true };
-  }),
-
-  /** Verify code and return JWT + user */
-  verifyCode: publicProcedure.input(verifyCodeInput).mutation(async ({ ctx, input }) => {
-    const verification = await ctx.db.verificationCode.findFirst({
-      where: {
-        phone: input.phone,
-        code: input.code,
-        used: false,
-        expiresAt: { gt: new Date() },
-      },
-      orderBy: { createdAt: "desc" },
-    });
-
-    if (!verification) {
-      throw new TRPCError({
-        code: "BAD_REQUEST",
-        message: "Invalid or expired verification code",
+      // Invalidate previous unused codes for this phone
+      await ctx.db.verificationCode.updateMany({
+        where: { phone: input.phone, used: false },
+        data: { used: true },
       });
-    }
 
-    // Mark code as used
-    await ctx.db.verificationCode.update({
-      where: { id: verification.id },
-      data: { used: true },
-    });
-
-    // Find or create user
-    let user = await ctx.db.user.findUnique({
-      where: { phone: input.phone },
-      include: { customerProfile: true, providerProfile: true },
-    });
-
-    let isNewUser = false;
-
-    if (!user) {
-      user = await ctx.db.user.create({
+      await ctx.db.verificationCode.create({
         data: {
           phone: input.phone,
-          verified: true,
+          code,
+          expiresAt,
         },
+      });
+
+      await sendSMS(
+        input.phone,
+        chalk.cyanBright(`Your Exterior Pro verification code is: ${code}`),
+      );
+
+      return { success: true };
+    }),
+
+  /** Verify code and return JWT + user */
+  verifyCode: publicProcedure
+    .input(verifyCodeInput)
+    .mutation(async ({ ctx, input }) => {
+      const verification = await ctx.db.verificationCode.findFirst({
+        where: {
+          phone: input.phone,
+          code: input.code,
+          used: false,
+          expiresAt: { gt: new Date() },
+        },
+        orderBy: { createdAt: 'desc' },
+      });
+
+      if (!verification) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Invalid or expired verification code',
+        });
+      }
+
+      // Mark code as used
+      await ctx.db.verificationCode.update({
+        where: { id: verification.id },
+        data: { used: true },
+      });
+
+      // Find or create user
+      let user = await ctx.db.user.findUnique({
+        where: { phone: input.phone },
         include: { customerProfile: true, providerProfile: true },
       });
-      isNewUser = true;
-    } else if (!user.verified) {
-      user = await ctx.db.user.update({
-        where: { id: user.id },
-        data: { verified: true },
-        include: { customerProfile: true, providerProfile: true },
+
+      let isNewUser = false;
+
+      if (!user) {
+        user = await ctx.db.user.create({
+          data: {
+            phone: input.phone,
+            verified: true,
+          },
+          include: { customerProfile: true, providerProfile: true },
+        });
+        isNewUser = true;
+      } else if (!user.verified) {
+        user = await ctx.db.user.update({
+          where: { id: user.id },
+          data: { verified: true },
+          include: { customerProfile: true, providerProfile: true },
+        });
+      }
+
+      const token = await signToken({
+        userId: user.id,
+        role: user.role ?? 'CUSTOMER',
       });
-    }
 
-    const token = await signToken({
-      userId: user.id,
-      role: user.role ?? "CUSTOMER",
-    });
-
-    return {
-      token,
-      user: {
-        id: user.id,
-        phone: user.phone,
-        role: user.role,
-        verified: user.verified,
-        isNewUser,
-        hasProfile: !!(user.customerProfile || user.providerProfile),
-      },
-    };
-  }),
+      return {
+        token,
+        user: {
+          id: user.id,
+          phone: user.phone,
+          role: user.role,
+          verified: user.verified,
+          isNewUser,
+          hasProfile: !!(user.customerProfile || user.providerProfile),
+        },
+      };
+    }),
 
   /** Get the current authenticated user */
   me: protectedProcedure.query(async ({ ctx }) => {
@@ -111,7 +119,7 @@ export const authRouter = router({
     });
 
     if (!user) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
     }
 
     return {
@@ -134,13 +142,13 @@ export const authRouter = router({
       });
 
       if (!user) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
       }
 
       if (user.role) {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Role already selected",
+          code: 'BAD_REQUEST',
+          message: 'Role already selected',
         });
       }
 
