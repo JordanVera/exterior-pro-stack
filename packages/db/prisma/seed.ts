@@ -384,6 +384,8 @@ async function main() {
   await prisma.quote.deleteMany({});
   await prisma.providerService.deleteMany({});
   await prisma.service.deleteMany({});
+  await prisma.property.deleteMany({});
+
   info('Cleared existing services');
 
   const services = await Promise.all(
