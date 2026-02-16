@@ -6,9 +6,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent } from '@/components/ui/card';
 import { Check, Clock, FileText, Star } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
-import { timeAgo } from './_components/utils';
+import { timeAgo, groupDataByProperty } from './_components/utils';
 import { GreetingSection } from './_components/greeting-section';
 import { StatsSection } from './_components/stats-section';
+import { PropertySection } from './_components/property-section';
 import { QuoteBuilderSection } from './_components/quote-builder-section';
 import { RecentActivitySection } from './_components/recent-activity-section';
 import { ActiveJobsSection } from './_components/active-jobs-section';
@@ -76,6 +77,11 @@ export default function CustomerHomePage() {
   );
   const firstName = user?.customerProfile?.firstName || 'there';
 
+  const propertySummaries = useMemo(
+    () => groupDataByProperty(properties, quotes, jobs),
+    [properties, quotes, jobs],
+  );
+
   const activityItems = useMemo(() => {
     const items: {
       id: string;
@@ -85,6 +91,7 @@ export default function CustomerHomePage() {
       sub: string;
       time: string;
       date: Date;
+      job?: any;
     }[] = [];
 
     quotes.forEach((q) => {
@@ -121,6 +128,7 @@ export default function CustomerHomePage() {
           sub: j.quote.property.address,
           time: timeAgo(j.completedAt),
           date: new Date(j.completedAt),
+          job: j,
         });
       } else if (j.status === 'SCHEDULED' && j.scheduledDate) {
         items.push({
@@ -176,6 +184,20 @@ export default function CustomerHomePage() {
   };
   const pickProvider = (prov: any) => {
     setSelectedProvider(prov);
+  };
+
+  const startRequestQuoteForProperty = (property: any) => {
+    setSelectedProperty(property);
+    setStep(1);
+  };
+
+  const startRebook = (job: any) => {
+    const { quote } = job;
+    setSelectedCategory(quote.service.category);
+    setSelectedService(quote.service);
+    setSelectedProperty(quote.property);
+    setSelectedProvider(quote.provider);
+    setStep(5);
   };
 
   const continueToReview = () => {
@@ -270,7 +292,13 @@ export default function CustomerHomePage() {
         onSubmit={handleSubmit}
       />
 
-      <RecentActivitySection items={activityItems} />
+      <PropertySection
+        summaries={propertySummaries}
+        onRequestQuote={startRequestQuoteForProperty}
+        onRebook={startRebook}
+      />
+
+      <RecentActivitySection items={activityItems} onRebook={startRebook} />
 
       <ActiveJobsSection jobs={activeJobs} />
     </div>

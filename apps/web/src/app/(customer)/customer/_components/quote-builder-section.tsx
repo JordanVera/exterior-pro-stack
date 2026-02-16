@@ -410,10 +410,17 @@ export function QuoteBuilderSection({
                 </Card>
               ) : (
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {properties.map((prop) => (
+                  {properties.map((prop) => {
+                    const isSelected = selectedProperty?.id === prop.id;
+                    return (
                     <Card
                       key={prop.id}
-                      className="cursor-pointer shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20 hover:border-neutral-300 dark:hover:border-neutral-700"
+                      className={cn(
+                        'cursor-pointer shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20',
+                        isSelected
+                          ? 'border-cyan-500 ring-1 ring-cyan-500/20'
+                          : 'hover:border-neutral-300 dark:hover:border-neutral-700'
+                      )}
                       onClick={() => onPickProperty(prop)}
                     >
                       <CardContent className="p-4">
@@ -432,7 +439,8 @@ export function QuoteBuilderSection({
                         </div>
                       </CardContent>
                     </Card>
-                  ))}
+                  );
+                  })}
                 </div>
               )}
             </div>
