@@ -76,3 +76,78 @@ export function timeAgo(date: string) {
 }
 
 export const STEPS = ['Category', 'Service', 'Property', 'Provider', 'Review'];
+
+export interface PropertySummary {
+  property: {
+    id: string;
+    address: string;
+    city: string;
+    state: string;
+    zip: string;
+  };
+  activeJobsCount: number;
+  pendingQuotesCount: number;
+  lastCompletedJob: {
+    id: string;
+    serviceName: string;
+    completedAt: string;
+    quote: { service: any; property: any; provider: any };
+  } | null;
+}
+
+export function groupDataByProperty(
+  properties: {
+    id: string;
+    address: string;
+    city: string;
+    state: string;
+    zip: string;
+  }[],
+  quotes: { propertyId: string; status: string }[],
+  jobs: {
+    id: string;
+    status: string;
+    completedAt?: string | null;
+    quote: {
+      propertyId: string;
+      property: any;
+      service: { name: string };
+      provider: any;
+    };
+  }[],
+): PropertySummary[] {
+  return properties.map((property) => {
+    const propertyQuotes = quotes.filter((q) => q.propertyId === property.id);
+    const propertyJobs = jobs.filter((j) => j.quote.propertyId === property.id);
+
+    const activeJobsCount = propertyJobs.filter((j) =>
+      ['SCHEDULED', 'IN_PROGRESS'].includes(j.status),
+    ).length;
+    const pendingQuotesCount = propertyQuotes.filter(
+      (q) => q.status === 'SENT',
+    ).length;
+
+    const completedJobs = propertyJobs
+      .filter((j) => j.status === 'COMPLETED' && j.completedAt)
+      .sort(
+        (a, b) =>
+          new Date(b.completedAt!).getTime() -
+          new Date(a.completedAt!).getTime(),
+      );
+    const lastCompletedJob = completedJobs[0]
+      ? {
+          id: completedJobs[0].id,
+          serviceName: completedJobs[0].quote.service.name,
+          completedAt: completedJobs[0].completedAt!,
+          quote: completedJobs[0].quote,
+        }
+      : null;
+
+    return {
+      property,
+      activeJobsCount,
+      pendingQuotesCount,
+      lastCompletedJob,
+    };
+  });
+}

@@ -1,5 +1,7 @@
 import { cn } from '@/lib/utils';
 import type { LucideIcon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { RotateCcw } from 'lucide-react';
 
 export interface ActivityItem {
   id: string;
@@ -8,13 +10,15 @@ export interface ActivityItem {
   title: string;
   sub: string;
   time: string;
+  job?: { id: string; quote: { service: any; property: any; provider: any } };
 }
 
 interface RecentActivitySectionProps {
   items: ActivityItem[];
+  onRebook?: (job: { id: string; quote: { service: any; property: any; provider: any } }) => void;
 }
 
-export function RecentActivitySection({ items }: RecentActivitySectionProps) {
+export function RecentActivitySection({ items, onRebook }: RecentActivitySectionProps) {
   if (items.length === 0) return null;
 
   return (
@@ -36,9 +40,25 @@ export function RecentActivitySection({ items }: RecentActivitySectionProps) {
                 </div>
                 <div className="text-xs text-neutral-500">{item.sub}</div>
               </div>
-              <span className="text-[11px] text-neutral-400 dark:text-neutral-600 flex-shrink-0">
-                {item.time}
-              </span>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                {item.job && onRebook && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onRebook(item.job!);
+                    }}
+                    className="h-6 px-2 text-[11px] text-cyan-500 hover:text-cyan-400 hover:bg-cyan-500/10"
+                  >
+                    <RotateCcw className="w-3 h-3 mr-1" />
+                    Book again
+                  </Button>
+                )}
+                <span className="text-[11px] text-neutral-400 dark:text-neutral-600">
+                  {item.time}
+                </span>
+              </div>
             </div>
           );
         })}

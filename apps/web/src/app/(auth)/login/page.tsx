@@ -10,6 +10,18 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from '@/components/ui/input-otp';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import Image from 'next/image';
 
 type Step = 'phone' | 'code';
 
@@ -162,9 +174,12 @@ export default function LoginPage() {
       {/* Login card */}
       <div className="relative z-10 w-full max-w-md mx-4">
         {/* Back to home */}
-        <button
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
           onClick={() => router.push('/')}
-          className="flex items-center gap-1.5 text-sm text-white/60 hover:text-white mb-6 transition-colors"
+          className="flex items-center gap-1.5 text-white/60 hover:text-white hover:bg-white/10 mb-6"
         >
           <svg
             className="w-4 h-4"
@@ -180,111 +195,131 @@ export default function LoginPage() {
             />
           </svg>
           Back to home
-        </button>
+        </Button>
 
-        <div className="p-8 border shadow-2xl bg-white/10 dark:bg-white/5 backdrop-blur-xl rounded-2xl shadow-black/50 border-white/20 dark:border-white/10">
-          {/* Logo & Header */}
-          <div className="mb-8 text-center">
-            <div className="inline-flex items-center justify-center mb-4 shadow-lg w-14 h-14 rounded-2xl bg-cyan-600 shadow-cyan-600/30">
-              <span className="text-xl font-bold text-white">EP</span>
-            </div>
-            <h1 className="text-3xl font-bold text-white">Exterior Pro</h1>
-            <p className="mt-2 text-white/60">
+        <Card className="p-8 border shadow-2xl bg-white/10 dark:bg-cyan-500/20 backdrop-blur-xl rounded-2xl shadow-black/50 border-white/20 dark:border-white/10">
+          <CardHeader className="mb-4 text-center space-y-1.5 p-0">
+            <Image
+              className="mx-auto mb-8"
+              src="/logos/logo-stacked.png"
+              alt="Logo"
+              width={200}
+              height={200}
+            />
+            <CardDescription className=" text-white/60">
               {step === 'phone'
                 ? 'Enter your phone number to get started'
                 : 'Enter the verification code we sent you'}
-            </p>
-          </div>
+            </CardDescription>
+          </CardHeader>
 
-          {/* Phone Step */}
-          {step === 'phone' && (
-            <form onSubmit={handleSendCode} className="space-y-6">
-              <div>
-                <label className="block mb-2 text-sm font-medium text-white/80">
-                  Phone Number
-                </label>
-                <div className="flex">
-                  <span className="inline-flex items-center px-4 text-sm border border-r-0 rounded-l-lg border-white/20 bg-white/5 text-white/50">
-                    +1
-                  </span>
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(formatPhone(e.target.value))}
-                    placeholder="(555) 123-4567"
-                    className="flex-1 block w-full px-4 py-3 text-white border rounded-r-lg outline-none border-white/20 bg-white/5 placeholder-white/30 focus:ring-2 focus:ring-cyan-500 focus:border-transparent backdrop-blur-sm"
-                    autoFocus
-                  />
+          <CardContent className="p-0 pt-0">
+            {/* Phone Step */}
+            {step === 'phone' && (
+              <form onSubmit={handleSendCode} className="space-y-6">
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="text-white/80">
+                    Phone Number
+                  </Label>
+                  <div className="flex">
+                    <span className="inline-flex items-center px-4 text-sm border border-r-0 rounded-l-md border-white/20 bg-white/5 text-white/50 h-9">
+                      +1
+                    </span>
+                    <Input
+                      id="phone"
+                      type="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(formatPhone(e.target.value))}
+                      placeholder="(555) 123-4567"
+                      className="flex-1 text-white border-l-0 rounded-l-0 rounded-r-md border-white/20 bg-white/5 placeholder:text-white/30 focus-visible:ring-cyan-500 focus-visible:ring-2"
+                      autoFocus
+                    />
+                  </div>
                 </div>
-              </div>
-              {error && <p className="text-sm text-red-400">{error}</p>}
-              <button
-                type="submit"
-                disabled={loading || phone.length !== 10}
-                className="w-full px-4 py-3 font-semibold text-white transition-all rounded-lg bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-cyan-600/25"
-              >
-                {loading ? 'Sending...' : 'Send Verification Code'}
-              </button>
-            </form>
-          )}
-
-          {/* Code Step */}
-          {step === 'code' && (
-            <form
-              onSubmit={handleVerifyCode}
-              className="justify-center space-y-6"
-            >
-              <div className="flex flex-col items-center justify-center">
-                <label className="block mb-2 text-sm font-medium text-white/80">
-                  Verification Code
-                </label>
-                <InputOTP
-                  maxLength={6}
-                  pattern={REGEXP_ONLY_DIGITS}
-                  value={code}
-                  onChange={setCode}
-                  className="justify-center"
-                  containerClassName="gap-1.5"
+                {error && (
+                  <Alert
+                    variant="destructive"
+                    className="text-red-400 border-red-500/50 bg-red-500/10"
+                  >
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+                <Button
+                  type="submit"
+                  disabled={loading || phone.length !== 10}
+                  size="lg"
+                  className="w-full font-semibold text-white bg-orange-500 hover:bg-orange-700 hover:shadow-lg hover:shadow-orange-600/25"
                 >
-                  <InputOTPGroup className="rounded-lg p-1.5 backdrop-blur-sm [&>div]:h-12 [&>div]:w-12 [&>div]:border [&>div]:border-white/20 [&>div]:bg-white/5 [&>div]:text-white [&>div]:text-xl [&>div]:font-medium [&>div]:first:rounded-l-md [&>div]:last:rounded-r-md [&>div[data-active]]:ring-2 [&>div[data-active]]:ring-cyan-500 [&>div[data-active]]:border-cyan-500/50">
-                    <InputOTPSlot index={0} />
-                    <InputOTPSlot index={1} />
-                    <InputOTPSlot index={2} />
-                    <InputOTPSlot index={3} />
-                    <InputOTPSlot index={4} />
-                    <InputOTPSlot index={5} />
-                  </InputOTPGroup>
-                </InputOTP>
-                <p className="mt-2 text-sm text-white/50">
-                  Sent to {fullPhone}
-                </p>
-              </div>
+                  {loading ? 'Sending...' : 'Send Verification Code'}
+                </Button>
+              </form>
+            )}
 
-              {error && <p className="text-sm text-red-400">{error}</p>}
-              <button
-                type="submit"
-                disabled={loading || code.length !== 6}
-                className="w-full px-4 py-3 font-semibold text-white transition-all rounded-lg bg-cyan-600 hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg hover:shadow-cyan-600/25"
+            {/* Code Step */}
+            {step === 'code' && (
+              <form
+                onSubmit={handleVerifyCode}
+                className="justify-center space-y-6"
               >
-                {loading ? 'Verifying...' : 'Verify Code'}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setStep('phone');
-                  setCode('');
-                  setError('');
-                }}
-                className="w-full py-2 text-sm transition-colors text-white/40 hover:text-white/70"
-              >
-                Use a different number
-              </button>
-            </form>
-          )}
-        </div>
+                <div className="flex flex-col items-center justify-center space-y-2">
+                  <Label className="text-white/80">Verification Code</Label>
+                  <InputOTP
+                    maxLength={6}
+                    pattern={REGEXP_ONLY_DIGITS}
+                    value={code}
+                    onChange={setCode}
+                    className="justify-center"
+                    containerClassName="gap-1.5"
+                  >
+                    <InputOTPGroup className="rounded-lg p-1.5 backdrop-blur-sm [&>div]:h-12 [&>div]:w-12 [&>div]:border [&>div]:border-white/20 [&>div]:bg-white/5 [&>div]:text-white [&>div]:text-xl [&>div]:font-medium [&>div]:first:rounded-l-md [&>div]:last:rounded-r-md [&>div[data-active]]:ring-2 [&>div[data-active]]:ring-cyan-500 [&>div[data-active]]:border-cyan-500/50">
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                  <p className="mt-2 text-sm text-white/50">
+                    Sent to {fullPhone}
+                  </p>
+                </div>
+
+                {error && (
+                  <Alert
+                    variant="destructive"
+                    className="text-red-400 border-red-500/50 bg-red-500/10"
+                  >
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
+                )}
+                <Button
+                  type="submit"
+                  disabled={loading || code.length !== 6}
+                  size="lg"
+                  className="w-full font-semibold text-white bg-orange-600 h-11 hover:bg-orange-700 hover:shadow-lg hover:shadow-orange-600/25"
+                >
+                  {loading ? 'Verifying...' : 'Verify Code'}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={() => {
+                    setStep('phone');
+                    setCode('');
+                    setError('');
+                  }}
+                  className="w-full py-2 text-sm text-white/40 hover:text-white/70 hover:bg-white/10"
+                >
+                  Use a different number
+                </Button>
+              </form>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Footer text */}
-        <p className="mt-6 text-xs text-center text-white/30">
+        <p className="mt-6 text-xs font-bold text-center text-yellow-300">
           By continuing, you agree to our Terms of Service and Privacy Policy.
         </p>
       </div>
