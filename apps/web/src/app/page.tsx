@@ -2,11 +2,15 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { Check } from 'lucide-react';
 import { trpc } from '../lib/trpc';
 import { isAuthenticated } from '../lib/auth';
 import { ThemeToggle } from '../components/ThemeToggle';
 import Image from 'next/image';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
 export default function HomePage() {
   const router = useRouter();
@@ -31,8 +35,8 @@ export default function HomePage() {
 
   if (checking) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-white dark:bg-black">
-        <div className="text-gray-500 dark:text-neutral-400">Loading...</div>
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="text-muted-foreground">Loading...</div>
       </div>
     );
   }
@@ -40,7 +44,7 @@ export default function HomePage() {
   return (
     <div className="min-h-screen bg-white dark:bg-black">
       {/* ─── NAV ─── */}
-      <nav className="sticky top-0 z-50 border-b border-gray-100 backdrop-blur-lg bg-white/80 dark:bg-black/80 dark:border-neutral-900">
+      <nav className="sticky top-0 z-50 border-b border-border backdrop-blur-lg bg-background/80">
         <div className="flex items-center justify-between px-6 py-4 mx-auto max-w-7xl">
           <Link href="/" className="flex items-center gap-2">
             {/* <Image
@@ -56,40 +60,41 @@ export default function HomePage() {
               height={32}
             />
           </Link>
-          <div className="items-center hidden gap-8 text-sm font-medium text-gray-600 md:flex dark:text-neutral-400">
+          <div className="items-center hidden gap-8 text-sm font-medium text-muted-foreground md:flex">
             <a
               href="#services"
-              className="transition-colors hover:text-gray-900 dark:hover:text-white"
+              className="transition-colors hover:text-foreground"
             >
               Services
             </a>
             <a
               href="#how-it-works"
-              className="transition-colors hover:text-gray-900 dark:hover:text-white"
+              className="transition-colors hover:text-foreground"
             >
               How It Works
             </a>
             <a
               href="#providers"
-              className="transition-colors hover:text-gray-900 dark:hover:text-white"
+              className="transition-colors hover:text-foreground"
             >
               For Providers
             </a>
           </div>
           <div className="flex items-center gap-3">
             <ThemeToggle />
-            <button
+            <Button
+              variant="ghost"
               onClick={() => router.push('/login')}
-              className="hidden px-4 py-2 text-sm font-medium text-gray-700 transition-colors sm:inline-flex dark:text-neutral-300 hover:text-gray-900 dark:hover:text-white"
+              className="hidden sm:inline-flex text-muted-foreground hover:text-foreground"
             >
               Sign In
-            </button>
-            <button
+            </Button>
+            <Button
               onClick={() => router.push('/login')}
-              className="px-5 py-2.5 bg-cyan-500 text-black text-sm font-semibold rounded-lg hover:bg-cyan-700 transition-colors"
+              className="bg-cyan-500 text-black hover:bg-cyan-700"
             >
               Get Started
-            </button>
+            </Button>
           </div>
         </div>
       </nav>
@@ -108,77 +113,50 @@ export default function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-br from-cyan-50/90 via-white/85 to-green-50/90 dark:from-cyan-950/60 dark:via-black/75 dark:to-green-950/60" />
         <div className="relative px-6 pt-20 pb-20 mx-auto max-w-7xl sm:pt-28">
           <div className="max-w-4xl mx-auto text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-400 text-sm font-medium mb-2">
+            <Badge className="mb-2 gap-2 bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-400 border-0 hover:bg-cyan-100 dark:hover:bg-cyan-950/50">
               <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
               All-In-One Platform for exterior property services
-            </div>
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white leading-[1.1] tracking-tight">
+            </Badge>
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-foreground leading-[1.1] tracking-tight">
               Your Property&apos;s Exterior
               <br />
               <span className="text-transparent bg-gradient-to-r from-cyan-500 via-blue-500 to-green-600 bg-clip-text">
                 Handled by Pros
               </span>
             </h1>
-            <p className="max-w-2xl mx-auto mt-6 text-lg leading-relaxed text-gray-600 sm:text-xl dark:text-neutral-400">
+            <p className="max-w-2xl mx-auto mt-6 text-lg leading-relaxed text-muted-foreground sm:text-xl">
               One platform for pressure washing, lawn care, landscaping,
               painting, window cleaning, and more. Get instant quotes, book
               trusted providers, and track every job in real time.
             </p>
             <div className="flex flex-col justify-center gap-4 mt-10 sm:flex-row">
-              <button
+              <Button
+                size="lg"
                 onClick={() => router.push('/login')}
-                className="px-8 py-4 text-lg font-semibold text-black transition-all bg-cyan-500 rounded-xl hover:bg-cyan-700 hover:shadow-lg hover:shadow-cyan-600/25"
+                className="text-lg bg-cyan-500 text-black hover:bg-cyan-700 hover:shadow-lg hover:shadow-cyan-600/25 rounded-xl"
               >
                 Book a Service
-              </button>
-              <button
+              </Button>
+              <Button
+                size="lg"
+                variant="outline"
                 onClick={() => router.push('/login')}
-                className="px-8 py-4 text-lg font-semibold text-gray-700 transition-all bg-white border-2 border-gray-200 dark:bg-neutral-900 dark:text-neutral-200 rounded-xl dark:border-neutral-800 hover:border-gray-300 dark:hover:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-800"
+                className="text-lg rounded-xl"
               >
                 Join as a Provider
-              </button>
+              </Button>
             </div>
-            <div className="flex items-center justify-center gap-8 mt-12 text-sm text-gray-500 dark:text-neutral-500">
+            <div className="flex items-center justify-center gap-8 mt-12 text-sm text-muted-foreground">
               <div className="flex items-center gap-1.5">
-                <svg
-                  className="w-4 h-4 text-green-500"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                <Check className="w-4 h-4 text-green-500" />
                 Free quotes
               </div>
               <div className="flex items-center gap-1.5">
-                <svg
-                  className="w-4 h-4 text-green-500"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                <Check className="w-4 h-4 text-green-500" />
                 Verified providers
               </div>
               <div className="flex items-center gap-1.5">
-                <svg
-                  className="w-4 h-4 text-green-500"
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                    clipRule="evenodd"
-                  />
-                </svg>
+                <Check className="w-4 h-4 text-green-500" />
                 Real-time tracking
               </div>
             </div>
@@ -187,16 +165,16 @@ export default function HomePage() {
       </section>
 
       {/* ─── SERVICES ─── */}
-      <section id="services" className="py-24 bg-gray-50 dark:bg-neutral-950">
+      <section id="services" className="py-24 bg-muted/50">
         <div className="px-6 mx-auto max-w-7xl">
           <div className="mb-16 text-center">
             <p className="mb-3 text-sm font-semibold tracking-wider uppercase text-cyan-600 dark:text-cyan-400">
               All-In-One Platform
             </p>
-            <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl dark:text-white">
+            <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
               Every Exterior Service You Need
             </h2>
-            <p className="max-w-2xl mx-auto mt-4 text-lg text-gray-600 dark:text-neutral-400">
+            <p className="max-w-2xl mx-auto mt-4 text-lg text-muted-foreground">
               Stop juggling multiple contractors. Exterior Pro brings all your
               property services under one roof with transparent pricing and
               professional results.
@@ -237,27 +215,29 @@ export default function HomePage() {
                 desc: 'Gutter cleaning, guard installation, and gentle roof soft washing.',
               },
             ].map((service) => (
-              <div
+              <Card
                 key={service.title}
-                className="relative p-6 transition-all bg-white border border-gray-100 cursor-pointer group dark:bg-neutral-900 rounded-2xl dark:border-neutral-800 hover:border-cyan-200 dark:hover:border-cyan-900 hover:shadow-lg dark:hover:shadow-cyan-950/20"
+                className="relative cursor-pointer transition-all group hover:border-cyan-200 dark:hover:border-cyan-900 hover:shadow-lg dark:hover:shadow-cyan-950/20 rounded-2xl"
                 onClick={() => router.push('/login')}
               >
-                {service.tag && (
-                  <span className="absolute top-4 right-4 text-xs font-semibold px-2.5 py-1 bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-400 rounded-full">
-                    {service.tag}
-                  </span>
-                )}
-                <div className="mb-4 text-4xl">{service.icon}</div>
-                <h3 className="text-lg font-semibold text-gray-900 transition-colors dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400">
-                  {service.title}
-                </h3>
-                <p className="mt-2 leading-relaxed text-gray-500 dark:text-neutral-400">
-                  {service.desc}
-                </p>
-                <div className="mt-4 text-sm font-medium transition-opacity opacity-0 text-cyan-600 dark:text-cyan-400 group-hover:opacity-100">
-                  Get a free quote &rarr;
-                </div>
-              </div>
+                <CardContent className="p-6">
+                  {service.tag && (
+                    <Badge className="absolute top-4 right-4 bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-400 border-0">
+                      {service.tag}
+                    </Badge>
+                  )}
+                  <div className="mb-4 text-4xl">{service.icon}</div>
+                  <h3 className="text-lg font-semibold text-foreground transition-colors group-hover:text-cyan-600 dark:group-hover:text-cyan-400">
+                    {service.title}
+                  </h3>
+                  <p className="mt-2 leading-relaxed text-muted-foreground">
+                    {service.desc}
+                  </p>
+                  <div className="mt-4 text-sm font-medium transition-opacity opacity-0 text-cyan-600 dark:text-cyan-400 group-hover:opacity-100">
+                    Get a free quote &rarr;
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
@@ -270,7 +250,7 @@ export default function HomePage() {
             <p className="mb-3 text-sm font-semibold tracking-wider uppercase text-cyan-600 dark:text-cyan-400">
               Simple Process
             </p>
-            <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl dark:text-white">
+            <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
               Booked in Minutes, Done Right
             </h2>
           </div>
@@ -337,42 +317,44 @@ export default function HomePage() {
                   </svg>
                 ),
               },
-            ].map((item) => (
-              <div key={item.step} className="relative text-center">
-                <div className="inline-flex items-center justify-center mb-6 text-cyan-600 bg-cyan-100 w-14 h-14 rounded-2xl dark:bg-cyan-950/50 dark:text-cyan-400">
-                  {item.icon}
-                </div>
-                <div className="mb-2 text-xs font-bold tracking-widest text-cyan-600 dark:text-cyan-400">
-                  STEP {item.step}
-                </div>
-                <h3 className="mb-3 text-xl font-semibold text-gray-900 dark:text-white">
-                  {item.title}
-                </h3>
-                <p className="leading-relaxed text-gray-500 dark:text-neutral-400">
-                  {item.desc}
-                </p>
-              </div>
+              ].map((item) => (
+              <Card key={item.step} className="relative text-center border-0 shadow-none bg-transparent">
+                <CardContent className="p-0">
+                  <div className="inline-flex items-center justify-center mb-6 text-cyan-600 bg-cyan-100 w-14 h-14 rounded-2xl dark:bg-cyan-950/50 dark:text-cyan-400">
+                    {item.icon}
+                  </div>
+                  <div className="mb-2 text-xs font-bold tracking-widest text-cyan-600 dark:text-cyan-400">
+                    STEP {item.step}
+                  </div>
+                  <h3 className="mb-3 text-xl font-semibold text-foreground">
+                    {item.title}
+                  </h3>
+                  <p className="leading-relaxed text-muted-foreground">
+                    {item.desc}
+                  </p>
+                </CardContent>
+              </Card>
             ))}
           </div>
         </div>
       </section>
 
       {/* ─── WHY EXTERIOR PRO ─── */}
-      <section className="py-24 bg-gray-50 dark:bg-neutral-950">
+      <section className="py-24 bg-muted/50">
         <div className="px-6 mx-auto max-w-7xl">
           <div className="grid items-center grid-cols-1 gap-16 lg:grid-cols-2">
             <div>
               <p className="mb-3 text-sm font-semibold tracking-wider uppercase text-cyan-600 dark:text-cyan-400">
                 Why Exterior Pro
               </p>
-              <h2 className="text-3xl font-bold leading-tight text-gray-900 sm:text-4xl dark:text-white">
+              <h2 className="text-3xl font-bold leading-tight text-foreground sm:text-4xl">
                 Not Just Another Marketplace.
                 <br />
-                <span className="text-gray-400 dark:text-neutral-500">
+                <span className="text-muted-foreground">
                   A Better Way to Manage Your Property.
                 </span>
               </h2>
-              <p className="mt-6 text-lg leading-relaxed text-gray-600 dark:text-neutral-400">
+              <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
                 Unlike generic platforms like Thumbtack or Angi, Exterior Pro is
                 built exclusively for exterior property services. Every feature
                 is designed around how outdoor work actually gets done.
@@ -411,18 +393,17 @@ export default function HomePage() {
                   desc: 'SMS and in-app updates at every stage of your job from quote to completion.',
                 },
               ].map((item) => (
-                <div
-                  key={item.title}
-                  className="p-4 bg-white border border-gray-100 rounded-xl dark:bg-neutral-900 dark:border-neutral-800"
-                >
-                  <div className="mb-2 text-2xl">{item.icon}</div>
-                  <h4 className="text-sm font-semibold text-gray-900 dark:text-white">
-                    {item.title}
-                  </h4>
-                  <p className="mt-1 text-xs leading-relaxed text-gray-500 dark:text-neutral-400">
-                    {item.desc}
-                  </p>
-                </div>
+                <Card key={item.title}>
+                  <CardContent className="p-4">
+                    <div className="mb-2 text-2xl">{item.icon}</div>
+                    <h4 className="text-sm font-semibold text-foreground">
+                      {item.title}
+                    </h4>
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                      {item.desc}
+                    </p>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           </div>
@@ -451,12 +432,13 @@ export default function HomePage() {
                   way exterior service businesses actually work.
                 </p>
                 <div className="mt-8">
-                  <button
+                  <Button
+                    size="lg"
                     onClick={() => router.push('/login')}
-                    className="px-8 py-4 text-lg font-semibold text-green-700 transition-colors bg-white shadow-lg rounded-xl hover:bg-green-50 shadow-green-900/30"
+                    className="text-lg bg-white text-green-700 hover:bg-green-50 shadow-lg shadow-green-900/30 rounded-xl"
                   >
                     Start for Free
-                  </button>
+                  </Button>
                 </div>
               </div>
               <div className="space-y-4">
@@ -500,7 +482,7 @@ export default function HomePage() {
       </section>
 
       {/* ─── STATS / SOCIAL PROOF ─── */}
-      <section className="py-20 bg-gray-50 dark:bg-neutral-950">
+      <section className="py-20 bg-muted/50">
         <div className="max-w-5xl px-6 mx-auto">
           <div className="grid grid-cols-2 gap-8 text-center md:grid-cols-4">
             {[
@@ -510,10 +492,10 @@ export default function HomePage() {
               { value: 'Free', label: 'Quotes, Always' },
             ].map((stat) => (
               <div key={stat.label}>
-                <div className="text-3xl font-bold text-gray-900 sm:text-4xl dark:text-white">
+                <div className="text-3xl font-bold text-foreground sm:text-4xl">
                   {stat.value}
                 </div>
-                <div className="mt-1 text-sm text-gray-500 dark:text-neutral-400">
+                <div className="mt-1 text-sm text-muted-foreground">
                   {stat.label}
                 </div>
               </div>
@@ -525,32 +507,35 @@ export default function HomePage() {
       {/* ─── FINAL CTA ─── */}
       <section className="py-24">
         <div className="max-w-4xl px-6 mx-auto text-center">
-          <h2 className="text-3xl font-bold leading-tight text-gray-900 sm:text-4xl dark:text-white">
+          <h2 className="text-3xl font-bold leading-tight text-foreground sm:text-4xl">
             Ready to Transform Your Property?
           </h2>
-          <p className="max-w-2xl mx-auto mt-4 text-lg text-gray-600 dark:text-neutral-400">
+          <p className="max-w-2xl mx-auto mt-4 text-lg text-muted-foreground">
             Join thousands of homeowners who trust Exterior Pro for all their
             outdoor property needs. Get your first quote in minutes.
           </p>
           <div className="flex flex-col justify-center gap-4 mt-10 sm:flex-row">
-            <button
+            <Button
+              size="lg"
               onClick={() => router.push('/login')}
-              className="px-8 py-4 text-lg font-semibold text-white transition-all bg-cyan-600 rounded-xl hover:bg-cyan-700 hover:shadow-lg hover:shadow-cyan-600/25"
+              className="text-lg bg-cyan-600 hover:bg-cyan-700 hover:shadow-lg hover:shadow-cyan-600/25 rounded-xl"
             >
               Get Your Free Quote
-            </button>
-            <button
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
               onClick={() => router.push('/login')}
-              className="px-8 py-4 text-lg font-semibold text-gray-700 transition-all border-2 border-gray-200 dark:text-neutral-300 rounded-xl dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-900"
+              className="text-lg rounded-xl"
             >
               List Your Business
-            </button>
+            </Button>
           </div>
         </div>
       </section>
 
       {/* ─── FOOTER ─── */}
-      <footer className="py-12 border-t border-gray-100 dark:border-neutral-900">
+      <footer className="py-12 border-t border-border">
         <div className="px-6 mx-auto max-w-7xl">
           <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
             <div className="col-span-2 md:col-span-1">
@@ -558,79 +543,85 @@ export default function HomePage() {
                 <div className="flex items-center justify-center w-8 h-8 text-sm font-bold text-white rounded-lg bg-cyan-600">
                   EP
                 </div>
-                <span className="text-lg font-bold text-gray-900 dark:text-white">
+                <span className="text-lg font-bold text-foreground">
                   Exterior Pro
                 </span>
               </div>
-              <p className="text-sm leading-relaxed text-gray-500 dark:text-neutral-500">
+              <p className="text-sm leading-relaxed text-muted-foreground">
                 The all-in-one platform for exterior property services. Book,
                 track, and manage everything from your phone.
               </p>
             </div>
             <div>
-              <h4 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">
+              <h4 className="mb-4 text-sm font-semibold text-foreground">
                 For Homeowners
               </h4>
-              <ul className="space-y-2.5 text-sm text-gray-500 dark:text-neutral-400">
+              <ul className="space-y-2.5 text-sm text-muted-foreground">
                 <li>
-                  <button
+                  <Button
+                    variant="link"
                     onClick={() => router.push('/login')}
-                    className="transition-colors hover:text-gray-900 dark:hover:text-white"
+                    className="h-auto p-0 text-muted-foreground hover:text-foreground"
                   >
                     Browse Services
-                  </button>
+                  </Button>
                 </li>
                 <li>
-                  <button
+                  <Button
+                    variant="link"
                     onClick={() => router.push('/login')}
-                    className="transition-colors hover:text-gray-900 dark:hover:text-white"
+                    className="h-auto p-0 text-muted-foreground hover:text-foreground"
                   >
                     Get a Quote
-                  </button>
+                  </Button>
                 </li>
                 <li>
-                  <button
+                  <Button
+                    variant="link"
                     onClick={() => router.push('/login')}
-                    className="transition-colors hover:text-gray-900 dark:hover:text-white"
+                    className="h-auto p-0 text-muted-foreground hover:text-foreground"
                   >
                     My Properties
-                  </button>
+                  </Button>
                 </li>
               </ul>
             </div>
             <div>
-              <h4 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">
+              <h4 className="mb-4 text-sm font-semibold text-foreground">
                 For Providers
               </h4>
-              <ul className="space-y-2.5 text-sm text-gray-500 dark:text-neutral-400">
+              <ul className="space-y-2.5 text-sm text-muted-foreground">
                 <li>
-                  <button
+                  <Button
+                    variant="link"
                     onClick={() => router.push('/login')}
-                    className="transition-colors hover:text-gray-900 dark:hover:text-white"
+                    className="h-auto p-0 text-muted-foreground hover:text-foreground"
                   >
                     Join as Provider
-                  </button>
+                  </Button>
                 </li>
                 <li>
-                  <button
+                  <Button
+                    variant="link"
                     onClick={() => router.push('/login')}
-                    className="transition-colors hover:text-gray-900 dark:hover:text-white"
+                    className="h-auto p-0 text-muted-foreground hover:text-foreground"
                   >
                     Manage Crews
-                  </button>
+                  </Button>
                 </li>
                 <li>
-                  <button
+                  <Button
+                    variant="link"
                     onClick={() => router.push('/login')}
-                    className="transition-colors hover:text-gray-900 dark:hover:text-white"
+                    className="h-auto p-0 text-muted-foreground hover:text-foreground"
                   >
                     Provider Dashboard
-                  </button>
+                  </Button>
                 </li>
               </ul>
             </div>
             <div>
-              <h4 className="mb-4 text-sm font-semibold text-gray-900 dark:text-white">
+              <h4 className="mb-4 text-sm font-semibold text-foreground">
                 Company
               </h4>
               <ul className="space-y-2.5 text-sm text-gray-500 dark:text-neutral-400">
@@ -646,7 +637,7 @@ export default function HomePage() {
               </ul>
             </div>
           </div>
-          <div className="pt-8 mt-12 text-sm text-center text-gray-400 border-t border-gray-100 dark:border-neutral-900 dark:text-neutral-600">
+          <div className="pt-8 mt-12 text-sm text-center text-muted-foreground border-t border-border">
             &copy; {new Date().getFullYear()} Exterior Pro. All rights reserved.
           </div>
         </div>
