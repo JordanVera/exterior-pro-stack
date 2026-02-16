@@ -35,7 +35,9 @@ export const authRouter = router({
 
       await sendSMS(
         input.phone,
-        chalk.cyanBright(`Your Exterior Pro verification code is: ${code}`),
+        chalk.cyanBright.bold(
+          `Your Exterior Pro verification code is: ${chalk.yellowBright.bold(code)}`,
+        ),
       );
 
       return { success: true };

@@ -1,147 +1,278 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useMemo } from 'react';
 import { trpc } from '../../../lib/trpc';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Wrench, MapPin } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent } from '@/components/ui/card';
+import { Check, Clock, FileText, Star } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import { timeAgo } from './_components/utils';
+import { GreetingSection } from './_components/greeting-section';
+import { StatsSection } from './_components/stats-section';
+import { QuoteBuilderSection } from './_components/quote-builder-section';
+import { RecentActivitySection } from './_components/recent-activity-section';
+import { ActiveJobsSection } from './_components/active-jobs-section';
 
-export default function CustomerDashboard() {
-  const router = useRouter();
+export default function CustomerHomePage() {
+  const [user, setUser] = useState<any>(null);
+  const [categories, setCategories] = useState<any[]>([]);
   const [quotes, setQuotes] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
+  const [properties, setProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const [step, setStep] = useState(1);
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [selectedService, setSelectedService] = useState<any>(null);
+  const [selectedProperty, setSelectedProperty] = useState<any>(null);
+  const [selectedProvider, setSelectedProvider] = useState<any>(null);
+  const [providers, setProviders] = useState<any[]>([]);
+  const [loadingProviders, setLoadingProviders] = useState(false);
+  const [notes, setNotes] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
 
   useEffect(() => {
     Promise.all([
+      trpc.auth.me.query(),
+      trpc.service.listCategories.query(),
       trpc.quote.listForCustomer.query(),
       trpc.job.listForCustomer.query(),
+      trpc.property.list.query(),
     ])
-      .then(([q, j]) => {
+      .then(([u, cats, q, j, p]) => {
+        setUser(u);
+        setCategories(cats);
         setQuotes(q);
         setJobs(j);
+        setProperties(p);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
-  const activeJobs = jobs.filter((j) =>
-    ['SCHEDULED', 'IN_PROGRESS'].includes(j.status),
+  useEffect(() => {
+    if (!selectedService) return;
+    setLoadingProviders(true);
+    trpc.provider.list
+      .query({ serviceId: selectedService.id })
+      .then(setProviders)
+      .catch(console.error)
+      .finally(() => setLoadingProviders(false));
+  }, [selectedService]);
+
+  const pendingQuotes = useMemo(
+    () => quotes.filter((q) => q.status === 'SENT'),
+    [quotes],
   );
-  const pendingQuotes = quotes.filter((q) => q.status === 'SENT');
+  const activeJobs = useMemo(
+    () => jobs.filter((j) => ['SCHEDULED', 'IN_PROGRESS'].includes(j.status)),
+    [jobs],
+  );
+  const completedJobs = useMemo(
+    () => jobs.filter((j) => j.status === 'COMPLETED'),
+    [jobs],
+  );
+  const firstName = user?.customerProfile?.firstName || 'there';
+
+  const activityItems = useMemo(() => {
+    const items: {
+      id: string;
+      icon: LucideIcon;
+      color: string;
+      title: string;
+      sub: string;
+      time: string;
+      date: Date;
+    }[] = [];
+
+    quotes.forEach((q) => {
+      if (q.status === 'SENT') {
+        items.push({
+          id: `q-sent-${q.id}`,
+          icon: FileText,
+          color: 'text-cyan-400',
+          title: `Quote received for ${q.service.name}`,
+          sub: q.provider.businessName,
+          time: timeAgo(q.updatedAt || q.createdAt),
+          date: new Date(q.updatedAt || q.createdAt),
+        });
+      } else if (q.status === 'ACCEPTED') {
+        items.push({
+          id: `q-acc-${q.id}`,
+          icon: Check,
+          color: 'text-green-400',
+          title: `Accepted quote for ${q.service.name}`,
+          sub: q.provider.businessName,
+          time: timeAgo(q.updatedAt || q.createdAt),
+          date: new Date(q.updatedAt || q.createdAt),
+        });
+      }
+    });
+
+    jobs.forEach((j) => {
+      if (j.status === 'COMPLETED' && j.completedAt) {
+        items.push({
+          id: `j-done-${j.id}`,
+          icon: Star,
+          color: 'text-amber-400',
+          title: `Completed: ${j.quote.service.name}`,
+          sub: j.quote.property.address,
+          time: timeAgo(j.completedAt),
+          date: new Date(j.completedAt),
+        });
+      } else if (j.status === 'SCHEDULED' && j.scheduledDate) {
+        items.push({
+          id: `j-sched-${j.id}`,
+          icon: Clock,
+          color: 'text-blue-400',
+          title: `Scheduled: ${j.quote.service.name}`,
+          sub: new Date(j.scheduledDate).toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+          }),
+          time: timeAgo(j.createdAt),
+          date: new Date(j.createdAt),
+        });
+      }
+    });
+
+    items.sort((a, b) => b.date.getTime() - a.date.getTime());
+    return items.slice(0, 6);
+  }, [quotes, jobs]);
+
+  const goToStep = (target: number) => {
+    if (target <= 4) {
+      setSelectedProvider(null);
+      setNotes('');
+    }
+    if (target <= 3) setSelectedProperty(null);
+    if (target <= 2) {
+      setSelectedService(null);
+      setProviders([]);
+    }
+    if (target <= 1) setSelectedCategory(null);
+    setError('');
+    setStep(target);
+  };
+
+  const resetBuilder = () => {
+    goToStep(1);
+    setSuccess(false);
+  };
+
+  const pickCategory = (cat: any) => {
+    setSelectedCategory(cat);
+    setStep(2);
+  };
+  const pickService = (svc: any) => {
+    setSelectedService(svc);
+    setStep(3);
+  };
+  const pickProperty = (prop: any) => {
+    setSelectedProperty(prop);
+    setStep(4);
+  };
+  const pickProvider = (prov: any) => {
+    setSelectedProvider(prov);
+  };
+
+  const continueToReview = () => {
+    if (!selectedProvider) {
+      setError('Please select a provider');
+      return;
+    }
+    setError('');
+    setStep(5);
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedService || !selectedProperty || !selectedProvider) return;
+    setSubmitting(true);
+    setError('');
+    try {
+      await trpc.quote.request.mutate({
+        serviceId: selectedService.id,
+        propertyId: selectedProperty.id,
+        providerId: selectedProvider.id,
+        customerNotes: notes || undefined,
+      });
+      setSuccess(true);
+      trpc.quote.listForCustomer
+        .query()
+        .then(setQuotes)
+        .catch(() => {});
+    } catch (err: any) {
+      setError(err.message || 'Failed to submit request');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   if (loading) {
     return (
-      <div className="text-muted-foreground">
-        Loading dashboard...
+      <div className="space-y-8">
+        <div className="space-y-2">
+          <Skeleton className="w-48 h-8" />
+          <Skeleton className="w-32 h-4" />
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-xl" />
+          ))}
+        </div>
+        <div>
+          <Skeleton className="w-32 h-6 mb-4" />
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
+              <Skeleton key={i} className="h-28 rounded-xl" />
+            ))}
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="text-2xl font-bold text-foreground">
-          Dashboard
-        </h2>
-        <p className="text-muted-foreground mt-1">
-          Welcome back! Here&apos;s your overview.
-        </p>
-      </div>
+    <div className="space-y-10">
+      <GreetingSection firstName={firstName} />
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Pending Quotes</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-foreground">{pendingQuotes.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Active Jobs</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-cyan-600 dark:text-cyan-400">{activeJobs.length}</div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardDescription>Completed Jobs</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-green-600 dark:text-green-400">
-              {jobs.filter((j) => j.status === 'COMPLETED').length}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <StatsSection
+        pendingQuotesCount={pendingQuotes.length}
+        activeJobsCount={activeJobs.length}
+        completedJobsCount={completedJobs.length}
+        propertiesCount={properties.length}
+      />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Button
-          variant="outline"
-          className="h-auto flex-col items-start gap-2 p-6 text-left hover:border-cyan-300 dark:hover:border-cyan-700"
-          onClick={() => router.push('/customer/services')}
-        >
-          <Wrench className="h-8 w-8 text-cyan-600 dark:text-cyan-400" />
-          <div>
-            <h3 className="font-semibold text-foreground">Browse Services</h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Find and request quotes for exterior services
-            </p>
-          </div>
-        </Button>
-        <Button
-          variant="outline"
-          className="h-auto flex-col items-start gap-2 p-6 text-left hover:border-cyan-300 dark:hover:border-cyan-700"
-          onClick={() => router.push('/customer/properties')}
-        >
-          <MapPin className="h-8 w-8 text-cyan-600 dark:text-cyan-400" />
-          <div>
-            <h3 className="font-semibold text-foreground">Manage Properties</h3>
-            <p className="text-sm text-muted-foreground mt-1">
-              Add or update your property information
-            </p>
-          </div>
-        </Button>
-      </div>
+      <QuoteBuilderSection
+        step={step}
+        success={success}
+        categories={categories}
+        selectedCategory={selectedCategory}
+        selectedService={selectedService}
+        selectedProperty={selectedProperty}
+        selectedProvider={selectedProvider}
+        properties={properties}
+        providers={providers}
+        loadingProviders={loadingProviders}
+        notes={notes}
+        submitting={submitting}
+        error={error}
+        onStepChange={goToStep}
+        onReset={resetBuilder}
+        onPickCategory={pickCategory}
+        onPickService={pickService}
+        onPickProperty={pickProperty}
+        onPickProvider={pickProvider}
+        onNotesChange={setNotes}
+        onContinueToReview={continueToReview}
+        onSubmit={handleSubmit}
+      />
 
-      {activeJobs.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold text-foreground mb-3">
-            Active Jobs
-          </h3>
-          <div className="space-y-3">
-            {activeJobs.slice(0, 5).map((job) => (
-              <Card key={job.id}>
-                <CardContent className="flex items-center justify-between p-4">
-                  <div>
-                    <div className="font-medium text-foreground">
-                      {job.quote.service.name}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {job.quote.property.address}, {job.quote.property.city}
-                    </div>
-                  </div>
-                  <Badge
-                    className={cn(
-                      job.status === 'SCHEDULED'
-                        ? 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400 border-0'
-                        : 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 border-0'
-                    )}
-                  >
-                    {job.status.replace('_', ' ')}
-                  </Badge>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      )}
+      <RecentActivitySection items={activityItems} />
+
+      <ActiveJobsSection jobs={activeJobs} />
     </div>
   );
 }

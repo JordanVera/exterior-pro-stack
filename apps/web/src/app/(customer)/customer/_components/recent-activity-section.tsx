@@ -1,0 +1,48 @@
+import { cn } from '@/lib/utils';
+import type { LucideIcon } from 'lucide-react';
+
+export interface ActivityItem {
+  id: string;
+  icon: LucideIcon;
+  color: string;
+  title: string;
+  sub: string;
+  time: string;
+}
+
+interface RecentActivitySectionProps {
+  items: ActivityItem[];
+}
+
+export function RecentActivitySection({ items }: RecentActivitySectionProps) {
+  if (items.length === 0) return null;
+
+  return (
+    <section>
+      <h2 className="mb-4 text-lg font-semibold text-neutral-900 dark:text-white">
+        Recent Activity
+      </h2>
+      <div className="space-y-1">
+        {items.map((item) => {
+          const Icon = item.icon;
+          return (
+            <div key={item.id} className="flex items-center gap-3 py-2.5">
+              <div className="flex items-center justify-center flex-shrink-0 rounded-full w-7 h-7 bg-neutral-100 dark:bg-neutral-800/60">
+                <Icon className={cn('w-3.5 h-3.5', item.color)} />
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="text-sm truncate text-neutral-900 dark:text-neutral-200">
+                  {item.title}
+                </div>
+                <div className="text-xs text-neutral-500">{item.sub}</div>
+              </div>
+              <span className="text-[11px] text-neutral-400 dark:text-neutral-600 flex-shrink-0">
+                {item.time}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}

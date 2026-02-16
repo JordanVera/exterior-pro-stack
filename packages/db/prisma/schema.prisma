@@ -129,6 +129,7 @@ model ServiceCategory {
   name        String   @unique
   description String?  @db.Text
   icon        String?
+  image       String?  // URL for category card background
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
