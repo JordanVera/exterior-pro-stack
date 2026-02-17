@@ -9,8 +9,8 @@ import { ThemeToggle } from "../../../components/ThemeToggle";
 
 const navItems = [
   { href: "/provider", label: "Dashboard", icon: "📊" },
-  { href: "/provider/quotes", label: "Quotes", icon: "📝" },
-  { href: "/provider/jobs", label: "Jobs", icon: "📋" },
+  { href: "/provider/quotes", label: "Available Jobs", icon: "🔍" },
+  { href: "/provider/jobs", label: "My Jobs", icon: "📋" },
   { href: "/provider/crews", label: "Crews", icon: "👷" },
   { href: "/provider/profile", label: "Profile", icon: "⚙️" },
 ];

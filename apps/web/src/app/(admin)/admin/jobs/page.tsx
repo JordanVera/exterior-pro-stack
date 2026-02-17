@@ -4,8 +4,9 @@ import { useEffect, useState } from "react";
 import { trpc } from "../../../../lib/trpc";
 
 const statusColors: Record<string, string> = {
+  OPEN: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400",
   PENDING: "bg-gray-100 text-gray-700 dark:bg-neutral-800 dark:text-neutral-300",
-  SCHEDULED: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400",
+  SCHEDULED: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
   IN_PROGRESS: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
   COMPLETED: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
   CANCELLED: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
@@ -34,7 +35,7 @@ export default function AdminJobsPage() {
       </div>
 
       <div className="flex gap-2 flex-wrap">
-        {["", "PENDING", "SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED"].map((status) => (
+        {["", "OPEN", "PENDING", "SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED"].map((status) => (
           <button key={status} onClick={() => setStatusFilter(status)}
             className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
               statusFilter === status
@@ -54,20 +55,22 @@ export default function AdminJobsPage() {
               <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-neutral-400">Provider</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-neutral-400">Status</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-neutral-400">Scheduled</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-neutral-400">Bids</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-neutral-400">Price</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
             {data.items.map((job) => (
               <tr key={job.id} className="hover:bg-gray-50 dark:hover:bg-neutral-950">
-                <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{job.quote.service.name}</td>
-                <td className="px-4 py-3 text-gray-600 dark:text-neutral-300">{job.quote.property.address}, {job.quote.property.city}</td>
-                <td className="px-4 py-3 text-gray-600 dark:text-neutral-300">{job.quote.provider.businessName}</td>
+                <td className="px-4 py-3 font-medium text-gray-900 dark:text-white">{job.service.name}</td>
+                <td className="px-4 py-3 text-gray-600 dark:text-neutral-300">{job.property.address}, {job.property.city}</td>
+                <td className="px-4 py-3 text-gray-600 dark:text-neutral-300">{job.acceptedBid?.provider?.businessName || "-"}</td>
                 <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusColors[job.status]}`}>{job.status.replace("_", " ")}</span>
+                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusColors[job.status] || statusColors.PENDING}`}>{job.status.replace("_", " ")}</span>
                 </td>
                 <td className="px-4 py-3 text-gray-500 dark:text-neutral-400">{job.scheduledDate ? new Date(job.scheduledDate).toLocaleDateString() : "-"}</td>
-                <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">{job.quote.customPrice ? `$${Number(job.quote.customPrice).toFixed(2)}` : "-"}</td>
+                <td className="px-4 py-3 text-gray-500 dark:text-neutral-400">{job.bids?.length || 0}</td>
+                <td className="px-4 py-3 text-gray-900 dark:text-white font-medium">{job.acceptedBid ? `$${Number(job.acceptedBid.price).toFixed(2)}` : "-"}</td>
               </tr>
             ))}
           </tbody>

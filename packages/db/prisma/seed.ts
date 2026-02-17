@@ -376,17 +376,19 @@ async function main() {
     },
   ];
 
-  // Delete existing services to avoid duplicates on re-seed.
-  // Must remove dependents first (ProviderService, Quote -> Job -> JobAssignment, RecurringSchedule).
+  // Delete existing data to avoid duplicates on re-seed.
   await prisma.jobAssignment.deleteMany({});
   await prisma.recurringSchedule.deleteMany({});
+  await prisma.jobBid.deleteMany({});
   await prisma.job.deleteMany({});
-  await prisma.quote.deleteMany({});
+  await prisma.customerSubscription.deleteMany({});
+  await prisma.planService.deleteMany({});
+  await prisma.subscriptionPlan.deleteMany({});
   await prisma.providerService.deleteMany({});
   await prisma.service.deleteMany({});
   await prisma.property.deleteMany({});
 
-  info('Cleared existing services');
+  info('Cleared existing data');
 
   const services = await Promise.all(
     serviceData.map((s) =>
@@ -608,6 +610,7 @@ async function main() {
       description:
         'Top-rated pressure washing company serving the Dallas-Fort Worth metroplex since 2018. Residential and commercial.',
       serviceArea: 'Dallas, Fort Worth, Plano, Frisco, Arlington',
+      serviceAreaZips: '75201,75208,75219,75024,75034,76102,76013',
       verified: true,
       serviceNames: [
         'Driveway Pressure Wash',
@@ -640,6 +643,7 @@ async function main() {
       description:
         'Full-service lawn care and landscaping. Weekly maintenance plans and one-time projects. Licensed and insured.',
       serviceArea: 'Plano, Frisco, McKinney, Allen, Richardson',
+      serviceAreaZips: '75024,75034,75201,75208,75219,76013,76092,76051',
       verified: true,
       serviceNames: [
         'Weekly Lawn Mowing',
@@ -691,6 +695,7 @@ async function main() {
       description:
         'Expert exterior painting with premium paints. Color consultation included. 5-year warranty on all jobs.',
       serviceArea: 'Dallas, Southlake, Keller, Colleyville, Grapevine',
+      serviceAreaZips: '75201,75208,75219,76092,76051',
       verified: true,
       serviceNames: [
         'Exterior House Painting',
@@ -720,7 +725,8 @@ async function main() {
       description:
         'Professional window cleaning and gutter services. Streak-free guaranteed. Serving DFW for 10+ years.',
       serviceArea: 'Dallas, Fort Worth, Arlington, Grand Prairie',
-      verified: false,
+      serviceAreaZips: '75201,75208,75219,76102,76013',
+      verified: true,
       serviceNames: [
         'Interior & Exterior Window Cleaning',
         'Exterior Only Window Cleaning',
@@ -744,6 +750,7 @@ async function main() {
       description:
         'Roof cleaning specialists. Soft wash experts. Also offering pressure washing and holiday lighting.',
       serviceArea: 'North Texas — 50-mile radius from Dallas',
+      serviceAreaZips: '75201,75208,75219,75024,75034,76102,76013,76092,76051',
       verified: true,
       serviceNames: [
         'Soft Wash Roof Treatment',
@@ -777,6 +784,7 @@ async function main() {
       description:
         'Fence repair, deck restoration, and staining. Quality craftsmanship at honest prices.',
       serviceArea: 'Fort Worth, Arlington, Mansfield, Burleson',
+      serviceAreaZips: '76102,76013,75201',
       verified: true,
       serviceNames: [
         'Fence Repair',
@@ -823,6 +831,7 @@ async function main() {
         businessName: prov.businessName,
         description: prov.description,
         serviceArea: prov.serviceArea,
+        serviceAreaZips: prov.serviceAreaZips,
         verified: prov.verified,
       },
     });
@@ -834,7 +843,6 @@ async function main() {
         warn(`Service not found: ${svcName}`);
         continue;
       }
-      // Small random price adjustment (-10% to +15%)
       const baseSvc = await prisma.service.findUnique({
         where: { id: serviceId },
       });
@@ -905,12 +913,88 @@ async function main() {
   );
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // SAMPLE QUOTES & JOBS
+  // SUBSCRIPTION PLANS
   // ═══════════════════════════════════════════════════════════════════════════
 
-  header('Sample Quotes & Jobs');
+  header('Subscription Plans');
 
-  // Fetch created data to wire up quotes
+  const biWeeklyMowingId = serviceMap.get('Bi-Weekly Lawn Mowing')!;
+  const weeklyMowingId = serviceMap.get('Weekly Lawn Mowing')!;
+  const weedControlId = serviceMap.get('Weed Control Treatment')!;
+  const gutterCleanId = serviceMap.get('Gutter Clean & Flush')!;
+  const pressureWashId = serviceMap.get('Driveway Pressure Wash')!;
+  const windowCleanId = serviceMap.get('Exterior Only Window Cleaning')!;
+
+  const basicPlan = await prisma.subscriptionPlan.create({
+    data: {
+      name: 'Basic Lawn Care',
+      description:
+        'Essential lawn care with bi-weekly mowing and monthly weed control. Perfect for maintaining a tidy yard.',
+      monthlyPrice: 99.0,
+      quarterlyPrice: 269.0,
+      annualPrice: 990.0,
+      active: true,
+      services: {
+        create: [
+          { serviceId: biWeeklyMowingId, frequency: 'BIWEEKLY' },
+          { serviceId: weedControlId, frequency: 'MONTHLY' },
+        ],
+      },
+    },
+  });
+  success(`${basicPlan.name} — $${basicPlan.monthlyPrice}/mo`);
+
+  const standardPlan = await prisma.subscriptionPlan.create({
+    data: {
+      name: 'Standard Exterior',
+      description:
+        'Comprehensive exterior maintenance with weekly mowing, weed control, and quarterly gutter cleaning.',
+      monthlyPrice: 179.0,
+      quarterlyPrice: 479.0,
+      annualPrice: 1790.0,
+      active: true,
+      services: {
+        create: [
+          { serviceId: weeklyMowingId, frequency: 'WEEKLY' },
+          { serviceId: weedControlId, frequency: 'MONTHLY' },
+          { serviceId: gutterCleanId, frequency: 'QUARTERLY' },
+        ],
+      },
+    },
+  });
+  success(`${standardPlan.name} — $${standardPlan.monthlyPrice}/mo`);
+
+  const premiumPlan = await prisma.subscriptionPlan.create({
+    data: {
+      name: 'Premium Exterior',
+      description:
+        'The full package: weekly mowing, bi-weekly weed control, quarterly gutter cleaning, bi-annual pressure washing, and quarterly window cleaning.',
+      monthlyPrice: 299.0,
+      quarterlyPrice: 799.0,
+      annualPrice: 2990.0,
+      active: true,
+      services: {
+        create: [
+          { serviceId: weeklyMowingId, frequency: 'WEEKLY' },
+          { serviceId: weedControlId, frequency: 'BIWEEKLY' },
+          { serviceId: gutterCleanId, frequency: 'QUARTERLY' },
+          { serviceId: pressureWashId, frequency: 'BIANNUALLY' },
+          { serviceId: windowCleanId, frequency: 'QUARTERLY' },
+        ],
+      },
+    },
+  });
+  success(`${premiumPlan.name} — $${premiumPlan.monthlyPrice}/mo`);
+
+  count('subscription plans', 3);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SAMPLE JOBS & BIDS
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  header('Sample Jobs & Bids');
+
+  // Fetch created data to wire up jobs
   const allCustomerProfiles = await prisma.customerProfile.findMany({
     include: { properties: true },
   });
@@ -918,147 +1002,203 @@ async function main() {
     include: { services: { include: { service: true } } },
   });
 
-  let quotesCreated = 0;
   let jobsCreated = 0;
+  let bidsCreated = 0;
 
-  // Create some quotes across customer–provider pairs
-  const quoteScenarios: {
+  const jobScenarios: {
     customerPhone: string;
-    providerBusiness: string;
     serviceName: string;
-    status: 'PENDING' | 'SENT' | 'ACCEPTED' | 'DECLINED';
     customerNotes?: string;
-    price?: number;
-    providerNotes?: string;
-    // Job details (only if ACCEPTED)
-    jobStatus?: 'PENDING' | 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED';
+    status: 'OPEN' | 'PENDING' | 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+    bids: {
+      providerBusiness: string;
+      price: number;
+      notes?: string;
+      status: 'PENDING' | 'ACCEPTED' | 'DECLINED';
+    }[];
     scheduledDate?: string;
     scheduledTime?: string;
   }[] = [
     {
       customerPhone: '+15551001001',
-      providerBusiness: 'DFW Power Wash Pros',
       serviceName: 'Driveway Pressure Wash',
-      status: 'ACCEPTED',
       customerNotes: 'Driveway has oil stains near the garage.',
-      price: 175,
-      providerNotes: 'Oil stain treatment included at no extra charge.',
-      jobStatus: 'SCHEDULED',
+      status: 'SCHEDULED',
+      bids: [
+        {
+          providerBusiness: 'DFW Power Wash Pros',
+          price: 175,
+          notes: 'Oil stain treatment included at no extra charge.',
+          status: 'ACCEPTED',
+        },
+        {
+          providerBusiness: 'Lone Star Roof & Exterior',
+          price: 195,
+          notes: 'Can do it this weekend.',
+          status: 'DECLINED',
+        },
+      ],
       scheduledDate: '2026-02-20',
       scheduledTime: '09:00',
     },
     {
       customerPhone: '+15551001001',
-      providerBusiness: 'GreenScape Lawn & Garden',
       serviceName: 'Weekly Lawn Mowing',
-      status: 'ACCEPTED',
       customerNotes: 'Front and back yard. Avoid flower beds near porch.',
-      price: 50,
-      jobStatus: 'COMPLETED',
+      status: 'COMPLETED',
+      bids: [
+        {
+          providerBusiness: 'GreenScape Lawn & Garden',
+          price: 50,
+          status: 'ACCEPTED',
+        },
+      ],
       scheduledDate: '2026-02-05',
       scheduledTime: '08:00',
     },
     {
       customerPhone: '+15551002002',
-      providerBusiness: 'Texas Exterior Painters',
       serviceName: 'Exterior House Painting',
-      status: 'SENT',
       customerNotes:
         'Two-story colonial, approx 2500 sqft exterior. Prefer warm gray.',
-      price: 7200,
-      providerNotes:
-        'Includes Sherwin-Williams Duration paint, 2 coats. Scaffolding needed for second story.',
+      status: 'OPEN',
+      bids: [
+        {
+          providerBusiness: 'Texas Exterior Painters',
+          price: 7200,
+          notes:
+            'Includes Sherwin-Williams Duration paint, 2 coats. Scaffolding needed for second story.',
+          status: 'PENDING',
+        },
+      ],
     },
     {
       customerPhone: '+15551003003',
-      providerBusiness: 'Crystal Clear Windows & Gutters',
       serviceName: 'Interior & Exterior Window Cleaning',
-      status: 'PENDING',
       customerNotes: '24 windows total on lake house. Some are hard to reach.',
+      status: 'OPEN',
+      bids: [],
     },
     {
       customerPhone: '+15551003003',
-      providerBusiness: 'GreenScape Lawn & Garden',
       serviceName: 'Landscape Design Consultation',
-      status: 'ACCEPTED',
-      price: 350,
-      providerNotes: 'Includes 3D render of proposed design.',
-      jobStatus: 'IN_PROGRESS',
+      status: 'IN_PROGRESS',
+      bids: [
+        {
+          providerBusiness: 'GreenScape Lawn & Garden',
+          price: 350,
+          notes: 'Includes 3D render of proposed design.',
+          status: 'ACCEPTED',
+        },
+      ],
       scheduledDate: '2026-02-10',
       scheduledTime: '10:00',
     },
     {
       customerPhone: '+15551003003',
-      providerBusiness: 'Lone Star Roof & Exterior',
       serviceName: 'Soft Wash Roof Treatment',
-      status: 'ACCEPTED',
       customerNotes: 'Significant algae on north-facing side.',
-      price: 400,
-      providerNotes: 'Heavy algae buildup requires double treatment.',
-      jobStatus: 'PENDING',
+      status: 'PENDING',
+      bids: [
+        {
+          providerBusiness: 'Lone Star Roof & Exterior',
+          price: 400,
+          notes: 'Heavy algae buildup requires double treatment.',
+          status: 'ACCEPTED',
+        },
+      ],
     },
     {
       customerPhone: '+15551004004',
-      providerBusiness: 'DFW Power Wash Pros',
       serviceName: 'House Siding Wash',
-      status: 'DECLINED',
       customerNotes: 'Vinyl siding, two-story.',
-      price: 285,
-      providerNotes: 'Soft wash recommended for vinyl.',
+      status: 'OPEN',
+      bids: [
+        {
+          providerBusiness: 'DFW Power Wash Pros',
+          price: 285,
+          notes: 'Soft wash recommended for vinyl.',
+          status: 'PENDING',
+        },
+        {
+          providerBusiness: 'Lone Star Roof & Exterior',
+          price: 260,
+          notes: 'We specialize in soft wash for vinyl siding.',
+          status: 'PENDING',
+        },
+      ],
     },
     {
       customerPhone: '+15551004004',
-      providerBusiness: 'Handy Fence & Deck Co.',
       serviceName: 'Fence Repair',
-      status: 'SENT',
       customerNotes:
         'Storm damage on back fence, about 3 sections need replacing.',
-      price: 450,
-      providerNotes: 'Will replace 3 sections with matching cedar pickets.',
+      status: 'OPEN',
+      bids: [
+        {
+          providerBusiness: 'Handy Fence & Deck Co.',
+          price: 450,
+          notes: 'Will replace 3 sections with matching cedar pickets.',
+          status: 'PENDING',
+        },
+      ],
     },
     {
       customerPhone: '+15551005005',
-      providerBusiness: 'GreenScape Lawn & Garden',
       serviceName: 'Hedge Trimming',
-      status: 'ACCEPTED',
       customerNotes: 'HOA requires 48-hour notice. 12 large boxwood hedges.',
-      price: 180,
-      providerNotes: '3 hours estimated. Will dispose of all clippings.',
-      jobStatus: 'SCHEDULED',
+      status: 'SCHEDULED',
+      bids: [
+        {
+          providerBusiness: 'GreenScape Lawn & Garden',
+          price: 180,
+          notes: '3 hours estimated. Will dispose of all clippings.',
+          status: 'ACCEPTED',
+        },
+      ],
       scheduledDate: '2026-02-25',
       scheduledTime: '07:30',
     },
     {
       customerPhone: '+15551005005',
-      providerBusiness: 'Lone Star Roof & Exterior',
       serviceName: 'Holiday Light Installation',
-      status: 'PENDING',
       customerNotes:
         'Front roofline, two trees, and porch columns. Warm white LEDs.',
+      status: 'OPEN',
+      bids: [],
     },
     {
       customerPhone: '+15551001001',
-      providerBusiness: 'Crystal Clear Windows & Gutters',
       serviceName: 'Gutter Clean & Flush',
-      status: 'ACCEPTED',
-      price: 165,
-      jobStatus: 'COMPLETED',
+      status: 'COMPLETED',
+      bids: [
+        {
+          providerBusiness: 'Crystal Clear Windows & Gutters',
+          price: 165,
+          status: 'ACCEPTED',
+        },
+      ],
       scheduledDate: '2026-01-28',
       scheduledTime: '14:00',
     },
     {
       customerPhone: '+15551002002',
-      providerBusiness: 'GreenScape Lawn & Garden',
       serviceName: 'Mulch Installation',
-      status: 'SENT',
       customerNotes:
         'About 400 sqft of garden beds. Dark brown mulch preferred.',
-      price: 1500,
-      providerNotes: 'Includes mulch delivery, weed barrier, and installation.',
+      status: 'OPEN',
+      bids: [
+        {
+          providerBusiness: 'GreenScape Lawn & Garden',
+          price: 1500,
+          notes: 'Includes mulch delivery, weed barrier, and installation.',
+          status: 'PENDING',
+        },
+      ],
     },
   ];
 
-  for (const scenario of quoteScenarios) {
+  for (const scenario of jobScenarios) {
     // Find customer profile & property
     const custProfile = allCustomerProfiles.find(
       (cp) =>
@@ -1068,47 +1208,73 @@ async function main() {
     if (!custProfile || custProfile.properties.length === 0) continue;
     const property = custProfile.properties[0];
 
-    // Find provider profile
-    const provProfile = allProviderProfiles.find(
-      (pp) => pp.businessName === scenario.providerBusiness,
-    );
-    if (!provProfile) continue;
-
     // Find service
     const svcId = serviceMap.get(scenario.serviceName);
     if (!svcId) continue;
 
-    const quote = await prisma.quote.create({
+    // Determine accepted bid for linking
+    const acceptedBidData = scenario.bids.find((b) => b.status === 'ACCEPTED');
+
+    // Create the job
+    const job = await prisma.job.create({
       data: {
         propertyId: property.id,
         serviceId: svcId,
-        providerId: provProfile.id,
+        type: 'ONE_TIME',
         status: scenario.status,
         customerNotes: scenario.customerNotes,
-        customPrice: scenario.price,
-        notes: scenario.providerNotes,
+        scheduledDate: scenario.scheduledDate
+          ? new Date(scenario.scheduledDate)
+          : null,
+        scheduledTime: scenario.scheduledTime || null,
+        completedAt:
+          scenario.status === 'COMPLETED' ? new Date('2026-02-05') : null,
       },
     });
-    quotesCreated++;
+    jobsCreated++;
 
-    // Create job if quote accepted
-    if (scenario.status === 'ACCEPTED' && scenario.jobStatus) {
-      const job = await prisma.job.create({
+    // Create bids
+    let acceptedBidId: string | null = null;
+    for (const bidData of scenario.bids) {
+      const provProfile = allProviderProfiles.find(
+        (pp) => pp.businessName === bidData.providerBusiness,
+      );
+      if (!provProfile) continue;
+
+      const bid = await prisma.jobBid.create({
         data: {
-          quoteId: quote.id,
-          status: scenario.jobStatus,
-          scheduledDate: scenario.scheduledDate
-            ? new Date(scenario.scheduledDate)
-            : null,
-          scheduledTime: scenario.scheduledTime || null,
-          completedAt:
-            scenario.jobStatus === 'COMPLETED' ? new Date('2026-02-05') : null,
+          jobId: job.id,
+          providerId: provProfile.id,
+          price: bidData.price,
+          notes: bidData.notes,
+          status: bidData.status,
         },
       });
-      jobsCreated++;
+      bidsCreated++;
 
-      // Assign a crew if the job is scheduled or beyond
-      if (scenario.jobStatus !== 'PENDING' && provProfile.id) {
+      if (bidData.status === 'ACCEPTED') {
+        acceptedBidId = bid.id;
+      }
+    }
+
+    // Link accepted bid to job
+    if (acceptedBidId) {
+      await prisma.job.update({
+        where: { id: job.id },
+        data: { acceptedBidId },
+      });
+    }
+
+    // Assign a crew if the job is scheduled or beyond
+    if (
+      acceptedBidData &&
+      scenario.status !== 'OPEN' &&
+      scenario.status !== 'PENDING'
+    ) {
+      const provProfile = allProviderProfiles.find(
+        (pp) => pp.businessName === acceptedBidData.providerBusiness,
+      );
+      if (provProfile) {
         const crew = await prisma.crew.findFirst({
           where: { providerId: provProfile.id },
         });
@@ -1118,34 +1284,64 @@ async function main() {
           });
         }
       }
+    }
 
-      const statusColor =
-        scenario.jobStatus === 'COMPLETED'
-          ? chalk.green
-          : scenario.jobStatus === 'IN_PROGRESS'
-            ? chalk.yellow
-            : scenario.jobStatus === 'SCHEDULED'
-              ? chalk.blue
+    const statusColor =
+      scenario.status === 'COMPLETED'
+        ? chalk.green
+        : scenario.status === 'IN_PROGRESS'
+          ? chalk.yellow
+          : scenario.status === 'SCHEDULED'
+            ? chalk.blue
+            : scenario.status === 'OPEN'
+              ? chalk.cyan
               : chalk.gray;
 
-      info(
-        `${chalk.dim('Quote')} ${scenario.serviceName} → ${chalk.dim('Job')} ${statusColor(scenario.jobStatus)}`,
-      );
-    } else {
-      const statusColor =
-        scenario.status === 'SENT'
-          ? chalk.blue
-          : scenario.status === 'DECLINED'
-            ? chalk.red
-            : chalk.gray;
-      info(
-        `${chalk.dim('Quote')} ${scenario.serviceName} — ${statusColor(scenario.status)}`,
-      );
-    }
+    const bidInfo =
+      scenario.bids.length > 0
+        ? `${scenario.bids.length} bid${scenario.bids.length > 1 ? 's' : ''}`
+        : 'no bids yet';
+
+    info(
+      `${chalk.dim('Job')} ${scenario.serviceName} — ${statusColor(scenario.status)} (${bidInfo})`,
+    );
   }
 
-  count('quotes', quotesCreated);
   count('jobs', jobsCreated);
+  count('bids', bidsCreated);
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SAMPLE SUBSCRIPTION
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  header('Sample Subscriptions');
+
+  // Give Sarah Johnson a Basic Lawn Care subscription
+  const sarahProfile = allCustomerProfiles.find(
+    (cp) => cp.firstName === 'Sarah',
+  );
+  const greenscapeProfile = allProviderProfiles.find(
+    (pp) => pp.businessName === 'GreenScape Lawn & Garden',
+  );
+
+  if (sarahProfile && greenscapeProfile && sarahProfile.properties.length > 0) {
+    const sub = await prisma.customerSubscription.create({
+      data: {
+        customerId: sarahProfile.id,
+        planId: basicPlan.id,
+        propertyId: sarahProfile.properties[0].id,
+        status: 'ACTIVE',
+        billingFrequency: 'MONTHLY',
+        currentPeriodStart: new Date('2026-02-01'),
+        currentPeriodEnd: new Date('2026-03-01'),
+        assignedProviderId: greenscapeProfile.id,
+      },
+    });
+    success(
+      `Sarah Johnson → ${basicPlan.name} (${chalk.green('ACTIVE')}, provider: GreenScape)`,
+    );
+    count('subscriptions', 1);
+  }
 
   // ═══════════════════════════════════════════════════════════════════════════
   // SAMPLE NOTIFICATIONS
@@ -1170,9 +1366,9 @@ async function main() {
       data: [
         {
           userId: user.id,
-          type: 'QUOTE_RECEIVED',
-          title: 'New Quote Received',
-          body: 'DFW Power Wash Pros sent you a quote for Driveway Pressure Wash.',
+          type: 'BID_RECEIVED',
+          title: 'New Bid Received',
+          body: 'DFW Power Wash Pros submitted a bid for your Driveway Pressure Wash job.',
           read: false,
         },
         {
@@ -1199,16 +1395,16 @@ async function main() {
       data: [
         {
           userId: user.id,
-          type: 'NEW_QUOTE_REQUEST',
-          title: 'New Quote Request',
-          body: 'New request for Window Cleaning at 1200 Lakeview Circle, Arlington.',
+          type: 'NEW_JOB_AVAILABLE',
+          title: 'New Job Available',
+          body: 'New Window Cleaning job at 1200 Lakeview Circle, Arlington. Submit your bid!',
           read: false,
         },
         {
           userId: user.id,
-          type: 'QUOTE_ACCEPTED',
-          title: 'Quote Accepted',
-          body: 'Sarah Johnson accepted your quote for Weekly Lawn Mowing!',
+          type: 'BID_ACCEPTED',
+          title: 'Bid Accepted',
+          body: 'Sarah Johnson accepted your bid for Weekly Lawn Mowing!',
           read: true,
         },
       ],
@@ -1233,8 +1429,10 @@ async function main() {
   const totalServices = await prisma.service.count();
   const totalCrews = await prisma.crew.count();
   const totalMembers = await prisma.crewMember.count();
-  const totalQuotes = await prisma.quote.count();
   const totalJobs = await prisma.job.count();
+  const totalBids = await prisma.jobBid.count();
+  const totalPlans = await prisma.subscriptionPlan.count();
+  const totalSubs = await prisma.customerSubscription.count();
   const totalNotifs = await prisma.notification.count();
 
   console.log(chalk.bold('  Database totals:'));
@@ -1244,8 +1442,10 @@ async function main() {
   console.log(`    Services .......... ${chalk.cyan(totalServices)}`);
   console.log(`    Crews ............. ${chalk.cyan(totalCrews)}`);
   console.log(`    Crew Members ...... ${chalk.cyan(totalMembers)}`);
-  console.log(`    Quotes ............ ${chalk.cyan(totalQuotes)}`);
   console.log(`    Jobs .............. ${chalk.cyan(totalJobs)}`);
+  console.log(`    Bids .............. ${chalk.cyan(totalBids)}`);
+  console.log(`    Sub Plans ......... ${chalk.cyan(totalPlans)}`);
+  console.log(`    Subscriptions ..... ${chalk.cyan(totalSubs)}`);
   console.log(`    Notifications ..... ${chalk.cyan(totalNotifs)}`);
   console.log();
 

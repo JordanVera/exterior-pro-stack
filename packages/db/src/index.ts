@@ -14,9 +14,13 @@ export { PrismaClient } from "@prisma/client";
 export type { Prisma } from "@prisma/client";
 export {
   UserRole,
-  QuoteStatus,
+  BidStatus,
   JobStatus,
+  JobType,
   RecurringFrequency,
+  ServiceFrequency,
+  SubscriptionStatus,
+  BillingFrequency,
   PriceUnit,
   NotificationType,
 } from "@prisma/client";

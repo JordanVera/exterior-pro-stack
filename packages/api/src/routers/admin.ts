@@ -77,20 +77,24 @@ export const adminRouter = router({
       totalProviders,
       verifiedProviders,
       totalJobs,
+      openJobs,
       activeJobs,
       completedJobs,
-      totalQuotes,
-      pendingQuotes,
+      totalBids,
+      pendingBids,
+      totalSubscriptions,
     ] = await Promise.all([
       ctx.db.user.count(),
       ctx.db.user.count({ where: { role: "CUSTOMER" } }),
       ctx.db.user.count({ where: { role: "PROVIDER" } }),
       ctx.db.providerProfile.count({ where: { verified: true } }),
       ctx.db.job.count(),
+      ctx.db.job.count({ where: { status: "OPEN" } }),
       ctx.db.job.count({ where: { status: { in: ["SCHEDULED", "IN_PROGRESS"] } } }),
       ctx.db.job.count({ where: { status: "COMPLETED" } }),
-      ctx.db.quote.count(),
-      ctx.db.quote.count({ where: { status: "PENDING" } }),
+      ctx.db.jobBid.count(),
+      ctx.db.jobBid.count({ where: { status: "PENDING" } }),
+      ctx.db.customerSubscription.count({ where: { status: "ACTIVE" } }),
     ]);
 
     return {
@@ -99,10 +103,12 @@ export const adminRouter = router({
       totalProviders,
       verifiedProviders,
       totalJobs,
+      openJobs,
       activeJobs,
       completedJobs,
-      totalQuotes,
-      pendingQuotes,
+      totalBids,
+      pendingBids,
+      totalSubscriptions,
     };
   }),
 
@@ -110,7 +116,7 @@ export const adminRouter = router({
   listJobs: adminProcedure
     .input(
       z.object({
-        status: z.enum(["PENDING", "SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED"]).optional(),
+        status: z.enum(["OPEN", "PENDING", "SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED"]).optional(),
         providerId: z.string().cuid().optional(),
         limit: z.number().min(1).max(100).default(20),
         cursor: z.string().cuid().optional(),
@@ -122,17 +128,14 @@ export const adminRouter = router({
         where: {
           ...(input?.status ? { status: input.status } : {}),
           ...(input?.providerId
-            ? { quote: { providerId: input.providerId } }
+            ? { acceptedBid: { providerId: input.providerId } }
             : {}),
         },
         include: {
-          quote: {
-            include: {
-              property: true,
-              service: { include: { category: true } },
-              provider: { include: { user: true } },
-            },
-          },
+          property: true,
+          service: { include: { category: true } },
+          acceptedBid: { include: { provider: { include: { user: true } } } },
+          bids: { include: { provider: true } },
           assignments: { include: { crew: true } },
         },
         take: limit + 1,

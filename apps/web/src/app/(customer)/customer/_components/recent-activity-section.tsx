@@ -10,12 +10,12 @@ export interface ActivityItem {
   title: string;
   sub: string;
   time: string;
-  job?: { id: string; quote: { service: any; property: any; provider: any } };
+  job?: { id: string; service: any; property: any };
 }
 
 interface RecentActivitySectionProps {
   items: ActivityItem[];
-  onRebook?: (job: { id: string; quote: { service: any; property: any; provider: any } }) => void;
+  onRebook?: (job: { id: string; service: any; property: any }) => void;
 }
 
 export function RecentActivitySection({ items, onRebook }: RecentActivitySectionProps) {

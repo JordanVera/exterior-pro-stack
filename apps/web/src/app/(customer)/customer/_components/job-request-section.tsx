@@ -8,17 +8,14 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import {
   ChevronRight,
   MapPin,
   ArrowLeft,
   Send,
   Check,
-  AlertCircle,
   Plus,
   X,
-  Building2,
   RotateCcw,
 } from 'lucide-react';
 import {
@@ -28,17 +25,14 @@ import {
   STEPS,
 } from './utils';
 
-interface QuoteBuilderSectionProps {
+interface JobRequestSectionProps {
   step: number;
   success: boolean;
   categories: any[];
   selectedCategory: any;
   selectedService: any;
   selectedProperty: any;
-  selectedProvider: any;
   properties: any[];
-  providers: any[];
-  loadingProviders: boolean;
   notes: string;
   submitting: boolean;
   error: string;
@@ -47,23 +41,18 @@ interface QuoteBuilderSectionProps {
   onPickCategory: (cat: any) => void;
   onPickService: (svc: any) => void;
   onPickProperty: (prop: any) => void;
-  onPickProvider: (prov: any) => void;
   onNotesChange: (notes: string) => void;
-  onContinueToReview: () => void;
   onSubmit: () => Promise<void>;
 }
 
-export function QuoteBuilderSection({
+export function JobRequestSection({
   step,
   success,
   categories,
   selectedCategory,
   selectedService,
   selectedProperty,
-  selectedProvider,
   properties,
-  providers,
-  loadingProviders,
   notes,
   submitting,
   error,
@@ -72,18 +61,16 @@ export function QuoteBuilderSection({
   onPickCategory,
   onPickService,
   onPickProperty,
-  onPickProvider,
   onNotesChange,
-  onContinueToReview,
   onSubmit,
-}: QuoteBuilderSectionProps) {
+}: JobRequestSectionProps) {
   const router = useRouter();
 
   return (
     <section>
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
-          Get a Quote
+          Request a Job
         </h2>
         {step > 1 && !success && (
           <Button
@@ -205,18 +192,6 @@ export function QuoteBuilderSection({
               </Badge>
             </>
           )}
-          {step >= 5 && selectedProvider && (
-            <>
-              <ChevronRight className="w-3 h-3 text-neutral-300 dark:text-neutral-700" />
-              <Badge
-                variant="secondary"
-                className="rounded-full border-0 gap-1.5"
-              >
-                <Building2 className="w-3 h-3" />
-                {selectedProvider.businessName}
-              </Badge>
-            </>
-          )}
         </div>
       )}
 
@@ -228,10 +203,10 @@ export function QuoteBuilderSection({
               <Check className="w-8 h-8 text-green-400" />
             </div>
             <h3 className="mb-1 text-lg font-semibold text-neutral-900 dark:text-white">
-              Quote Request Sent
+              Job Request Submitted
             </h3>
             <p className="mb-6 text-sm text-neutral-500">
-              You&apos;ll be notified when the provider responds.
+              Providers in your area will be notified and can submit bids.
             </p>
             <div className="flex items-center justify-center gap-3">
               <Button
@@ -242,10 +217,10 @@ export function QuoteBuilderSection({
                 Request another
               </Button>
               <Button
-                onClick={() => router.push('/customer/quotes')}
+                onClick={() => router.push('/customer/jobs')}
                 className="rounded-full bg-cyan-500 hover:bg-cyan-400"
               >
-                View quotes
+                View jobs
               </Button>
             </div>
           </CardContent>
@@ -413,156 +388,46 @@ export function QuoteBuilderSection({
                   {properties.map((prop) => {
                     const isSelected = selectedProperty?.id === prop.id;
                     return (
-                    <Card
-                      key={prop.id}
-                      className={cn(
-                        'cursor-pointer shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20',
-                        isSelected
-                          ? 'border-cyan-500 ring-1 ring-cyan-500/20'
-                          : 'hover:border-neutral-300 dark:hover:border-neutral-700'
-                      )}
-                      onClick={() => onPickProperty(prop)}
-                    >
-                      <CardContent className="p-4">
-                        <div className="flex items-start gap-3">
-                          <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-800/60">
-                            <MapPin className="w-4 h-4 text-neutral-400" />
-                          </div>
-                          <div className="min-w-0">
-                            <div className="text-sm font-medium truncate text-neutral-900 dark:text-white">
-                              {prop.address}
+                      <Card
+                        key={prop.id}
+                        className={cn(
+                          'cursor-pointer shadow-none transition-all duration-200 hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20',
+                          isSelected
+                            ? 'border-cyan-500 ring-1 ring-cyan-500/20'
+                            : 'hover:border-neutral-300 dark:hover:border-neutral-700',
+                        )}
+                        onClick={() => onPickProperty(prop)}
+                      >
+                        <CardContent className="p-4">
+                          <div className="flex items-start gap-3">
+                            <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-800/60">
+                              <MapPin className="w-4 h-4 text-neutral-400" />
                             </div>
-                            <div className="text-xs text-neutral-500 mt-0.5">
-                              {prop.city}, {prop.state} {prop.zip}
+                            <div className="min-w-0">
+                              <div className="text-sm font-medium truncate text-neutral-900 dark:text-white">
+                                {prop.address}
+                              </div>
+                              <div className="text-xs text-neutral-500 mt-0.5">
+                                {prop.city}, {prop.state} {prop.zip}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
+                        </CardContent>
+                      </Card>
+                    );
                   })}
                 </div>
               )}
             </div>
           )}
 
-          {/* Step 4: Provider + Notes */}
+          {/* Step 4: Review + Notes */}
           {step === 4 && (
             <div className="space-y-4">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => onStepChange(3)}
-                className="px-2 mb-1 text-xs text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 h-7"
-              >
-                <ArrowLeft className="w-3 h-3 mr-1" />
-                Back to properties
-              </Button>
-
-              {loadingProviders ? (
-                <div className="space-y-2">
-                  <Skeleton className="h-16 rounded-xl" />
-                  <Skeleton className="h-16 rounded-xl" />
-                </div>
-              ) : providers.length === 0 ? (
-                <Card className="border-dashed shadow-none">
-                  <CardContent className="py-10 text-center">
-                    <AlertCircle className="w-8 h-8 mx-auto mb-3 text-neutral-400" />
-                    <p className="text-sm text-neutral-500">
-                      No providers available for this service yet.
-                    </p>
-                  </CardContent>
-                </Card>
-              ) : (
-                <>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-medium text-neutral-500 uppercase tracking-wider">
-                      Select a provider
-                    </label>
-                    {providers.map((prov) => {
-                      const isSelected = selectedProvider?.id === prov.id;
-                      return (
-                        <Card
-                          key={prov.id}
-                          className={cn(
-                            'cursor-pointer shadow-none transition-all duration-200',
-                            isSelected
-                              ? 'border-cyan-500 ring-1 ring-cyan-500/20'
-                              : 'hover:border-neutral-300 dark:hover:border-neutral-700',
-                          )}
-                          onClick={() => onPickProvider(prov)}
-                        >
-                          <CardContent className="p-4">
-                            <div className="flex items-center gap-3">
-                              <Avatar className="h-9 w-9">
-                                <AvatarFallback
-                                  className={cn(
-                                    'text-xs font-semibold transition-colors',
-                                    isSelected
-                                      ? 'bg-cyan-500 text-white'
-                                      : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-500',
-                                  )}
-                                >
-                                  {prov.businessName?.[0]?.toUpperCase() || 'P'}
-                                </AvatarFallback>
-                              </Avatar>
-                              <div className="flex-1 min-w-0">
-                                <div className="text-sm font-medium text-neutral-900 dark:text-white">
-                                  {prov.businessName}
-                                </div>
-                                {prov.serviceArea && (
-                                  <div className="text-xs text-neutral-500 mt-0.5">
-                                    {prov.serviceArea}
-                                  </div>
-                                )}
-                              </div>
-                              {isSelected && (
-                                <Check className="flex-shrink-0 w-4 h-4 text-cyan-500" />
-                              )}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      );
-                    })}
-                  </div>
-
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-medium text-neutral-500 uppercase tracking-wider">
-                      Notes (optional)
-                    </label>
-                    <Textarea
-                      value={notes}
-                      onChange={(e) => onNotesChange(e.target.value)}
-                      placeholder="Describe what you need, special requirements..."
-                      rows={3}
-                      maxLength={2000}
-                      className="text-sm resize-none"
-                    />
-                    <div className="text-right text-[11px] text-neutral-400">
-                      {notes.length}/2000
-                    </div>
-                  </div>
-
-                  {error && <p className="text-xs text-red-400">{error}</p>}
-
-                  <Button
-                    onClick={onContinueToReview}
-                    className="w-full rounded-xl bg-cyan-500 hover:bg-cyan-400"
-                  >
-                    Continue to Review
-                  </Button>
-                </>
-              )}
-            </div>
-          )}
-
-          {/* Step 5: Review */}
-          {step === 5 && (
-            <div className="space-y-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onStepChange(4)}
                 className="px-2 mb-1 text-xs text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200 h-7"
               >
                 <ArrowLeft className="w-3 h-3 mr-1" />
@@ -624,38 +489,22 @@ export function QuoteBuilderSection({
 
                     <Separator />
 
-                    <div className="flex items-start gap-3">
-                      <div className="flex items-center justify-center flex-shrink-0 w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-800/60">
-                        <Building2 className="w-4 h-4 text-neutral-400" />
-                      </div>
-                      <div>
-                        <div className="text-[11px] text-neutral-500">
-                          Provider
-                        </div>
-                        <div className="text-sm font-medium text-neutral-900 dark:text-white">
-                          {selectedProvider?.businessName}
-                        </div>
-                        {selectedProvider?.serviceArea && (
-                          <div className="text-xs text-neutral-500 mt-0.5">
-                            {selectedProvider.serviceArea}
-                          </div>
-                        )}
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-medium text-neutral-500 uppercase tracking-wider">
+                        Notes for providers (optional)
+                      </label>
+                      <Textarea
+                        value={notes}
+                        onChange={(e) => onNotesChange(e.target.value)}
+                        placeholder="Describe what you need, special requirements, access instructions..."
+                        rows={3}
+                        maxLength={2000}
+                        className="text-sm resize-none"
+                      />
+                      <div className="text-right text-[11px] text-neutral-400">
+                        {notes.length}/2000
                       </div>
                     </div>
-
-                    {notes && (
-                      <>
-                        <Separator />
-                        <div>
-                          <div className="text-[11px] text-neutral-500 mb-1">
-                            Notes
-                          </div>
-                          <div className="text-sm text-neutral-700 dark:text-neutral-300">
-                            {notes}
-                          </div>
-                        </div>
-                      </>
-                    )}
                   </div>
                 </CardContent>
 
@@ -666,6 +515,10 @@ export function QuoteBuilderSection({
                 )}
 
                 <div className="px-5 pb-5">
+                  <p className="mb-3 text-xs text-neutral-500">
+                    Local providers will be notified and can submit their bids.
+                    You&apos;ll choose the best offer.
+                  </p>
                   <Button
                     onClick={onSubmit}
                     disabled={submitting}
@@ -679,7 +532,7 @@ export function QuoteBuilderSection({
                     ) : (
                       <>
                         <Send className="w-4 h-4" />
-                        Submit Quote Request
+                        Submit Job Request
                       </>
                     )}
                   </Button>

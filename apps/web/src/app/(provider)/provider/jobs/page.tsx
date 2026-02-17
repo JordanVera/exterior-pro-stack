@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { trpc } from "../../../../lib/trpc";
+import { toast } from "sonner";
 
 const statusColors: Record<string, string> = {
   PENDING: "bg-gray-100 text-gray-700 dark:bg-neutral-800 dark:text-neutral-300",
@@ -32,21 +33,38 @@ export default function ProviderJobsPage() {
 
   useEffect(() => { setLoading(true); fetchData(); }, [filter]);
 
-  const handleSchedule = async (quoteId: string) => {
+  const handleSchedule = async (jobId: string) => {
     if (!schedDate || !schedTime) return;
-    try { await trpc.job.schedule.mutate({ quoteId, scheduledDate: schedDate, scheduledTime: schedTime }); setSchedulingJobId(null); fetchData(); }
-    catch (err: any) { alert(err.message || "Failed to schedule"); }
+    try {
+      await trpc.job.schedule.mutate({ jobId, scheduledDate: schedDate, scheduledTime: schedTime });
+      toast.success("Job scheduled");
+      setSchedulingJobId(null);
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to schedule");
+    }
   };
 
   const handleAssignCrew = async (jobId: string) => {
     if (!selectedCrewId) return;
-    try { await trpc.job.assignCrew.mutate({ jobId, crewId: selectedCrewId }); setAssigningJobId(null); fetchData(); }
-    catch (err: any) { alert(err.message || "Failed to assign crew"); }
+    try {
+      await trpc.job.assignCrew.mutate({ jobId, crewId: selectedCrewId });
+      toast.success("Crew assigned");
+      setAssigningJobId(null);
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to assign crew");
+    }
   };
 
   const handleStatusUpdate = async (jobId: string, status: "IN_PROGRESS" | "COMPLETED" | "CANCELLED") => {
-    try { await trpc.job.updateStatus.mutate({ jobId, status }); fetchData(); }
-    catch (err: any) { alert(err.message || "Failed to update status"); }
+    try {
+      await trpc.job.updateStatus.mutate({ jobId, status });
+      toast.success(`Job ${status === "COMPLETED" ? "completed" : status === "CANCELLED" ? "cancelled" : "started"}`);
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.message || "Failed to update status");
+    }
   };
 
   const inputClass = "rounded border border-gray-300 dark:border-neutral-700 px-2 py-1 text-sm bg-white dark:bg-neutral-950 text-gray-900 dark:text-white";
@@ -58,8 +76,8 @@ export default function ProviderJobsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Jobs</h2>
-        <p className="text-gray-500 dark:text-neutral-400 mt-1">Schedule, assign crews, and manage jobs</p>
+        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">My Jobs</h2>
+        <p className="text-gray-500 dark:text-neutral-400 mt-1">Schedule, assign crews, and manage your accepted jobs</p>
       </div>
 
       <div className="flex gap-2 flex-wrap">
@@ -82,11 +100,23 @@ export default function ProviderJobsPage() {
             <div className="flex items-start justify-between">
               <div>
                 <div className="flex items-center gap-3">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">{job.quote.service.name}</h3>
+                  <h3 className="font-semibold text-gray-900 dark:text-white">{job.service.name}</h3>
                   <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[job.status]}`}>{job.status.replace("_", " ")}</span>
+                  {job.type === "SUBSCRIPTION" && (
+                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">SUB</span>
+                  )}
                 </div>
-                <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">{job.quote.property.address}, {job.quote.property.city}</p>
-                {job.quote.customPrice && <p className="text-sm font-medium text-gray-700 dark:text-neutral-300 mt-1">Price: ${Number(job.quote.customPrice).toFixed(2)}</p>}
+                <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">{job.property.address}, {job.property.city}</p>
+                {job.acceptedBid && (
+                  <p className="text-sm font-medium text-gray-700 dark:text-neutral-300 mt-1">
+                    Price: ${Number(job.acceptedBid.price).toFixed(2)}
+                  </p>
+                )}
+                {job.customerNotes && (
+                  <p className="text-sm text-gray-400 dark:text-neutral-500 mt-1">
+                    Notes: {job.customerNotes}
+                  </p>
+                )}
               </div>
               <div className="text-right text-sm text-gray-500 dark:text-neutral-400">
                 {job.scheduledDate && <div>{new Date(job.scheduledDate).toLocaleDateString()}{job.scheduledTime && ` at ${job.scheduledTime}`}</div>}
@@ -101,7 +131,7 @@ export default function ProviderJobsPage() {
                     <div className="flex items-center gap-2">
                       <input type="date" value={schedDate} onChange={(e) => setSchedDate(e.target.value)} className={inputClass} />
                       <input type="time" value={schedTime} onChange={(e) => setSchedTime(e.target.value)} className={inputClass} />
-                      <button onClick={() => handleSchedule(job.quote.id)} className="px-3 py-1 bg-cyan-600 text-white text-sm rounded hover:bg-cyan-700">Confirm</button>
+                      <button onClick={() => handleSchedule(job.id)} className="px-3 py-1 bg-cyan-600 text-white text-sm rounded hover:bg-cyan-700">Confirm</button>
                       <button onClick={() => setSchedulingJobId(null)} className="px-3 py-1 text-gray-500 dark:text-neutral-400 text-sm">Cancel</button>
                     </div>
                   ) : (
@@ -142,7 +172,7 @@ export default function ProviderJobsPage() {
           </div>
         ))}
 
-        {jobs.length === 0 && <div className="text-center py-12 text-gray-500 dark:text-neutral-400">No jobs yet. Jobs are created when customers accept your quotes.</div>}
+        {jobs.length === 0 && <div className="text-center py-12 text-gray-500 dark:text-neutral-400">No jobs yet. Win bids on available jobs to see them here.</div>}
       </div>
     </div>
   );

@@ -14,8 +14,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 const navItems = [
   { href: '/customer', label: 'Home' },
-  { href: '/customer/quotes', label: 'Quotes' },
   { href: '/customer/jobs', label: 'Jobs' },
+  { href: '/customer/plans', label: 'Plans' },
   { href: '/customer/settings', label: 'Settings' },
 ];
 
@@ -84,7 +84,7 @@ export default function CustomerLayout({
               ))}
             </div>
 
-            {/* Quote builder section */}
+            {/* Job request section */}
             <div>
               <div className="flex items-center justify-between mb-5">
                 <Skeleton className="h-6 w-28" />

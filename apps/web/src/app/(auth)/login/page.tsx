@@ -315,11 +315,20 @@ export default function LoginPage() {
                 </Button>
               </form>
             )}
+
+            <div className="flex flex-col items-center justify-center">
+              <p className="text-xs font-bold text-center text-yellow-300">
+                customer: 5551001001
+              </p>
+              <p className="text-xs font-bold text-center text-yellow-300">
+                provider: 5552001001
+              </p>
+            </div>
           </CardContent>
         </Card>
 
         {/* Footer text */}
-        <p className="mt-6 text-xs font-bold text-center text-yellow-300">
+        <p className="mt-4 text-xs font-bold text-center text-yellow-300">
           By continuing, you agree to our Terms of Service and Privacy Policy.
         </p>
       </div>

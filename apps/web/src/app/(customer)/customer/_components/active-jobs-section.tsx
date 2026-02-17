@@ -11,10 +11,8 @@ interface Job {
   status: string;
   scheduledDate?: string | null;
   createdAt: string;
-  quote: {
-    service: { name: string };
-    property: { address: string };
-  };
+  service: { name: string };
+  property: { address: string };
 }
 
 interface ActiveJobsSectionProps {
@@ -47,10 +45,10 @@ export function ActiveJobsSection({ jobs }: ActiveJobsSectionProps) {
             <CardContent className="flex items-center justify-between p-4">
               <div className="min-w-0">
                 <div className="text-sm font-medium text-neutral-900 dark:text-white">
-                  {job.quote.service.name}
+                  {job.service.name}
                 </div>
                 <div className="text-xs text-neutral-500 mt-0.5 truncate">
-                  {job.quote.property.address}
+                  {job.property.address}
                   {job.scheduledDate &&
                     ` · ${new Date(job.scheduledDate).toLocaleDateString(
                       'en-US',

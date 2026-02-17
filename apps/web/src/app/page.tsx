@@ -126,8 +126,8 @@ export default function HomePage() {
             </h1>
             <p className="max-w-2xl mx-auto mt-6 text-lg leading-relaxed text-muted-foreground sm:text-xl">
               One platform for pressure washing, lawn care, landscaping,
-              painting, window cleaning, and more. Get instant quotes, book
-              trusted providers, and track every job in real time.
+              painting, window cleaning, and more. Request a job, receive
+              competitive bids, and track every job in real time.
             </p>
             <div className="flex flex-col justify-center gap-4 mt-10 sm:flex-row">
               <Button

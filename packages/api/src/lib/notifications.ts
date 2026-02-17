@@ -45,46 +45,47 @@ export async function createNotification({
 
 // ─── Convenience helpers for common notification events ─────────────────────
 
-/** Notify customer that a provider sent them a quote */
-export async function notifyQuoteReceived(
-  customerId: string,
-  providerName: string,
-  serviceName: string
-) {
-  return createNotification({
-    userId: customerId,
-    type: "QUOTE_RECEIVED",
-    title: "New Quote Received",
-    body: `${providerName} sent you a quote for ${serviceName}.`,
-    sendSms: true,
-  });
-}
-
-/** Notify provider of a new quote request */
-export async function notifyNewQuoteRequest(
+/** Notify providers that a new job is available in their area */
+export async function notifyNewJobAvailable(
   providerId: string,
   serviceName: string,
   address: string
 ) {
   return createNotification({
     userId: providerId,
-    type: "NEW_QUOTE_REQUEST",
-    title: "New Quote Request",
-    body: `New request for ${serviceName} at ${address}.`,
+    type: "NEW_JOB_AVAILABLE",
+    title: "New Job Available",
+    body: `New ${serviceName} job at ${address}. Submit your bid!`,
     sendSms: true,
   });
 }
 
-/** Notify customer that their quote was accepted */
-export async function notifyQuoteAccepted(
+/** Notify customer that a provider submitted a bid */
+export async function notifyBidReceived(
   customerId: string,
+  providerName: string,
   serviceName: string
 ) {
   return createNotification({
     userId: customerId,
-    type: "QUOTE_ACCEPTED",
-    title: "Quote Accepted",
-    body: `Your quote for ${serviceName} has been accepted! A job has been created.`,
+    type: "BID_RECEIVED",
+    title: "New Bid Received",
+    body: `${providerName} submitted a bid for your ${serviceName} job.`,
+    sendSms: true,
+  });
+}
+
+/** Notify provider that their bid was accepted */
+export async function notifyBidAccepted(
+  providerId: string,
+  serviceName: string
+) {
+  return createNotification({
+    userId: providerId,
+    type: "BID_ACCEPTED",
+    title: "Bid Accepted",
+    body: `Your bid for ${serviceName} has been accepted! You can now schedule the job.`,
+    sendSms: true,
   });
 }
 
@@ -158,5 +159,19 @@ export async function notifyNewProviderSignup(
     type: "NEW_PROVIDER_SIGNUP",
     title: "New Provider Signup",
     body: `${businessName} has signed up and is pending verification.`,
+  });
+}
+
+/** Notify customer of subscription created */
+export async function notifySubscriptionCreated(
+  customerId: string,
+  planName: string
+) {
+  return createNotification({
+    userId: customerId,
+    type: "SUBSCRIPTION_CREATED",
+    title: "Subscription Created",
+    body: `You've been subscribed to the ${planName} plan! Recurring services will be scheduled automatically.`,
+    sendSms: true,
   });
 }

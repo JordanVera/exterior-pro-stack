@@ -75,7 +75,7 @@ export function timeAgo(date: string) {
   });
 }
 
-export const STEPS = ['Category', 'Service', 'Property', 'Provider', 'Review'];
+export const STEPS = ['Category', 'Service', 'Property', 'Review'];
 
 export interface PropertySummary {
   property: {
@@ -86,12 +86,13 @@ export interface PropertySummary {
     zip: string;
   };
   activeJobsCount: number;
-  pendingQuotesCount: number;
+  openJobsCount: number;
   lastCompletedJob: {
     id: string;
     serviceName: string;
     completedAt: string;
-    quote: { service: any; property: any; provider: any };
+    service: any;
+    property: any;
   } | null;
 }
 
@@ -103,28 +104,23 @@ export function groupDataByProperty(
     state: string;
     zip: string;
   }[],
-  quotes: { propertyId: string; status: string }[],
   jobs: {
     id: string;
     status: string;
+    propertyId: string;
     completedAt?: string | null;
-    quote: {
-      propertyId: string;
-      property: any;
-      service: { name: string };
-      provider: any;
-    };
+    service: { name: string };
+    property: any;
   }[],
 ): PropertySummary[] {
   return properties.map((property) => {
-    const propertyQuotes = quotes.filter((q) => q.propertyId === property.id);
-    const propertyJobs = jobs.filter((j) => j.quote.propertyId === property.id);
+    const propertyJobs = jobs.filter((j) => j.propertyId === property.id);
 
     const activeJobsCount = propertyJobs.filter((j) =>
       ['SCHEDULED', 'IN_PROGRESS'].includes(j.status),
     ).length;
-    const pendingQuotesCount = propertyQuotes.filter(
-      (q) => q.status === 'SENT',
+    const openJobsCount = propertyJobs.filter(
+      (j) => j.status === 'OPEN' || j.status === 'PENDING',
     ).length;
 
     const completedJobs = propertyJobs
@@ -137,16 +133,17 @@ export function groupDataByProperty(
     const lastCompletedJob = completedJobs[0]
       ? {
           id: completedJobs[0].id,
-          serviceName: completedJobs[0].quote.service.name,
+          serviceName: completedJobs[0].service.name,
           completedAt: completedJobs[0].completedAt!,
-          quote: completedJobs[0].quote,
+          service: completedJobs[0].service,
+          property: completedJobs[0].property,
         }
       : null;
 
     return {
       property,
       activeJobsCount,
-      pendingQuotesCount,
+      openJobsCount,
       lastCompletedJob,
     };
   });
