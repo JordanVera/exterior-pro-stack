@@ -9,7 +9,7 @@ import type { PropertySummary } from './utils';
 
 interface PropertySectionProps {
   summaries: PropertySummary[];
-  onRequestQuote: (property: {
+  onRequestJob: (property: {
     id: string;
     address: string;
     city: string;
@@ -18,13 +18,14 @@ interface PropertySectionProps {
   }) => void;
   onRebook: (job: {
     id: string;
-    quote: { service: any; property: any; provider: any };
+    service: any;
+    property: any;
   }) => void;
 }
 
 export function PropertySection({
   summaries,
-  onRequestQuote,
+  onRequestJob,
   onRebook,
 }: PropertySectionProps) {
   const router = useRouter();
@@ -74,11 +75,11 @@ export function PropertySection({
           const {
             property,
             activeJobsCount,
-            pendingQuotesCount,
+            openJobsCount,
             lastCompletedJob,
           } = summary;
           const hasActivity =
-            activeJobsCount > 0 || pendingQuotesCount > 0 || lastCompletedJob;
+            activeJobsCount > 0 || openJobsCount > 0 || lastCompletedJob;
 
           return (
             <Card
@@ -110,9 +111,9 @@ export function PropertySection({
                         {activeJobsCount} active
                       </span>
                     )}
-                    {pendingQuotesCount > 0 && (
+                    {openJobsCount > 0 && (
                       <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-amber-600 dark:text-amber-400 font-medium">
-                        {pendingQuotesCount} pending
+                        {openJobsCount} open
                       </span>
                     )}
                     {lastCompletedJob && (
@@ -133,10 +134,10 @@ export function PropertySection({
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => onRequestQuote(property)}
+                    onClick={() => onRequestJob(property)}
                     className="w-full text-xs rounded-full h-7"
                   >
-                    Request quote
+                    Request job
                   </Button>
                   {lastCompletedJob && (
                     <Button
@@ -145,7 +146,8 @@ export function PropertySection({
                       onClick={() =>
                         onRebook({
                           id: lastCompletedJob.id,
-                          quote: lastCompletedJob.quote,
+                          service: lastCompletedJob.service,
+                          property: lastCompletedJob.property,
                         })
                       }
                       className="w-full text-xs rounded-full h-7 text-cyan-500 hover:text-cyan-400 hover:bg-cyan-500/10"

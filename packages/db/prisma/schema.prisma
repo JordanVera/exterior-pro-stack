@@ -15,15 +15,16 @@ enum UserRole {
   ADMIN
 }
 
-enum QuoteStatus {
+enum BidStatus {
   PENDING
-  SENT
   ACCEPTED
   DECLINED
   EXPIRED
+  WITHDRAWN
 }
 
 enum JobStatus {
+  OPEN
   PENDING
   SCHEDULED
   IN_PROGRESS
@@ -31,10 +32,38 @@ enum JobStatus {
   CANCELLED
 }
 
+enum JobType {
+  ONE_TIME
+  SUBSCRIPTION
+}
+
 enum RecurringFrequency {
   WEEKLY
   BIWEEKLY
   MONTHLY
+  QUARTERLY
+  BIANNUALLY
+}
+
+enum ServiceFrequency {
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+  QUARTERLY
+  BIANNUALLY
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAUSED
+  CANCELLED
+  PAST_DUE
+}
+
+enum BillingFrequency {
+  MONTHLY
+  QUARTERLY
+  ANNUALLY
 }
 
 enum PriceUnit {
@@ -44,16 +73,19 @@ enum PriceUnit {
 }
 
 enum NotificationType {
-  QUOTE_RECEIVED
-  QUOTE_ACCEPTED
-  QUOTE_DECLINED
+  NEW_JOB_AVAILABLE
+  BID_RECEIVED
+  BID_ACCEPTED
+  BID_DECLINED
   JOB_SCHEDULED
   JOB_IN_PROGRESS
   JOB_COMPLETED
   JOB_CANCELLED
-  NEW_QUOTE_REQUEST
   JOB_REMINDER
   SCHEDULE_CHANGE
+  SUBSCRIPTION_CREATED
+  SUBSCRIPTION_RENEWED
+  SUBSCRIPTION_CANCELLED
   NEW_PROVIDER_SIGNUP
   GENERAL
 }
@@ -77,32 +109,36 @@ model User {
 // ─── Profiles ───────────────────────────────────────────────────────────────
 
 model CustomerProfile {
-  id        String   @id @default(cuid())
-  userId    String   @unique
-  firstName String
-  lastName  String
-  email     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  firstName        String
+  lastName         String
+  email            String?
+  stripeCustomerId String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  properties Property[]
+  user          User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  properties    Property[]
+  subscriptions CustomerSubscription[]
 }
 
 model ProviderProfile {
-  id           String   @id @default(cuid())
-  userId       String   @unique
-  businessName String
-  description  String?  @db.Text
-  serviceArea  String?
-  verified     Boolean  @default(false)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id              String   @id @default(cuid())
+  userId          String   @unique
+  businessName    String
+  description     String?  @db.Text
+  serviceArea     String?
+  serviceAreaZips String?
+  verified        Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
-  user     User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  quotes   Quote[]
-  crews    Crew[]
-  services ProviderService[]
+  user          User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  bids          JobBid[]
+  crews         Crew[]
+  services      ProviderService[]
+  subscriptions CustomerSubscription[]
 }
 
 // ─── Properties ─────────────────────────────────────────────────────────────
@@ -118,8 +154,9 @@ model Property {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  customer CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  quotes   Quote[]
+  customer      CustomerProfile      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  jobs          Job[]
+  subscriptions CustomerSubscription[]
 }
 
 // ─── Service Catalog ────────────────────────────────────────────────────────
@@ -129,7 +166,7 @@ model ServiceCategory {
   name        String   @unique
   description String?  @db.Text
   icon        String?
-  image       String?  // URL for category card background
+  image       String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -148,8 +185,9 @@ model Service {
   updatedAt   DateTime  @updatedAt
 
   category         ServiceCategory   @relation(fields: [categoryId], references: [id])
-  quotes           Quote[]
   providerServices ProviderService[]
+  planServices     PlanService[]
+  jobs             Job[]
 }
 
 model ProviderService {
@@ -164,40 +202,102 @@ model ProviderService {
   @@unique([providerId, serviceId])
 }
 
-// ─── Quotes & Jobs ──────────────────────────────────────────────────────────
+// ─── Subscription Plans ─────────────────────────────────────────────────────
 
-model Quote {
-  id            String      @id @default(cuid())
-  propertyId    String
-  serviceId     String
-  providerId    String
-  customPrice   Decimal?    @db.Decimal(10, 2)
-  status        QuoteStatus @default(PENDING)
-  notes         String?     @db.Text
-  customerNotes String?     @db.Text
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
+model SubscriptionPlan {
+  id                     String   @id @default(cuid())
+  name                   String   @unique
+  description            String?  @db.Text
+  monthlyPrice           Decimal  @db.Decimal(10, 2)
+  quarterlyPrice         Decimal? @db.Decimal(10, 2)
+  annualPrice            Decimal? @db.Decimal(10, 2)
+  active                 Boolean  @default(true)
+  stripeProductId        String?
+  stripePriceIdMonthly   String?
+  stripePriceIdQuarterly String?
+  stripePriceIdAnnually  String?
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
-  property Property        @relation(fields: [propertyId], references: [id])
-  service  Service         @relation(fields: [serviceId], references: [id])
-  provider ProviderProfile @relation(fields: [providerId], references: [id])
-  job      Job?
+  services      PlanService[]
+  subscriptions CustomerSubscription[]
 }
 
-model Job {
-  id            String    @id @default(cuid())
-  quoteId       String    @unique
-  status        JobStatus @default(PENDING)
-  scheduledDate DateTime?
-  scheduledTime String?
-  completedAt   DateTime?
-  notes         String?   @db.Text
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
+model PlanService {
+  id        String           @id @default(cuid())
+  planId    String
+  serviceId String
+  frequency ServiceFrequency
 
-  quote             Quote              @relation(fields: [quoteId], references: [id])
+  plan    SubscriptionPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  service Service          @relation(fields: [serviceId], references: [id])
+
+  @@unique([planId, serviceId])
+}
+
+model CustomerSubscription {
+  id                   String             @id @default(cuid())
+  customerId           String
+  planId               String
+  propertyId           String
+  status               SubscriptionStatus @default(ACTIVE)
+  billingFrequency     BillingFrequency   @default(MONTHLY)
+  currentPeriodStart   DateTime
+  currentPeriodEnd     DateTime
+  stripeSubscriptionId String?
+  assignedProviderId   String?
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  customer CustomerProfile  @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  plan     SubscriptionPlan @relation(fields: [planId], references: [id])
+  property Property         @relation(fields: [propertyId], references: [id])
+  provider ProviderProfile? @relation(fields: [assignedProviderId], references: [id])
+  jobs     Job[]
+}
+
+// ─── Jobs & Bids ────────────────────────────────────────────────────────────
+
+model Job {
+  id             String    @id @default(cuid())
+  propertyId     String
+  serviceId      String
+  type           JobType   @default(ONE_TIME)
+  status         JobStatus @default(OPEN)
+  subscriptionId String?
+  acceptedBidId  String?   @unique
+  customerNotes  String?   @db.Text
+  scheduledDate  DateTime?
+  scheduledTime  String?
+  completedAt    DateTime?
+  notes          String?   @db.Text
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  property          Property              @relation(fields: [propertyId], references: [id])
+  service           Service               @relation(fields: [serviceId], references: [id])
+  subscription      CustomerSubscription? @relation(fields: [subscriptionId], references: [id])
+  acceptedBid       JobBid?               @relation("AcceptedBid", fields: [acceptedBidId], references: [id])
+  bids              JobBid[]              @relation("JobBids")
   assignments       JobAssignment[]
   recurringSchedule RecurringSchedule?
+}
+
+model JobBid {
+  id         String    @id @default(cuid())
+  jobId      String
+  providerId String
+  price      Decimal   @db.Decimal(10, 2)
+  notes      String?   @db.Text
+  status     BidStatus @default(PENDING)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  job            Job             @relation("JobBids", fields: [jobId], references: [id], onDelete: Cascade)
+  provider       ProviderProfile @relation(fields: [providerId], references: [id])
+  acceptedForJob Job?            @relation("AcceptedBid")
+
+  @@unique([jobId, providerId])
 }
 
 // ─── Crews ──────────────────────────────────────────────────────────────────

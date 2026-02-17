@@ -21,10 +21,12 @@ export default function AdminDashboard() {
     { label: "Providers", value: stats?.totalProviders ?? 0, color: "text-green-600 dark:text-green-400" },
     { label: "Verified Providers", value: stats?.verifiedProviders ?? 0, color: "text-green-700 dark:text-green-400" },
     { label: "Total Jobs", value: stats?.totalJobs ?? 0, color: "text-gray-900 dark:text-white" },
-    { label: "Active Jobs", value: stats?.activeJobs ?? 0, color: "text-cyan-600 dark:text-cyan-400" },
+    { label: "Open Jobs", value: stats?.openJobs ?? 0, color: "text-cyan-600 dark:text-cyan-400" },
+    { label: "Active Jobs", value: stats?.activeJobs ?? 0, color: "text-blue-600 dark:text-blue-400" },
     { label: "Completed Jobs", value: stats?.completedJobs ?? 0, color: "text-green-600 dark:text-green-400" },
-    { label: "Total Quotes", value: stats?.totalQuotes ?? 0, color: "text-gray-900 dark:text-white" },
-    { label: "Pending Quotes", value: stats?.pendingQuotes ?? 0, color: "text-orange-600 dark:text-orange-400" },
+    { label: "Total Bids", value: stats?.totalBids ?? 0, color: "text-gray-900 dark:text-white" },
+    { label: "Pending Bids", value: stats?.pendingBids ?? 0, color: "text-orange-600 dark:text-orange-400" },
+    { label: "Active Subscriptions", value: stats?.totalSubscriptions ?? 0, color: "text-purple-600 dark:text-purple-400" },
   ];
 
   return (

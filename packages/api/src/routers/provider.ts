@@ -114,20 +114,20 @@ export const providerRouter = router({
       throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
     }
 
-    const [pendingQuotes, activeJobs, completedJobs, totalCrews] =
+    const [pendingBids, activeJobs, completedJobs, totalCrews] =
       await Promise.all([
-        ctx.db.quote.count({
+        ctx.db.jobBid.count({
           where: { providerId: profile.id, status: "PENDING" },
         }),
         ctx.db.job.count({
           where: {
-            quote: { providerId: profile.id },
+            acceptedBid: { providerId: profile.id },
             status: { in: ["SCHEDULED", "IN_PROGRESS"] },
           },
         }),
         ctx.db.job.count({
           where: {
-            quote: { providerId: profile.id },
+            acceptedBid: { providerId: profile.id },
             status: "COMPLETED",
           },
         }),
@@ -136,6 +136,6 @@ export const providerRouter = router({
         }),
       ]);
 
-    return { pendingQuotes, activeJobs, completedJobs, totalCrews };
+    return { pendingBids, activeJobs, completedJobs, totalCrews };
   }),
 });

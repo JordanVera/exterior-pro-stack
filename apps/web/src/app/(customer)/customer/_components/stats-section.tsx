@@ -13,28 +13,28 @@ interface StatItem {
 }
 
 interface StatsSectionProps {
-  pendingQuotesCount: number;
+  openJobsCount: number;
   activeJobsCount: number;
   completedJobsCount: number;
   propertiesCount: number;
 }
 
 const STAT_ITEMS: Omit<StatItem, 'count'>[] = [
-  { label: 'Pending', sub: 'quotes', dot: 'bg-cyan-500', href: '/customer/quotes' },
+  { label: 'Open', sub: 'jobs', dot: 'bg-cyan-500', href: '/customer/jobs' },
   { label: 'Active', sub: 'jobs', dot: 'bg-blue-500', href: '/customer/jobs' },
   { label: 'Completed', sub: 'jobs', dot: 'bg-green-500', href: '/customer/jobs' },
   { label: 'Properties', sub: 'saved', dot: 'bg-neutral-400', href: '/customer/settings' },
 ];
 
 export function StatsSection({
-  pendingQuotesCount,
+  openJobsCount,
   activeJobsCount,
   completedJobsCount,
   propertiesCount,
 }: StatsSectionProps) {
   const router = useRouter();
   const counts = [
-    pendingQuotesCount,
+    openJobsCount,
     activeJobsCount,
     completedJobsCount,
     propertiesCount,

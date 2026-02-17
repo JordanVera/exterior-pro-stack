@@ -1,23 +1,22 @@
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
+import { toast } from 'sonner';
 import { trpc } from '../../../lib/trpc';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent } from '@/components/ui/card';
-import { Check, Clock, FileText, Star } from 'lucide-react';
+import { Check, Clock, Star, Briefcase } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { timeAgo, groupDataByProperty } from './_components/utils';
 import { GreetingSection } from './_components/greeting-section';
 import { StatsSection } from './_components/stats-section';
 import { PropertySection } from './_components/property-section';
-import { QuoteBuilderSection } from './_components/quote-builder-section';
+import { JobRequestSection } from './_components/job-request-section';
 import { RecentActivitySection } from './_components/recent-activity-section';
 import { ActiveJobsSection } from './_components/active-jobs-section';
 
 export default function CustomerHomePage() {
   const [user, setUser] = useState<any>(null);
   const [categories, setCategories] = useState<any[]>([]);
-  const [quotes, setQuotes] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
   const [properties, setProperties] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,9 +25,6 @@ export default function CustomerHomePage() {
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
   const [selectedService, setSelectedService] = useState<any>(null);
   const [selectedProperty, setSelectedProperty] = useState<any>(null);
-  const [selectedProvider, setSelectedProvider] = useState<any>(null);
-  const [providers, setProviders] = useState<any[]>([]);
-  const [loadingProviders, setLoadingProviders] = useState(false);
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -38,14 +34,12 @@ export default function CustomerHomePage() {
     Promise.all([
       trpc.auth.me.query(),
       trpc.service.listCategories.query(),
-      trpc.quote.listForCustomer.query(),
       trpc.job.listForCustomer.query(),
       trpc.property.list.query(),
     ])
-      .then(([u, cats, q, j, p]) => {
+      .then(([u, cats, j, p]) => {
         setUser(u);
         setCategories(cats);
-        setQuotes(q);
         setJobs(j);
         setProperties(p);
       })
@@ -53,19 +47,9 @@ export default function CustomerHomePage() {
       .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    if (!selectedService) return;
-    setLoadingProviders(true);
-    trpc.provider.list
-      .query({ serviceId: selectedService.id })
-      .then(setProviders)
-      .catch(console.error)
-      .finally(() => setLoadingProviders(false));
-  }, [selectedService]);
-
-  const pendingQuotes = useMemo(
-    () => quotes.filter((q) => q.status === 'SENT'),
-    [quotes],
+  const openJobs = useMemo(
+    () => jobs.filter((j) => j.status === 'OPEN' || j.status === 'PENDING'),
+    [jobs],
   );
   const activeJobs = useMemo(
     () => jobs.filter((j) => ['SCHEDULED', 'IN_PROGRESS'].includes(j.status)),
@@ -78,8 +62,8 @@ export default function CustomerHomePage() {
   const firstName = user?.customerProfile?.firstName || 'there';
 
   const propertySummaries = useMemo(
-    () => groupDataByProperty(properties, quotes, jobs),
-    [properties, quotes, jobs],
+    () => groupDataByProperty(properties, jobs),
+    [properties, jobs],
   );
 
   const activityItems = useMemo(() => {
@@ -94,38 +78,35 @@ export default function CustomerHomePage() {
       job?: any;
     }[] = [];
 
-    quotes.forEach((q) => {
-      if (q.status === 'SENT') {
+    jobs.forEach((j) => {
+      if (j.status === 'OPEN') {
+        const bidCount = j.bids?.length || 0;
         items.push({
-          id: `q-sent-${q.id}`,
-          icon: FileText,
+          id: `j-open-${j.id}`,
+          icon: Briefcase,
           color: 'text-cyan-400',
-          title: `Quote received for ${q.service.name}`,
-          sub: q.provider.businessName,
-          time: timeAgo(q.updatedAt || q.createdAt),
-          date: new Date(q.updatedAt || q.createdAt),
+          title: `Job requested: ${j.service.name}`,
+          sub: bidCount > 0 ? `${bidCount} bid${bidCount > 1 ? 's' : ''} received` : 'Waiting for bids',
+          time: timeAgo(j.createdAt),
+          date: new Date(j.createdAt),
         });
-      } else if (q.status === 'ACCEPTED') {
+      } else if (j.status === 'PENDING') {
         items.push({
-          id: `q-acc-${q.id}`,
+          id: `j-pending-${j.id}`,
           icon: Check,
           color: 'text-green-400',
-          title: `Accepted quote for ${q.service.name}`,
-          sub: q.provider.businessName,
-          time: timeAgo(q.updatedAt || q.createdAt),
-          date: new Date(q.updatedAt || q.createdAt),
+          title: `Bid accepted: ${j.service.name}`,
+          sub: j.acceptedBid?.provider?.businessName || 'Provider assigned',
+          time: timeAgo(j.updatedAt || j.createdAt),
+          date: new Date(j.updatedAt || j.createdAt),
         });
-      }
-    });
-
-    jobs.forEach((j) => {
-      if (j.status === 'COMPLETED' && j.completedAt) {
+      } else if (j.status === 'COMPLETED' && j.completedAt) {
         items.push({
           id: `j-done-${j.id}`,
           icon: Star,
           color: 'text-amber-400',
-          title: `Completed: ${j.quote.service.name}`,
-          sub: j.quote.property.address,
+          title: `Completed: ${j.service.name}`,
+          sub: j.property.address,
           time: timeAgo(j.completedAt),
           date: new Date(j.completedAt),
           job: j,
@@ -135,7 +116,7 @@ export default function CustomerHomePage() {
           id: `j-sched-${j.id}`,
           icon: Clock,
           color: 'text-blue-400',
-          title: `Scheduled: ${j.quote.service.name}`,
+          title: `Scheduled: ${j.service.name}`,
           sub: new Date(j.scheduledDate).toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
@@ -148,19 +129,15 @@ export default function CustomerHomePage() {
 
     items.sort((a, b) => b.date.getTime() - a.date.getTime());
     return items.slice(0, 6);
-  }, [quotes, jobs]);
+  }, [jobs]);
 
   const goToStep = (target: number) => {
-    if (target <= 4) {
-      setSelectedProvider(null);
-      setNotes('');
-    }
     if (target <= 3) setSelectedProperty(null);
     if (target <= 2) {
       setSelectedService(null);
-      setProviders([]);
     }
     if (target <= 1) setSelectedCategory(null);
+    setNotes('');
     setError('');
     setStep(target);
   };
@@ -182,51 +159,42 @@ export default function CustomerHomePage() {
     setSelectedProperty(prop);
     setStep(4);
   };
-  const pickProvider = (prov: any) => {
-    setSelectedProvider(prov);
-  };
 
-  const startRequestQuoteForProperty = (property: any) => {
+  const startRequestJobForProperty = (property: any) => {
     setSelectedProperty(property);
     setStep(1);
   };
 
   const startRebook = (job: any) => {
-    const { quote } = job;
-    setSelectedCategory(quote.service.category);
-    setSelectedService(quote.service);
-    setSelectedProperty(quote.property);
-    setSelectedProvider(quote.provider);
-    setStep(5);
-  };
-
-  const continueToReview = () => {
-    if (!selectedProvider) {
-      setError('Please select a provider');
-      return;
-    }
-    setError('');
-    setStep(5);
+    const service = job.service;
+    const category = service?.category;
+    if (category) setSelectedCategory(category);
+    if (service) setSelectedService(service);
+    if (job.property) setSelectedProperty(job.property);
+    setStep(4);
   };
 
   const handleSubmit = async () => {
-    if (!selectedService || !selectedProperty || !selectedProvider) return;
+    if (!selectedService || !selectedProperty) return;
     setSubmitting(true);
     setError('');
     try {
-      await trpc.quote.request.mutate({
+      const newJob = await trpc.job.create.mutate({
         serviceId: selectedService.id,
         propertyId: selectedProperty.id,
-        providerId: selectedProvider.id,
         customerNotes: notes || undefined,
       });
+      toast.success('Job request submitted successfully');
       setSuccess(true);
-      trpc.quote.listForCustomer
+      // Refetch in background to ensure consistency
+      trpc.job.listForCustomer
         .query()
-        .then(setQuotes)
+        .then(setJobs)
         .catch(() => {});
     } catch (err: any) {
-      setError(err.message || 'Failed to submit request');
+      const msg = err.message || 'Failed to submit request';
+      setError(msg);
+      toast.error(msg);
     } finally {
       setSubmitting(false);
     }
@@ -261,23 +229,20 @@ export default function CustomerHomePage() {
       <GreetingSection firstName={firstName} />
 
       <StatsSection
-        pendingQuotesCount={pendingQuotes.length}
+        openJobsCount={openJobs.length}
         activeJobsCount={activeJobs.length}
         completedJobsCount={completedJobs.length}
         propertiesCount={properties.length}
       />
 
-      <QuoteBuilderSection
+      <JobRequestSection
         step={step}
         success={success}
         categories={categories}
         selectedCategory={selectedCategory}
         selectedService={selectedService}
         selectedProperty={selectedProperty}
-        selectedProvider={selectedProvider}
         properties={properties}
-        providers={providers}
-        loadingProviders={loadingProviders}
         notes={notes}
         submitting={submitting}
         error={error}
@@ -286,15 +251,13 @@ export default function CustomerHomePage() {
         onPickCategory={pickCategory}
         onPickService={pickService}
         onPickProperty={pickProperty}
-        onPickProvider={pickProvider}
         onNotesChange={setNotes}
-        onContinueToReview={continueToReview}
         onSubmit={handleSubmit}
       />
 
       <PropertySection
         summaries={propertySummaries}
-        onRequestQuote={startRequestQuoteForProperty}
+        onRequestJob={startRequestJobForProperty}
         onRebook={startRebook}
       />
 

@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { Check } from 'lucide-react';
+import { Check, ArrowRight, CalendarCheck, Repeat, Shield } from 'lucide-react';
 import { trpc } from '../lib/trpc';
 import { isAuthenticated } from '../lib/auth';
 import { ThemeToggle } from '../components/ThemeToggle';
@@ -62,6 +62,12 @@ export default function HomePage() {
           </Link>
           <div className="items-center hidden gap-8 text-sm font-medium text-muted-foreground md:flex">
             <a
+              href="#plans"
+              className="transition-colors hover:text-foreground"
+            >
+              Plans
+            </a>
+            <a
               href="#services"
               className="transition-colors hover:text-foreground"
             >
@@ -115,19 +121,19 @@ export default function HomePage() {
           <div className="max-w-4xl mx-auto text-center">
             <Badge className="gap-2 mb-2 border-0 bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-400 hover:bg-cyan-100 dark:hover:bg-cyan-950/50">
               <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse" />
-              All-In-One Platform for exterior property services
+              Subscription Plans &amp; On-Demand Services
             </Badge>
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-foreground leading-[1.1] tracking-tight">
               Your Property&apos;s Exterior
               <br />
               <span className="text-transparent bg-gradient-to-r from-cyan-500 via-blue-500 to-green-600 bg-clip-text">
-                Handled by Pros
+                On Autopilot
               </span>
             </h1>
             <p className="max-w-2xl mx-auto mt-6 text-lg leading-relaxed text-muted-foreground sm:text-xl">
-              One platform for pressure washing, lawn care, landscaping,
-              painting, window cleaning, and more. Get instant quotes, book
-              trusted providers, and track every job in real time.
+              Subscribe to recurring lawn care, landscaping, gutter cleaning,
+              and more. Need a one-time job? Post a request and let verified
+              local pros compete with their best bids.
             </p>
             <div className="flex flex-col justify-center gap-4 mt-10 sm:flex-row">
               <Button
@@ -135,7 +141,7 @@ export default function HomePage() {
                 onClick={() => router.push('/login')}
                 className="text-lg text-black bg-cyan-500 hover:bg-cyan-700 hover:shadow-lg hover:shadow-cyan-600/25 rounded-xl"
               >
-                Book a Service
+                Browse Plans
               </Button>
               <Button
                 size="lg"
@@ -146,73 +152,233 @@ export default function HomePage() {
                 Join as a Provider
               </Button>
             </div>
-            <div className="flex items-center justify-center gap-8 mt-12 text-sm text-muted-foreground">
+            <div className="flex flex-wrap items-center justify-center gap-6 mt-12 text-sm text-muted-foreground sm:gap-8">
               <div className="flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-green-500" />
-                Free quotes
+                <Repeat className="w-4 h-4 text-cyan-500" />
+                Recurring plans
               </div>
               <div className="flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-green-500" />
+                <Shield className="w-4 h-4 text-green-500" />
                 Verified providers
               </div>
               <div className="flex items-center gap-1.5">
-                <Check className="w-4 h-4 text-green-500" />
+                <CalendarCheck className="w-4 h-4 text-green-500" />
                 Real-time tracking
+              </div>
+              <div className="flex items-center gap-1.5">
+                <Check className="w-4 h-4 text-green-500" />
+                Competitive bidding
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ─── SERVICES ─── */}
-      <section id="services" className="py-24 bg-muted/50">
+      {/* ─── SUBSCRIPTION PLANS ─── */}
+      <section id="plans" className="py-24 bg-muted/50">
         <div className="px-6 mx-auto max-w-7xl">
           <div className="mb-16 text-center">
             <p className="mb-3 text-sm font-semibold tracking-wider uppercase text-cyan-600 dark:text-cyan-400">
-              All-In-One Platform
+              Subscription Plans
             </p>
             <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
-              Every Exterior Service You Need
+              Set It &amp; Forget It
             </h2>
             <p className="max-w-2xl mx-auto mt-4 text-lg text-muted-foreground">
-              Stop juggling multiple contractors. Exterior Pro brings all your
-              property services under one roof with transparent pricing and
-              professional results.
+              Choose a plan that fits your property. Recurring services are
+              handled automatically — your dedicated provider shows up on
+              schedule so you never have to think about it.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+            {[
+              {
+                name: 'Essential',
+                price: 79,
+                period: '/mo',
+                desc: 'Great for basic upkeep on smaller properties.',
+                features: [
+                  'Biweekly lawn mowing & edging',
+                  'Quarterly gutter cleaning',
+                  'Seasonal weed control',
+                  'Priority job requests',
+                ],
+                highlight: false,
+              },
+              {
+                name: 'Premium',
+                price: 149,
+                period: '/mo',
+                desc: 'Our most popular plan — full-service care year-round.',
+                features: [
+                  'Weekly lawn mowing & edging',
+                  'Biannual gutter cleaning',
+                  'Monthly weed & pest control',
+                  'Biweekly landscaping touch-ups',
+                  'Dedicated provider assignment',
+                  '10% off one-time jobs',
+                ],
+                highlight: true,
+              },
+              {
+                name: 'Estate',
+                price: 299,
+                period: '/mo',
+                desc: 'Complete property management for larger homes.',
+                features: [
+                  'Everything in Premium',
+                  'Weekly landscaping service',
+                  'Quarterly pressure washing',
+                  'Biannual exterior window cleaning',
+                  'Dedicated crew assignment',
+                  '20% off one-time jobs',
+                ],
+                highlight: false,
+              },
+            ].map((plan) => (
+              <Card
+                key={plan.name}
+                className={`relative transition-all cursor-pointer group rounded-2xl ${
+                  plan.highlight
+                    ? 'border-cyan-400 dark:border-cyan-600 shadow-lg shadow-cyan-100 dark:shadow-cyan-950/30 scale-[1.02]'
+                    : 'hover:border-cyan-200 dark:hover:border-cyan-900 hover:shadow-lg'
+                }`}
+                onClick={() => router.push('/login')}
+              >
+                <CardContent className="p-8">
+                  {plan.highlight && (
+                    <Badge className="absolute border-0 top-4 right-4 bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-400">
+                      Most Popular
+                    </Badge>
+                  )}
+                  <h3 className="text-xl font-bold text-foreground">
+                    {plan.name}
+                  </h3>
+                  <div className="flex items-baseline gap-1 mt-3">
+                    <span className="text-4xl font-bold text-foreground">
+                      ${plan.price}
+                    </span>
+                    <span className="text-muted-foreground">{plan.period}</span>
+                  </div>
+                  <p className="mt-3 text-sm text-muted-foreground">
+                    {plan.desc}
+                  </p>
+                  <ul className="mt-6 space-y-3">
+                    {plan.features.map((f) => (
+                      <li key={f} className="flex items-start gap-2 text-sm">
+                        <Check className="w-4 h-4 mt-0.5 flex-shrink-0 text-cyan-500" />
+                        <span className="text-foreground">{f}</span>
+                      </li>
+                    ))}
+                  </ul>
+                  <Button
+                    className={`w-full mt-8 rounded-xl ${
+                      plan.highlight
+                        ? 'bg-cyan-500 hover:bg-cyan-600 text-black'
+                        : ''
+                    }`}
+                    variant={plan.highlight ? 'default' : 'outline'}
+                  >
+                    Get Started
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── SERVICES ─── */}
+      <section id="services" className="py-24">
+        <div className="px-6 mx-auto max-w-7xl">
+          <div className="mb-16 text-center">
+            <p className="mb-3 text-sm font-semibold tracking-wider uppercase text-cyan-600 dark:text-cyan-400">
+              All Services
+            </p>
+            <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
+              Subscriptions &amp; One-Time Jobs
+            </h2>
+            <p className="max-w-2xl mx-auto mt-4 text-lg text-muted-foreground">
+              Every service is available as part of a subscription plan or as a
+              standalone job request. Post what you need and let verified
+              providers bid for your business.
             </p>
           </div>
 
           <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {[
               {
-                icon: '💧',
-                title: 'Pressure Washing',
-                desc: 'Driveways, siding, decks, patios, and fences restored to like-new condition.',
-                tag: 'Most Popular',
-              },
-              {
                 icon: '🌿',
                 title: 'Lawn Maintenance',
-                desc: 'Weekly mowing, edging, trimming, fertilization, and weed control programs.',
+                desc: 'Weekly or biweekly mowing, edging, trimming, fertilization, and weed control programs.',
+                tag: 'Weekly / Biweekly',
+                tagColor:
+                  'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400',
               },
               {
                 icon: '🌳',
                 title: 'Landscaping',
                 desc: 'Full-service design, planting, mulching, hardscaping, and seasonal cleanup.',
+                tag: 'Weekly / Biweekly',
+                tagColor:
+                  'bg-green-100 dark:bg-green-950/50 text-green-700 dark:text-green-400',
+              },
+              {
+                icon: '🪴',
+                title: 'Weed Control',
+                desc: 'Targeted treatments, pre-emergent applications, and ongoing prevention programs.',
+                tag: 'Monthly / Quarterly',
+                tagColor:
+                  'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400',
+              },
+              {
+                icon: '🏠',
+                title: 'Gutter Cleaning',
+                desc: 'Thorough gutter and downspout cleaning, guard installation, and debris removal.',
+                tag: 'Quarterly / Biannual',
+                tagColor:
+                  'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400',
+              },
+              {
+                icon: '💧',
+                title: 'Pressure Washing',
+                desc: 'Driveways, siding, decks, patios, and fences restored to like-new condition.',
+                tag: 'Most Popular',
+                tagColor:
+                  'bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-400',
               },
               {
                 icon: '🎨',
                 title: 'Exterior Painting',
                 desc: 'Professional prep and painting for siding, trim, fences, decks, and more.',
+                tag: 'One-Time',
+                tagColor:
+                  'bg-purple-100 dark:bg-purple-950/50 text-purple-700 dark:text-purple-400',
               },
               {
                 icon: '✨',
                 title: 'Window Cleaning',
                 desc: 'Streak-free interior and exterior cleaning for homes and commercial properties.',
+                tag: 'Biannual / One-Time',
+                tagColor:
+                  'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400',
               },
               {
-                icon: '🏠',
-                title: 'Gutter & Roof Care',
-                desc: 'Gutter cleaning, guard installation, and gentle roof soft washing.',
+                icon: '🛠️',
+                title: 'Roof Care',
+                desc: 'Gentle roof soft washing, moss removal, and preventive maintenance.',
+                tag: 'Biannual',
+                tagColor:
+                  'bg-blue-100 dark:bg-blue-950/50 text-blue-700 dark:text-blue-400',
+              },
+              {
+                icon: '🌲',
+                title: 'Tree & Shrub Care',
+                desc: 'Pruning, trimming, health assessments, and removal for all property types.',
+                tag: 'Seasonal / One-Time',
+                tagColor:
+                  'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400',
               },
             ].map((service) => (
               <Card
@@ -222,7 +388,9 @@ export default function HomePage() {
               >
                 <CardContent className="p-6">
                   {service.tag && (
-                    <Badge className="absolute border-0 top-4 right-4 bg-cyan-100 dark:bg-cyan-950/50 text-cyan-700 dark:text-cyan-400">
+                    <Badge
+                      className={`absolute border-0 top-4 right-4 ${service.tagColor}`}
+                    >
                       {service.tag}
                     </Badge>
                   )}
@@ -233,8 +401,8 @@ export default function HomePage() {
                   <p className="mt-2 leading-relaxed text-muted-foreground">
                     {service.desc}
                   </p>
-                  <div className="mt-4 text-sm font-medium transition-opacity opacity-0 text-cyan-600 dark:text-cyan-400 group-hover:opacity-100">
-                    Get a free quote &rarr;
+                  <div className="flex items-center gap-1 mt-4 text-sm font-medium transition-opacity opacity-0 text-cyan-600 dark:text-cyan-400 group-hover:opacity-100">
+                    Request service <ArrowRight className="w-3.5 h-3.5" />
                   </div>
                 </CardContent>
               </Card>
@@ -244,7 +412,7 @@ export default function HomePage() {
       </section>
 
       {/* ─── HOW IT WORKS ─── */}
-      <section id="how-it-works" className="py-24">
+      <section id="how-it-works" className="py-24 bg-muted/50">
         <div className="px-6 mx-auto max-w-7xl">
           <div className="mb-16 text-center">
             <p className="mb-3 text-sm font-semibold tracking-wider uppercase text-cyan-600 dark:text-cyan-400">
@@ -253,14 +421,18 @@ export default function HomePage() {
             <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
               Booked in Minutes, Done Right
             </h2>
+            <p className="max-w-2xl mx-auto mt-4 text-lg text-muted-foreground">
+              Whether you subscribe to a plan or post a one-time job, getting
+              work done is fast and transparent.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 gap-8 md:grid-cols-3 lg:gap-12">
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-4 lg:gap-10">
             {[
               {
                 step: '01',
-                title: 'Describe Your Project',
-                desc: 'Select a service, add your property details, and tell providers what you need. It takes less than 2 minutes.',
+                title: 'Choose a Plan or Post a Job',
+                desc: 'Subscribe to recurring services or post a one-time job request with your property details. It takes less than 2 minutes.',
                 icon: (
                   <svg
                     className="w-6 h-6"
@@ -279,8 +451,8 @@ export default function HomePage() {
               },
               {
                 step: '02',
-                title: 'Compare Quotes',
-                desc: 'Receive competitive quotes from verified local providers. Compare prices, reviews, and availability side by side.',
+                title: 'Providers Bid',
+                desc: 'Verified local providers in your area see your job and submit competitive bids with pricing and availability.',
                 icon: (
                   <svg
                     className="w-6 h-6"
@@ -299,8 +471,28 @@ export default function HomePage() {
               },
               {
                 step: '03',
+                title: 'Pick Your Pro',
+                desc: 'Compare bids side by side — pricing, provider ratings, and notes. Accept the best fit with one click.',
+                icon: (
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth={1.5}
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"
+                    />
+                  </svg>
+                ),
+              },
+              {
+                step: '04',
                 title: 'Sit Back & Relax',
-                desc: 'Your provider handles everything. Track job progress in real time and get notified when work is complete.',
+                desc: 'Your provider handles everything. Track progress in real time and get notified when work is complete.',
                 icon: (
                   <svg
                     className="w-6 h-6"
@@ -317,8 +509,11 @@ export default function HomePage() {
                   </svg>
                 ),
               },
-              ].map((item) => (
-              <Card key={item.step} className="relative text-center bg-transparent border-0 shadow-none">
+            ].map((item) => (
+              <Card
+                key={item.step}
+                className="relative text-center bg-transparent border-0 shadow-none"
+              >
                 <CardContent className="p-0">
                   <div className="inline-flex items-center justify-center mb-6 text-cyan-600 bg-cyan-100 w-14 h-14 rounded-2xl dark:bg-cyan-950/50 dark:text-cyan-400">
                     {item.icon}
@@ -340,7 +535,7 @@ export default function HomePage() {
       </section>
 
       {/* ─── WHY EXTERIOR PRO ─── */}
-      <section className="py-24 bg-muted/50">
+      <section className="py-24">
         <div className="px-6 mx-auto max-w-7xl">
           <div className="grid items-center grid-cols-1 gap-16 lg:grid-cols-2">
             <div>
@@ -351,13 +546,14 @@ export default function HomePage() {
                 Not Just Another Marketplace.
                 <br />
                 <span className="text-muted-foreground">
-                  A Better Way to Manage Your Property.
+                  A Smarter Way to Manage Your Property.
                 </span>
               </h2>
               <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
-                Unlike generic platforms like Thumbtack or Angi, Exterior Pro is
-                built exclusively for exterior property services. Every feature
-                is designed around how outdoor work actually gets done.
+                Unlike generic platforms like Thumbtack or Angi, Exterior Pro
+                combines subscription-based recurring services with a
+                competitive bidding marketplace — built exclusively for exterior
+                property work.
               </p>
             </div>
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -370,27 +566,27 @@ export default function HomePage() {
                 {
                   icon: '🔒',
                   title: 'Verified Providers',
-                  desc: 'Every provider is vetted before they can receive quotes on our platform.',
+                  desc: 'Every provider is vetted before they can bid on jobs on our platform.',
                 },
                 {
-                  icon: '📱',
-                  title: 'Real-Time Tracking',
-                  desc: 'Know exactly when your crew arrives, starts, and completes work.',
+                  icon: '💰',
+                  title: 'Competitive Bidding',
+                  desc: 'Providers compete for your business. You pick the best price, rating, and fit.',
                 },
                 {
-                  icon: '📊',
-                  title: 'Transparent Pricing',
-                  desc: 'See base rates upfront. No hidden fees or surprise charges after the fact.',
+                  icon: '📦',
+                  title: 'Subscription Plans',
+                  desc: 'Set up a plan and your recurring services happen automatically, every time.',
                 },
                 {
                   icon: '🔄',
-                  title: 'Recurring Scheduling',
-                  desc: 'Set up weekly, biweekly, or monthly services that run on autopilot.',
+                  title: 'Sticky Providers',
+                  desc: 'Once a provider accepts your recurring jobs, they stay assigned — no re-bidding.',
                 },
                 {
                   icon: '💬',
                   title: 'Instant Notifications',
-                  desc: 'SMS and in-app updates at every stage of your job from quote to completion.',
+                  desc: 'SMS and in-app updates at every stage — new bids, scheduling, and completion.',
                 },
               ].map((item) => (
                 <Card key={item.title}>
@@ -428,8 +624,8 @@ export default function HomePage() {
                 <p className="mt-6 text-lg leading-relaxed text-green-100">
                   Exterior Pro isn&apos;t just a lead generator. It&apos;s a
                   full operations platform with crew management, job scheduling,
-                  quote tools, and customer communication — all built for the
-                  way exterior service businesses actually work.
+                  competitive bidding, and recurring subscription jobs — all
+                  built for the way exterior service businesses actually work.
                 </p>
                 <div className="mt-8">
                   <Button
@@ -452,12 +648,12 @@ export default function HomePage() {
                     desc: 'Calendar-based job scheduling with automatic conflict detection and reminders.',
                   },
                   {
-                    title: 'Quote & Invoice',
-                    desc: 'Send professional quotes with custom pricing. Convert accepted quotes into jobs instantly.',
+                    title: 'Bid & Win Jobs',
+                    desc: 'Browse open job requests in your area, submit competitive bids, and win new customers.',
                   },
                   {
-                    title: 'Customer Pipeline',
-                    desc: 'Track leads from quote request to job completion. Never lose a customer again.',
+                    title: 'Recurring Revenue',
+                    desc: 'Get assigned to subscription customers and earn steady recurring income — no re-bidding needed.',
                   },
                 ].map((item, i) => (
                   <div
@@ -486,10 +682,10 @@ export default function HomePage() {
         <div className="max-w-5xl px-6 mx-auto">
           <div className="grid grid-cols-2 gap-8 text-center md:grid-cols-4">
             {[
-              { value: '6+', label: 'Service Categories' },
+              { value: '9+', label: 'Service Categories' },
               { value: '24/7', label: 'Booking Available' },
               { value: '100%', label: 'Verified Providers' },
-              { value: 'Free', label: 'Quotes, Always' },
+              { value: '3', label: 'Subscription Plans' },
             ].map((stat) => (
               <div key={stat.label}>
                 <div className="text-3xl font-bold text-foreground sm:text-4xl">
@@ -511,16 +707,16 @@ export default function HomePage() {
             Ready to Transform Your Property?
           </h2>
           <p className="max-w-2xl mx-auto mt-4 text-lg text-muted-foreground">
-            Join thousands of homeowners who trust Exterior Pro for all their
-            outdoor property needs. Get your first quote in minutes.
+            Pick a subscription plan for hands-off recurring care, or post a
+            one-time job and let providers compete for your business.
           </p>
           <div className="flex flex-col justify-center gap-4 mt-10 sm:flex-row">
             <Button
               size="lg"
               onClick={() => router.push('/login')}
-              className="text-lg bg-cyan-600 hover:bg-cyan-700 hover:shadow-lg hover:shadow-cyan-600/25 rounded-xl"
+              className="text-lg text-black bg-cyan-500 hover:bg-cyan-600 hover:shadow-lg hover:shadow-cyan-600/25 rounded-xl"
             >
-              Get Your Free Quote
+              Browse Subscription Plans
             </Button>
             <Button
               size="lg"
@@ -563,7 +759,7 @@ export default function HomePage() {
                     onClick={() => router.push('/login')}
                     className="h-auto p-0 text-muted-foreground hover:text-foreground"
                   >
-                    Browse Services
+                    Browse Plans
                   </Button>
                 </li>
                 <li>
@@ -572,7 +768,7 @@ export default function HomePage() {
                     onClick={() => router.push('/login')}
                     className="h-auto p-0 text-muted-foreground hover:text-foreground"
                   >
-                    Get a Quote
+                    Request a Job
                   </Button>
                 </li>
                 <li>

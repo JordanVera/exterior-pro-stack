@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import { trpc } from "../../../../lib/trpc";
 import { clearToken } from "../../../../lib/auth";
 import { ThemeToggle } from "../../../../components/ThemeToggle";
@@ -93,11 +94,14 @@ export default function SettingsPage() {
         zip: addForm.zip,
         notes: addForm.notes || undefined,
       });
+      toast.success("Property added successfully");
       setShowAdd(false);
       setAddForm({ address: "", city: "", state: "", zip: "", notes: "" });
       fetchData();
     } catch (err: any) {
-      setAddError(err.message || "Failed to add property");
+      const msg = err.message || "Failed to add property";
+      setAddError(msg);
+      toast.error(msg);
     } finally {
       setAddSaving(false);
     }
@@ -133,10 +137,13 @@ export default function SettingsPage() {
         zip: editForm.zip,
         notes: editForm.notes || undefined,
       });
+      toast.success("Property updated successfully");
       setEditingId(null);
       fetchData();
     } catch (err: any) {
-      setEditError(err.message || "Failed to update property");
+      const msg = err.message || "Failed to update property";
+      setEditError(msg);
+      toast.error(msg);
     } finally {
       setEditSaving(false);
     }
@@ -151,9 +158,10 @@ export default function SettingsPage() {
     if (!deleteId) return;
     try {
       await trpc.property.delete.mutate({ id: deleteId });
+      toast.success("Property deleted successfully");
       fetchData();
     } catch (err: any) {
-      alert(err.message || "Failed to delete property");
+      toast.error(err.message || "Failed to delete property");
     }
     setDeleteOpen(false);
     setDeleteId(null);

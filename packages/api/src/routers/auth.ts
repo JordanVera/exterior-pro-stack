@@ -117,7 +117,10 @@ export const authRouter = router({
   me: protectedProcedure.query(async ({ ctx }) => {
     const user = await ctx.db.user.findUnique({
       where: { id: ctx.user.userId },
-      include: { customerProfile: true, providerProfile: true },
+      include: {
+        customerProfile: true,
+        providerProfile: true,
+      },
     });
 
     if (!user) {

@@ -9,6 +9,7 @@ import {
   InputOTP,
   InputOTPGroup,
   InputOTPSlot,
+  InputOTPSeparator,
 } from '@/components/ui/input-otp';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -271,10 +272,14 @@ export default function LoginPage() {
                     className="justify-center"
                     containerClassName="gap-1.5"
                   >
-                    <InputOTPGroup className="rounded-lg p-1.5 backdrop-blur-sm [&>div]:h-12 [&>div]:w-12 [&>div]:border [&>div]:border-white/20 [&>div]:bg-white/5 [&>div]:text-white [&>div]:text-xl [&>div]:font-medium [&>div]:first:rounded-l-md [&>div]:last:rounded-r-md [&>div[data-active]]:ring-2 [&>div[data-active]]:ring-cyan-500 [&>div[data-active]]:border-cyan-500/50">
+                    <InputOTPGroup className="rounded-lg p-1.5 backdrop-blur-sm [&>div]:h-12 [&>div]:w-12 [&>div]:border [&>div]:border-white/20 [&>div]:bg-white/5 [&>div]:text-white [&>div]:text-xl [&>div]:font-medium [&>div]:first:rounded-l-md [&>div]:last:rounded-r-md [&>div[data-active]]:ring-2 [&>div[data-active]]:ring-cyan-500 [&>div[data-active]]:border-cyan-500/50 [&>div[role=separator]]:h-12 [&>div[role=separator]]:w-0 [&>div[role=separator]]:border-0 [&>div[role=separator]]:bg-transparent [&>div[role=separator]]:flex [&>div[role=separator]]:items-center [&>div[role=separator]]:justify-center [&>div[role=separator]]:px-2">
                       <InputOTPSlot index={0} />
                       <InputOTPSlot index={1} />
                       <InputOTPSlot index={2} />
+                    </InputOTPGroup>
+                    <InputOTPSeparator />
+                    {/* <div className="w-px h-8 bg-white/40" /> */}
+                    <InputOTPGroup className="rounded-lg p-1.5 backdrop-blur-sm [&>div]:h-12 [&>div]:w-12 [&>div]:border [&>div]:border-white/20 [&>div]:bg-white/5 [&>div]:text-white [&>div]:text-xl [&>div]:font-medium [&>div]:first:rounded-l-md [&>div]:last:rounded-r-md [&>div[data-active]]:ring-2 [&>div[data-active]]:ring-cyan-500 [&>div[data-active]]:border-cyan-500/50 [&>div[role=separator]]:h-12 [&>div[role=separator]]:w-0 [&>div[role=separator]]:border-0 [&>div[role=separator]]:bg-transparent [&>div[role=separator]]:flex [&>div[role=separator]]:items-center [&>div[role=separator]]:justify-center [&>div[role=separator]]:px-2">
                       <InputOTPSlot index={3} />
                       <InputOTPSlot index={4} />
                       <InputOTPSlot index={5} />
@@ -315,11 +320,20 @@ export default function LoginPage() {
                 </Button>
               </form>
             )}
+
+            <div className="flex flex-col items-center justify-center">
+              <p className="text-xs font-bold text-center text-yellow-300">
+                customer: 5551001001
+              </p>
+              <p className="text-xs font-bold text-center text-yellow-300">
+                provider: 5552001001
+              </p>
+            </div>
           </CardContent>
         </Card>
 
         {/* Footer text */}
-        <p className="mt-6 text-xs font-bold text-center text-yellow-300">
+        <p className="mt-4 text-xs font-bold text-center text-yellow-300">
           By continuing, you agree to our Terms of Service and Privacy Policy.
         </p>
       </div>
