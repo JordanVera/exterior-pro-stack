@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { Check, CalendarCheck, Repeat, Shield } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { useRouter } from "next/navigation";
+import { Check, CalendarCheck, Repeat, Shield } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 
 export function HomeHeroSection() {
   const router = useRouter();
 
   return (
-    <section className="relative min-h-[85vh] overflow-hidden">
+    <section id="home" className="relative min-h-[85vh] overflow-hidden">
       <video
         autoPlay
         muted
@@ -45,8 +45,8 @@ export function HomeHeroSection() {
           </h1>
           <p className="mx-auto mt-8 max-w-2xl text-pretty text-lg leading-relaxed text-muted-foreground sm:text-xl">
             Subscribe to recurring lawn care, landscaping, gutter cleaning, and
-            more. Need a one-time job? Post a request and let verified local pros
-            compete with their best bids.
+            more. Need a one-time job? Post a request and let verified local
+            pros compete with their best bids.
           </p>
           <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
             <Button

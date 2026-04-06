@@ -63,9 +63,9 @@ export default function HomePage() {
       <HomeNav />
 
       <HomeHeroSection />
-      <HomePlansSection />
-      <HomeServicesSection />
       <HomeHowItWorksSection />
+      <HomeServicesSection />
+      <HomePlansSection />
       <HomeWhySection />
       <HomeProvidersSection />
       <HomeStatsSection />
