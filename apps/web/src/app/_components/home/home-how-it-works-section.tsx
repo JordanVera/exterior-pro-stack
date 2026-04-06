@@ -1,20 +1,20 @@
-'use client';
+"use client";
 
-import { Card, CardContent } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 const STEP_ACCENTS = [
-  'from-blue-500/80 to-indigo-600/80 shadow-blue-500/25',
-  'from-sky-500/80 to-cyan-600/80 shadow-sky-500/25',
-  'from-violet-500/80 to-purple-600/80 shadow-violet-500/25',
-  'from-emerald-500/80 to-teal-600/80 shadow-emerald-500/25',
+  "from-blue-500/80 to-indigo-600/80 shadow-blue-500/25",
+  "from-sky-500/80 to-cyan-600/80 shadow-sky-500/25",
+  "from-violet-500/80 to-purple-600/80 shadow-violet-500/25",
+  "from-emerald-500/80 to-teal-600/80 shadow-emerald-500/25",
 ] as const;
 
 const STEPS = [
   {
-    step: '01',
-    title: 'Choose a Plan or Post a Job',
-    desc: 'Subscribe to recurring services or post a one-time job request with your property details. It takes less than 2 minutes.',
+    step: "01",
+    title: "Choose a Plan or Post a Job",
+    desc: "Subscribe to recurring services or post a one-time job request with your property details. It takes less than 2 minutes.",
     icon: (
       <svg
         className="h-6 w-6"
@@ -32,9 +32,9 @@ const STEPS = [
     ),
   },
   {
-    step: '02',
-    title: 'Providers Bid',
-    desc: 'Verified local providers in your area see your job and submit competitive bids with pricing and availability.',
+    step: "02",
+    title: "Providers Bid",
+    desc: "Verified local providers in your area see your job and submit competitive bids with pricing and availability.",
     icon: (
       <svg
         className="h-6 w-6"
@@ -52,9 +52,9 @@ const STEPS = [
     ),
   },
   {
-    step: '03',
-    title: 'Pick Your Pro',
-    desc: 'Compare bids side by side — pricing, provider ratings, and notes. Accept the best fit with one click.',
+    step: "03",
+    title: "Pick Your Pro",
+    desc: "Compare bids side by side — pricing, provider ratings, and notes. Accept the best fit with one click.",
     icon: (
       <svg
         className="h-6 w-6"
@@ -72,9 +72,9 @@ const STEPS = [
     ),
   },
   {
-    step: '04',
-    title: 'Sit Back & Relax',
-    desc: 'Your provider handles everything. Track progress in real time and get notified when work is complete.',
+    step: "04",
+    title: "Sit Back & Relax",
+    desc: "Your provider handles everything. Track progress in real time and get notified when work is complete.",
     icon: (
       <svg
         className="h-6 w-6"
@@ -95,7 +95,10 @@ const STEPS = [
 
 export function HomeHowItWorksSection() {
   return (
-    <section id="how-it-works" className="relative scroll-mt-24 overflow-hidden py-24">
+    <section
+      id="how-it-works"
+      className="relative scroll-mt-24 overflow-hidden py-24"
+    >
       <div className="pointer-events-none absolute inset-0 -z-10">
         <div className="absolute left-[10%] top-0 h-[420px] w-[420px] rounded-full bg-blue-500/[0.09] blur-[100px] dark:bg-blue-500/[0.12]" />
         <div className="absolute bottom-0 right-[5%] h-[360px] w-[480px] rounded-full bg-cyan-400/[0.07] blur-[90px] dark:bg-cyan-500/[0.1]" />
@@ -104,7 +107,7 @@ export function HomeHowItWorksSection() {
           style={{
             backgroundImage: `linear-gradient(to right, rgba(80,100,160,0.06) 1px, transparent 1px),
               linear-gradient(to bottom, rgba(80,100,160,0.06) 1px, transparent 1px)`,
-            backgroundSize: '48px 48px',
+            backgroundSize: "48px 48px",
           }}
         />
       </div>
@@ -128,41 +131,41 @@ export function HomeHowItWorksSection() {
             <Card
               key={item.step}
               className={cn(
-                'group relative h-full overflow-hidden rounded-[1.75rem] border border-black/[0.07] bg-white/80 shadow-md backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-white/[0.1] dark:bg-white/[0.04] dark:hover:shadow-blue-950/40',
-                'before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-blue-400/50 before:to-transparent dark:before:via-blue-400/35',
+                "group relative h-full overflow-hidden rounded-[1.75rem] border border-black/[0.07] bg-white/80 shadow-md backdrop-blur-xl transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-white/[0.1] dark:bg-white/[0.04] dark:hover:shadow-blue-950/40",
+                "before:pointer-events-none before:absolute before:inset-x-0 before:top-0 before:h-px before:bg-gradient-to-r before:from-transparent before:via-blue-400/50 before:to-transparent dark:before:via-blue-400/35"
               )}
             >
-                <div
-                  aria-hidden
-                  className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gradient-to-br from-blue-500/12 to-cyan-500/6 opacity-80 blur-2xl transition-opacity group-hover:opacity-100 dark:from-blue-400/15"
-                />
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute bottom-2 right-3 text-7xl font-bold tabular-nums leading-none text-foreground/[0.04] dark:text-white/[0.06]"
-                >
-                  {item.step}
-                </span>
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-gradient-to-br from-blue-500/12 to-cyan-500/6 opacity-80 blur-2xl transition-opacity group-hover:opacity-100 dark:from-blue-400/15"
+              />
+              <span
+                aria-hidden
+                className="pointer-events-none absolute bottom-2 right-3 text-7xl font-bold tabular-nums leading-none text-foreground/[0.04] dark:text-white/[0.06]"
+              >
+                {item.step}
+              </span>
 
-                <CardContent className="relative p-7 text-center sm:p-8">
-                  <div
-                    className={cn(
-                      'mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br p-2.5 text-white shadow-lg ring-4 ring-white/60 dark:ring-white/10',
-                      'transition-transform duration-300 group-hover:scale-105',
-                      STEP_ACCENTS[index],
-                    )}
-                  >
-                    {item.icon}
-                  </div>
-                  <div className="mb-2 inline-flex rounded-full border border-blue-500/15 bg-blue-500/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-700 dark:text-blue-300">
+              <CardContent className="relative p-7 text-center sm:p-8">
+                <div
+                  className={cn(
+                    "mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br p-2.5 text-white shadow-lg ring-4 ring-white/60 dark:ring-white/10",
+                    "transition-transform duration-300 group-hover:scale-105",
+                    STEP_ACCENTS[index]
+                  )}
+                >
+                  {item.icon}
+                </div>
+                {/* <div className="mb-2 inline-flex rounded-full border border-blue-500/15 bg-blue-500/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-blue-700 dark:text-blue-300">
                     Step {item.step}
-                  </div>
-                  <h3 className="mb-3 text-lg font-semibold leading-snug text-foreground">
-                    {item.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed text-muted-foreground">
-                    {item.desc}
-                  </p>
-                </CardContent>
+                  </div> */}
+                <h3 className="mb-3 text-lg font-semibold leading-snug text-foreground">
+                  {item.title}
+                </h3>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {item.desc}
+                </p>
+              </CardContent>
             </Card>
           ))}
         </div>
