@@ -7,12 +7,12 @@ export function HomeFooter() {
   const router = useRouter();
 
   return (
-    <footer className="py-12 border-t border-border">
+    <footer className="border-t border-black/[0.06] py-14 dark:border-white/[0.08]">
       <div className="px-6 mx-auto max-w-7xl">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2 mb-4">
-              <div className="flex items-center justify-center w-8 h-8 text-sm font-bold text-white rounded-lg bg-cyan-600">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-foreground text-sm font-bold text-background dark:bg-white dark:text-black">
                 EP
               </div>
               <span className="text-lg font-bold text-foreground">

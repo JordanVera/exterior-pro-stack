@@ -87,38 +87,38 @@ const STEPS = [
 
 export function HomeHowItWorksSection() {
   return (
-    <section id="how-it-works" className="py-24 bg-muted/50">
-      <div className="px-6 mx-auto max-w-7xl">
+    <section id="how-it-works" className="scroll-mt-24 py-24">
+      <div className="mx-auto max-w-7xl px-6">
         <div className="mb-16 text-center">
-          <p className="mb-3 text-sm font-semibold tracking-wider uppercase text-cyan-600 dark:text-cyan-400">
-            Simple Process
+          <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">
+            How it works
           </p>
-          <h2 className="text-3xl font-bold text-foreground sm:text-4xl">
-            Booked in Minutes, Done Right
+          <h2 className="text-4xl font-semibold tracking-tight text-foreground sm:text-5xl">
+            Book in minutes.
           </h2>
-          <p className="max-w-2xl mx-auto mt-4 text-lg text-muted-foreground">
-            Whether you subscribe to a plan or post a one-time job, getting work
-            done is fast and transparent.
+          <p className="mx-auto mt-5 max-w-2xl text-lg text-muted-foreground">
+            Plans or one-time jobs — same transparent flow from request to
+            completion.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-4 lg:gap-10">
+        <div className="grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-4">
           {STEPS.map((item) => (
             <Card
               key={item.step}
-              className="relative text-center bg-transparent border-0 shadow-none"
+              className="rounded-[1.5rem] border border-black/[0.06] bg-white/75 text-center shadow-sm backdrop-blur-md dark:border-white/[0.08] dark:bg-white/[0.03]"
             >
-              <CardContent className="p-0">
-                <div className="inline-flex items-center justify-center mb-6 text-cyan-600 bg-cyan-100 w-14 h-14 rounded-2xl dark:bg-cyan-950/50 dark:text-cyan-400">
+              <CardContent className="p-8">
+                <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-500/10 text-blue-600 dark:text-blue-400">
                   {item.icon}
                 </div>
-                <div className="mb-2 text-xs font-bold tracking-widest text-cyan-600 dark:text-cyan-400">
-                  STEP {item.step}
+                <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.25em] text-muted-foreground">
+                  Step {item.step}
                 </div>
-                <h3 className="mb-3 text-xl font-semibold text-foreground">
+                <h3 className="mb-3 text-lg font-semibold text-foreground">
                   {item.title}
                 </h3>
-                <p className="leading-relaxed text-muted-foreground">
+                <p className="text-sm leading-relaxed text-muted-foreground">
                   {item.desc}
                 </p>
               </CardContent>

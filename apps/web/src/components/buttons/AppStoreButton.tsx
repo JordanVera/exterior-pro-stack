@@ -1,16 +1,22 @@
 "use client";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
+
 const APP_STORE_URL = "https://apps.apple.com/us/app/tlhc-houston/id1454528894";
 
-export default function AppStoreButton() {
+export default function AppStoreButton({
+  className,
+}: {
+  className?: string;
+}) {
   return (
     <Link
       href={APP_STORE_URL}
       target="_blank"
       rel="noopener noreferrer"
-      className="block"
+      className={cn("block transition-transform hover:scale-[1.02] active:scale-[0.98]", className)}
     >
-      <div className="flex mt-3 w-48 h-14 bg-black dark:bg-white text-white dark:text-black rounded-xl items-center justify-center">
+      <div className="flex w-48 h-14 bg-black dark:bg-white text-white dark:text-black rounded-xl items-center justify-center">
         <div className="mr-3">
           <svg viewBox="0 0 384 512" width="30">
             <path

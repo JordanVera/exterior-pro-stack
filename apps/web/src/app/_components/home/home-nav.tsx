@@ -10,8 +10,8 @@ export function HomeNav() {
   const router = useRouter();
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border backdrop-blur-lg bg-background/80">
-      <div className="flex items-center justify-between px-6 py-4 mx-auto max-w-7xl">
+    <nav className="sticky top-0 z-50 border-b border-black/[0.06] bg-white/70 backdrop-blur-2xl dark:border-white/[0.06] dark:bg-black/60">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
         <Link href="/" className="flex items-center gap-2">
           {/* <Image
               src="/logos/logo-wide.png"
@@ -26,17 +26,11 @@ export function HomeNav() {
             height={32}
           />
         </Link>
-        <div className="items-center hidden gap-8 text-sm font-medium text-muted-foreground md:flex">
-          <a
-            href="#plans"
-            className="transition-colors hover:text-foreground"
-          >
+        <div className="hidden items-center gap-8 text-sm font-medium text-muted-foreground md:flex">
+          <a href="#plans" className="transition-colors hover:text-foreground">
             Plans
           </a>
-          <a
-            href="#services"
-            className="transition-colors hover:text-foreground"
-          >
+          <a href="#services" className="transition-colors hover:text-foreground">
             Services
           </a>
           <a
@@ -45,10 +39,10 @@ export function HomeNav() {
           >
             How It Works
           </a>
-          <a
-            href="#providers"
-            className="transition-colors hover:text-foreground"
-          >
+          <a href="#app" className="transition-colors hover:text-foreground">
+            App
+          </a>
+          <a href="#providers" className="transition-colors hover:text-foreground">
             For Providers
           </a>
         </div>
@@ -63,7 +57,7 @@ export function HomeNav() {
           </Button>
           <Button
             onClick={() => router.push('/login')}
-            className="text-black bg-cyan-500 hover:bg-cyan-700"
+            className="rounded-full bg-foreground px-5 text-background hover:bg-foreground/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
           >
             Get Started
           </Button>

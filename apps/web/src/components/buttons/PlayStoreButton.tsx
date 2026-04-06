@@ -1,15 +1,24 @@
 "use client";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
+
 const PLAY_STORE_URL =
   "https://play.google.com/store/apps/details?id=io.pushpay.tlhcsoutheast&hl=en_US";
 
-export default function PlayStoreButton() {
+export default function PlayStoreButton({
+  className,
+}: {
+  className?: string;
+}) {
   return (
     <Link
       href={PLAY_STORE_URL}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex mt-3 w-48 h-14 bg-black dark:bg-white text-white dark:text-black rounded-lg items-center justify-center"
+      className={cn(
+        "flex w-48 h-14 bg-black dark:bg-white text-white dark:text-black rounded-lg items-center justify-center transition-transform hover:scale-[1.02] active:scale-[0.98]",
+        className,
+      )}
     >
       <div className="mr-3">
         <svg viewBox="30 336.7 120.9 129.2" width="30">
