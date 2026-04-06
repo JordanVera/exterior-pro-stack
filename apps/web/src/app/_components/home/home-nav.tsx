@@ -34,6 +34,10 @@ const navTransition = {
   ease: "linear" as const,
 };
 
+/** Neon cyan CTA: gradient + soft cyan bloom (no heavy drop shadow). */
+const getStartedNeonClass =
+  "rounded-full border border-cyan-400/45 bg-gradient-to-b from-cyan-400 to-cyan-600 font-semibold text-slate-950 shadow-[0_0_14px_rgba(34,211,238,0.38)] transition-[box-shadow,filter,colors] duration-200 hover:from-cyan-300 hover:to-cyan-500 hover:text-slate-950 hover:shadow-[0_0_20px_rgba(34,211,238,0.48)] hover:brightness-105 dark:border-cyan-300/35 dark:from-cyan-400 dark:to-cyan-600 dark:text-slate-950 dark:shadow-[0_0_16px_rgba(103,232,249,0.32)] dark:hover:from-cyan-300 dark:hover:to-cyan-500 dark:hover:text-slate-950 dark:hover:shadow-[0_0_22px_rgba(103,232,249,0.42)]";
+
 function useHtmlDarkClass() {
   const [isDark, setIsDark] = useState(true);
 
@@ -256,8 +260,12 @@ export function HomeNav() {
                 Sign In
               </Button>
               <Button
+                variant="ghost"
                 onClick={() => router.push("/login")}
-                className="hidden rounded-full bg-foreground px-5 text-background hover:bg-foreground/90 dark:bg-white dark:text-black dark:hover:bg-white/90 sm:inline-flex"
+                className={cn(
+                  getStartedNeonClass,
+                  "hidden px-5 sm:inline-flex",
+                )}
               >
                 Get Started
               </Button>
@@ -306,8 +314,9 @@ export function HomeNav() {
                       Sign In
                     </Button>
                     <Button
-                      className="w-full rounded-full bg-foreground text-background hover:bg-foreground/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
+                      variant="ghost"
                       size="lg"
+                      className={cn(getStartedNeonClass, "w-full")}
                       onClick={() => {
                         closeMobile();
                         router.push("/login");
