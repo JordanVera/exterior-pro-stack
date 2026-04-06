@@ -145,7 +145,7 @@ function MobileNavLinks({
               className={cn(
                 "block w-full rounded-lg px-4 py-3 text-left text-lg font-medium transition-colors",
                 isActive
-                  ? "bg-primary/50 text-white"
+                  ? "bg-cyan-500/20 text-cyan-700 dark:bg-cyan-400/20 dark:text-cyan-300"
                   : "text-foreground hover:bg-primary/10 hover:text-primary"
               )}
             >
@@ -236,7 +236,7 @@ export function HomeNav() {
                     className={cn(
                       "rounded-lg px-4 py-2.5 text-sm font-medium transition-colors",
                       isActive
-                        ? "bg-primary/10 text-primary"
+                        ? "bg-cyan-500/15 text-cyan-700 dark:bg-cyan-400/15 dark:text-cyan-300"
                         : "text-foreground/70 hover:bg-primary/10 hover:text-primary"
                     )}
                   >
