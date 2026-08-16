@@ -113,6 +113,7 @@ export const jobRouter = router({
           bids: { include: { provider: true } },
           assignments: { include: { crew: true } },
           recurringSchedule: true,
+          payments: true,
         },
         orderBy: { createdAt: "desc" },
       });
@@ -268,6 +269,16 @@ export const jobRouter = router({
         input.scheduledTime
       ).catch(console.error);
 
+      const customerEmail = updated.property.customer.email;
+      if (customerEmail) {
+        const { sendEmail } = await import("../lib/email");
+        sendEmail({
+          to: customerEmail,
+          subject: `Job scheduled — ${updated.service.name}`,
+          text: `Hi ${updated.property.customer.firstName},\n\nYour ${updated.service.name} job is scheduled for ${input.scheduledDate}${input.scheduledTime ? ` at ${input.scheduledTime}` : ""}.\n\nExterior Pro`,
+        }).catch(console.error);
+      }
+
       return updated;
     }),
 
@@ -347,7 +358,6 @@ export const jobRouter = router({
         },
       });
 
-      // Send notifications based on status change
       const customerId = updated.property.customer.userId;
       const serviceName = updated.service.name;
 
@@ -355,6 +365,8 @@ export const jobRouter = router({
         notifyJobInProgress(customerId, serviceName).catch(console.error);
       } else if (input.status === "COMPLETED") {
         notifyJobCompleted(customerId, serviceName).catch(console.error);
+        const { payoutForCompletedJob } = await import("../lib/payments");
+        payoutForCompletedJob(updated.id).catch(console.error);
       }
 
       return updated;

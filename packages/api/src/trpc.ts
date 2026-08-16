@@ -30,7 +30,8 @@ export async function createContext(opts: {
           return [key, rest.join("=")];
         })
       );
-      token = cookies["auth-token"] ?? null;
+      const raw = cookies["auth-token"] ?? null;
+      token = raw ? decodeURIComponent(raw) : null;
     }
   }
 

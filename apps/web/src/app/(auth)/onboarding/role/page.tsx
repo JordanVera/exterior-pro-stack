@@ -15,7 +15,7 @@ export default function RoleSelectionPage() {
     setError("");
     try {
       const result = await trpc.auth.selectRole.mutate({ role });
-      setToken(result.token);
+      await setToken(result.token);
       router.push("/onboarding/profile");
     } catch (err: any) {
       setError(err.message || "Failed to select role");

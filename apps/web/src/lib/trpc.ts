@@ -13,9 +13,8 @@ export const trpc = createTRPCClient<AppRouter>({
     httpBatchLink({
       url: `${getBaseUrl()}/api/trpc`,
       transformer: superjson,
-      headers() {
-        // Cookies are sent automatically on web
-        return {};
+      fetch(url, opts) {
+        return fetch(url, { ...opts, credentials: 'include' });
       },
     }),
   ],

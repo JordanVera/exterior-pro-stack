@@ -4,19 +4,19 @@ overview: 'A prioritized launch roadmap for Exterior Pro: close the payment and 
 todos:
   - id: stripe-checkout-plans
     content: Wire Stripe Checkout + Billing for subscription plans; sync Products/Prices; stop unpaid DB-only subscribe
-    status: pending
+    status: completed
   - id: job-payments
     content: Collect payment on bid accept; persist Payment records; receipts
-    status: pending
+    status: completed
   - id: connect-payouts
     content: Connect embedded onboarding on providers; transfer-on-complete; payouts_enabled gate
-    status: pending
+    status: completed
   - id: subscription-cron
     content: Cron to generate jobs from active PlanService frequencies and assign/broadcast
-    status: pending
+    status: completed
   - id: launch-hardening
     content: httpOnly JWT cookies, legal pages, Resend, Sentry, env example, Vercel production
-    status: pending
+    status: completed
 isProject: false
 ---
 

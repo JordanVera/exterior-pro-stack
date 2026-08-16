@@ -23,4 +23,7 @@ export {
   BillingFrequency,
   PriceUnit,
   NotificationType,
+  PaymentKind,
+  PaymentStatus,
+  TransferStatus,
 } from "@prisma/client";

@@ -56,6 +56,7 @@ export default function ProfileOnboardingPage() {
         businessName,
         description: description || undefined,
         serviceArea: serviceArea || undefined,
+        email: email || undefined,
       });
       router.push('/provider');
     } catch (err: any) {
@@ -160,6 +161,16 @@ export default function ProfileOnboardingPage() {
                   rows={3}
                   className={`${inputClass} resize-none`}
                   placeholder="Tell customers about your services..."
+                />
+              </div>
+              <div>
+                <label className={labelClass}>Business Email</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className={inputClass}
+                  placeholder="you@company.com"
                 />
               </div>
               <div>

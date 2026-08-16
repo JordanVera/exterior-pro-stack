@@ -203,12 +203,14 @@ export const authRouter = router({
           businessName: input.businessName,
           description: input.description,
           serviceArea: input.serviceArea,
+          email: input.email || undefined,
         },
         create: {
           userId: ctx.user.userId,
           businessName: input.businessName,
           description: input.description,
           serviceArea: input.serviceArea,
+          email: input.email || undefined,
         },
       });
 

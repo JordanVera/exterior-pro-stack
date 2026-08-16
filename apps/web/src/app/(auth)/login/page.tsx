@@ -72,7 +72,7 @@ export default function LoginPage() {
         phone: fullPhone,
         code,
       });
-      setToken(result.token);
+      await setToken(result.token);
       if (result.user.role === 'ADMIN') router.push('/admin');
       else if (result.user.isNewUser || !result.user.role)
         router.push('/onboarding/role');
@@ -334,7 +334,15 @@ export default function LoginPage() {
 
         {/* Footer text */}
         <p className="mt-4 text-xs font-bold text-center text-yellow-300">
-          By continuing, you agree to our Terms of Service and Privacy Policy.
+          By continuing, you agree to our{" "}
+          <a href="/terms" className="underline">
+            Terms of Service
+          </a>{" "}
+          and{" "}
+          <a href="/privacy" className="underline">
+            Privacy Policy
+          </a>
+          .
         </p>
       </div>
     </div>

@@ -40,8 +40,8 @@ export default function AdminLayout({
       .catch(() => router.push('/login'));
   }, [router]);
 
-  const handleLogout = () => {
-    clearToken();
+  const handleLogout = async () => {
+    await clearToken();
     router.push('/');
   };
 

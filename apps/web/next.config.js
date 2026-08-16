@@ -1,7 +1,16 @@
-const path = require('path');
+const path = require("path");
+const { withSentryConfig } = require("@sentry/nextjs");
 
-module.exports = {
+const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@repo/api', '@repo/db', '@repo/validators'],
-  // outputFileTracingRoot: path.join(__dirname, '../..'),
+  transpilePackages: ["@repo/api", "@repo/db", "@repo/validators"],
+  outputFileTracingRoot: path.join(__dirname, "../.."),
 };
+
+module.exports = withSentryConfig(nextConfig, {
+  silent: true,
+  sourcemaps: {
+    disable: !process.env.SENTRY_AUTH_TOKEN,
+  },
+  widenClientFileUpload: false,
+});

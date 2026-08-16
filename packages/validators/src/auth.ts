@@ -27,6 +27,7 @@ export const providerOnboardingInput = z.object({
   businessName: z.string().min(1, "Business name is required").max(200),
   description: z.string().max(2000).optional(),
   serviceArea: z.string().max(500).optional(),
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
 });
 
 export type SendCodeInput = z.infer<typeof sendCodeInput>;

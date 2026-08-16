@@ -12,6 +12,7 @@ const navItems = [
   { href: "/provider/quotes", label: "Available Jobs", icon: "🔍" },
   { href: "/provider/jobs", label: "My Jobs", icon: "📋" },
   { href: "/provider/crews", label: "Crews", icon: "👷" },
+  { href: "/provider/payouts", label: "Payouts", icon: "💸" },
   { href: "/provider/profile", label: "Profile", icon: "⚙️" },
 ];
 
@@ -30,7 +31,10 @@ export default function ProviderLayout({ children }: { children: React.ReactNode
     }).catch(() => router.push("/login"));
   }, [router]);
 
-  const handleLogout = () => { clearToken(); router.push("/"); };
+  const handleLogout = async () => {
+    await clearToken();
+    router.push("/");
+  };
 
   if (loading) {
     return (

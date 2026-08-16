@@ -6,10 +6,23 @@ import { trpc } from "../../../lib/trpc";
 export default function AdminDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
     trpc.admin.getStats.query().then(setStats).catch(console.error).finally(() => setLoading(false));
   }, []);
+
+  const syncPlans = async () => {
+    setSyncing(true);
+    try {
+      await trpc.admin.syncStripePlans.mutate();
+      alert("Stripe products and prices synced.");
+    } catch (err: any) {
+      alert(err.message || "Sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   if (loading) {
     return <div className="text-gray-500 dark:text-neutral-400">Loading stats...</div>;
@@ -27,6 +40,8 @@ export default function AdminDashboard() {
     { label: "Total Bids", value: stats?.totalBids ?? 0, color: "text-gray-900 dark:text-white" },
     { label: "Pending Bids", value: stats?.pendingBids ?? 0, color: "text-orange-600 dark:text-orange-400" },
     { label: "Active Subscriptions", value: stats?.totalSubscriptions ?? 0, color: "text-purple-600 dark:text-purple-400" },
+    { label: "GMV", value: `$${((stats?.gmvCents ?? 0) / 100).toFixed(0)}`, color: "text-emerald-600 dark:text-emerald-400" },
+    { label: "Provider payouts", value: `$${((stats?.payoutsCents ?? 0) / 100).toFixed(0)}`, color: "text-green-600 dark:text-green-400" },
   ];
 
   return (
@@ -34,6 +49,13 @@ export default function AdminDashboard() {
       <div>
         <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Platform Overview</h2>
         <p className="text-gray-500 dark:text-neutral-400 mt-1">Key metrics across the platform</p>
+        <button
+          onClick={syncPlans}
+          disabled={syncing}
+          className="mt-3 text-sm text-cyan-600 hover:underline disabled:opacity-50"
+        >
+          {syncing ? "Syncing…" : "Sync plans to Stripe"}
+        </button>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">

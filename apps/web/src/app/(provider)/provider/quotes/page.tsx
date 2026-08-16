@@ -13,14 +13,18 @@ export default function AvailableJobsPage() {
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  const [payoutsEnabled, setPayoutsEnabled] = useState(true);
+
   const fetchData = () => {
     Promise.all([
       trpc.job.listOpen.query(),
       trpc.job.listMyBids.query(),
+      trpc.connect.getStatus.query().catch(() => null),
     ])
-      .then(([jobs, bids]) => {
+      .then(([jobs, bids, connect]) => {
         setOpenJobs(jobs);
         setMyBids(bids);
+        if (connect) setPayoutsEnabled(connect.payoutsEnabled);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -88,6 +92,18 @@ export default function AvailableJobsPage() {
           Browse open job requests in your service area and submit bids
         </p>
       </div>
+
+      {!payoutsEnabled && (
+        <div className="p-4 text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-900">
+          Complete payout onboarding before bidding.{" "}
+          <button
+            className="underline"
+            onClick={() => (window.location.href = "/provider/payouts")}
+          >
+            Set up payouts
+          </button>
+        </div>
+      )}
 
       {/* Open Jobs */}
       {openJobs.length > 0 ? (

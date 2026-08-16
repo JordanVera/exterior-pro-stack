@@ -96,6 +96,10 @@ export default function JobsPage() {
   };
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("checkout") === "success") {
+      toast.success("Payment received. The provider can now schedule your job.");
+    }
     fetchJobs(filter || undefined);
   }, [filter]);
 
@@ -111,7 +115,11 @@ export default function JobsPage() {
   const handleAcceptBid = async (bidId: string, jobId: string) => {
     setActionLoading(bidId);
     try {
-      await trpc.bid.accept.mutate({ bidId, jobId });
+      const result = await trpc.bid.accept.mutate({ bidId, jobId });
+      if (result.checkoutUrl) {
+        window.location.href = result.checkoutUrl;
+        return;
+      }
       toast.success("Bid accepted! The provider can now schedule your job.");
       fetchJobs(filter || undefined);
     } catch (err: any) {
@@ -308,7 +316,7 @@ export default function JobsPage() {
                                   className="h-7 rounded-full bg-green-500 hover:bg-green-400 text-xs flex-1"
                                 >
                                   <Check className="w-3 h-3" />
-                                  Accept
+                                  Pay & accept
                                 </Button>
                                 <Button
                                   variant="outline"

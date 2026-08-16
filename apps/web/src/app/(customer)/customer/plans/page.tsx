@@ -100,7 +100,7 @@ export default function PlansPage() {
 
     setSubscribing(true);
     try {
-      await trpc.subscription.subscribe.mutate({
+      const result = await trpc.subscription.subscribe.mutate({
         planId: selectedPlan,
         propertyId: selectedProperty,
         billingFrequency: billingFrequency as
@@ -108,6 +108,10 @@ export default function PlansPage() {
           | 'QUARTERLY'
           | 'ANNUALLY',
       });
+      if (result.checkoutUrl) {
+        window.location.href = result.checkoutUrl;
+        return;
+      }
       toast.success('Subscription created successfully!');
       router.push('/customer/subscriptions');
     } catch (err: any) {
@@ -314,7 +318,7 @@ export default function PlansPage() {
                   Processing...
                 </>
               ) : (
-                'Subscribe Now'
+                'Subscribe Now — Pay securely'
               )}
             </Button>
           </CardContent>

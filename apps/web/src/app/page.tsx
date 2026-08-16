@@ -194,45 +194,42 @@ export default function HomePage() {
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {[
               {
-                name: 'Essential',
-                price: 79,
+                name: 'Basic Lawn Care',
+                price: 99,
                 period: '/mo',
-                desc: 'Great for basic upkeep on smaller properties.',
+                desc: 'Essential lawn care with bi-weekly mowing and monthly weed control.',
                 features: [
-                  'Biweekly lawn mowing & edging',
-                  'Quarterly gutter cleaning',
-                  'Seasonal weed control',
-                  'Priority job requests',
+                  'Bi-weekly lawn mowing',
+                  'Monthly weed control',
+                  'Matched local provider',
+                  'Pause or cancel anytime',
                 ],
                 highlight: false,
               },
               {
-                name: 'Premium',
-                price: 149,
+                name: 'Standard Exterior',
+                price: 179,
                 period: '/mo',
-                desc: 'Our most popular plan — full-service care year-round.',
+                desc: 'Weekly mowing, weed control, and quarterly gutter cleaning.',
                 features: [
-                  'Weekly lawn mowing & edging',
-                  'Biannual gutter cleaning',
-                  'Monthly weed & pest control',
-                  'Biweekly landscaping touch-ups',
+                  'Weekly lawn mowing',
+                  'Monthly weed control',
+                  'Quarterly gutter cleaning',
                   'Dedicated provider assignment',
-                  '10% off one-time jobs',
                 ],
                 highlight: true,
               },
               {
-                name: 'Estate',
+                name: 'Premium Exterior',
                 price: 299,
                 period: '/mo',
-                desc: 'Complete property management for larger homes.',
+                desc: 'The full package for complete exterior upkeep.',
                 features: [
-                  'Everything in Premium',
-                  'Weekly landscaping service',
-                  'Quarterly pressure washing',
-                  'Biannual exterior window cleaning',
-                  'Dedicated crew assignment',
-                  '20% off one-time jobs',
+                  'Weekly lawn mowing',
+                  'Bi-weekly weed control',
+                  'Quarterly gutter cleaning',
+                  'Bi-annual pressure washing',
+                  'Quarterly window cleaning',
                 ],
                 highlight: false,
               },
@@ -825,10 +822,22 @@ export default function HomePage() {
                   <span className="cursor-default">About</span>
                 </li>
                 <li>
-                  <span className="cursor-default">Privacy Policy</span>
+                  <Button
+                    variant="link"
+                    onClick={() => router.push('/privacy')}
+                    className="h-auto p-0 text-muted-foreground hover:text-foreground"
+                  >
+                    Privacy Policy
+                  </Button>
                 </li>
                 <li>
-                  <span className="cursor-default">Terms of Service</span>
+                  <Button
+                    variant="link"
+                    onClick={() => router.push('/terms')}
+                    className="h-auto p-0 text-muted-foreground hover:text-foreground"
+                  >
+                    Terms of Service
+                  </Button>
                 </li>
               </ul>
             </div>

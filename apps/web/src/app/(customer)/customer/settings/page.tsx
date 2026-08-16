@@ -167,8 +167,8 @@ export default function SettingsPage() {
     setDeleteId(null);
   };
 
-  const handleSignOut = () => {
-    clearToken();
+  const handleSignOut = async () => {
+    await clearToken();
     router.push("/");
   };
 
