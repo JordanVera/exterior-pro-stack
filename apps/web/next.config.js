@@ -5,6 +5,15 @@ const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ["@repo/api", "@repo/db", "@repo/validators"],
   outputFileTracingRoot: path.join(__dirname, "../.."),
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        pathname: "/**",
+      },
+    ],
+  },
 };
 
 module.exports = withSentryConfig(nextConfig, {

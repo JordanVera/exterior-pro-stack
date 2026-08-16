@@ -1,8 +1,51 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
 import { trpc } from '../../../../lib/trpc';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { BackgroundBeams } from '@/components/ui/background-beams';
+
+function AuthShell({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex overflow-hidden relative flex-col min-h-screen bg-background text-foreground">
+      <div className="bg-grid-fade pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
+      <BackgroundBeams className="opacity-40" delay={0} />
+
+      <header className="relative z-20 px-4 pt-4">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-black/50">
+          <Link href="/" className="flex gap-2 items-center pl-1">
+            <Image
+              src="/logos/logo-stacked.png"
+              alt="Exterior Pro"
+              width={84}
+              height={32}
+              priority
+            />
+          </Link>
+          <ThemeToggle />
+        </nav>
+      </header>
+
+      <main className="flex relative z-10 flex-1 justify-center items-center px-4 py-12">
+        {children}
+      </main>
+    </div>
+  );
+}
 
 export default function ProfileOnboardingPage() {
   const router = useRouter();
@@ -66,134 +109,147 @@ export default function ProfileOnboardingPage() {
     }
   };
 
-  const inputClass =
-    'block w-full rounded-lg border border-gray-300 dark:border-neutral-700 px-4 py-3 text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-cyan-500 focus:border-transparent outline-none';
-  const labelClass =
-    'block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1';
-
   if (!role) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 to-green-50 dark:from-black dark:to-black">
-        <div className="text-gray-500 dark:text-neutral-400">Loading...</div>
-      </div>
+      <AuthShell>
+        <div className="flex flex-col gap-3 items-center">
+          <div className="w-8 h-8 rounded-full border-2 animate-spin border-cyan-500/20 border-t-cyan-500" />
+          <p className="text-sm text-muted-foreground">Loading</p>
+        </div>
+      </AuthShell>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 to-green-50 dark:from-black dark:to-black">
-      <div className="w-full max-w-md mx-4">
-        <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl dark:shadow-neutral-900/50 p-8 border border-transparent dark:border-neutral-800">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-              Complete Your Profile
+    <AuthShell>
+      <div className="w-full max-w-md">
+        <Card className="relative p-8 rounded-2xl border shadow-lg backdrop-blur-xl border-border bg-background/80">
+          <CardHeader className="p-0 mb-6 space-y-3 text-center">
+            <p className="inline-flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-600 dark:text-cyan-400">
+              <span className="w-6 h-px bg-cyan-500" />
+              Almost there
+            </p>
+            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+              Complete your profile
             </h1>
-            <p className="mt-2 text-gray-500 dark:text-neutral-400">
+            <CardDescription>
               {role === 'CUSTOMER'
                 ? 'Tell us a bit about yourself'
                 : 'Tell us about your business'}
-            </p>
-          </div>
+            </CardDescription>
+          </CardHeader>
 
-          {error && (
-            <p className="text-red-500 dark:text-red-400 text-sm text-center mb-4">
-              {error}
-            </p>
-          )}
+          <CardContent className="p-0">
+            {error ? (
+              <Alert variant="destructive" className="mb-4">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            ) : null}
 
-          {role === 'CUSTOMER' && (
-            <form onSubmit={handleCustomerSubmit} className="space-y-4">
-              <div>
-                <label className={labelClass}>First Name *</label>
-                <input
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  className={inputClass}
-                  required
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Last Name *</label>
-                <input
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  className={inputClass}
-                  required
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Email (optional)</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={inputClass}
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading || !firstName || !lastName}
-                className="w-full py-3 px-4 bg-cyan-600 text-white font-semibold rounded-lg hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-6"
-              >
-                {loading ? 'Saving...' : 'Continue'}
-              </button>
-            </form>
-          )}
+            {role === 'CUSTOMER' ? (
+              <form onSubmit={handleCustomerSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First name</Label>
+                  <Input
+                    id="firstName"
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    className="focus-visible:ring-cyan-500"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last name</Label>
+                  <Input
+                    id="lastName"
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    className="focus-visible:ring-cyan-500"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email (optional)</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="focus-visible:ring-cyan-500"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={loading || !firstName || !lastName}
+                  size="lg"
+                  className="mt-2 w-full font-semibold text-black bg-cyan-500 rounded-xl hover:bg-cyan-400"
+                >
+                  {loading ? 'Saving...' : 'Continue'}
+                </Button>
+              </form>
+            ) : null}
 
-          {role === 'PROVIDER' && (
-            <form onSubmit={handleProviderSubmit} className="space-y-4">
-              <div>
-                <label className={labelClass}>Business Name *</label>
-                <input
-                  type="text"
-                  value={businessName}
-                  onChange={(e) => setBusinessName(e.target.value)}
-                  className={inputClass}
-                  required
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Description</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  rows={3}
-                  className={`${inputClass} resize-none`}
-                  placeholder="Tell customers about your services..."
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Business Email</label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className={inputClass}
-                  placeholder="you@company.com"
-                />
-              </div>
-              <div>
-                <label className={labelClass}>Service Area</label>
-                <input
-                  type="text"
-                  value={serviceArea}
-                  onChange={(e) => setServiceArea(e.target.value)}
-                  className={inputClass}
-                  placeholder="e.g., Dallas-Fort Worth metro area"
-                />
-              </div>
-              <button
-                type="submit"
-                disabled={loading || !businessName}
-                className="w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors mt-6"
-              >
-                {loading ? 'Saving...' : 'Continue'}
-              </button>
-            </form>
-          )}
-        </div>
+            {role === 'PROVIDER' ? (
+              <form onSubmit={handleProviderSubmit} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="businessName">Business name</Label>
+                  <Input
+                    id="businessName"
+                    type="text"
+                    value={businessName}
+                    onChange={(e) => setBusinessName(e.target.value)}
+                    className="focus-visible:ring-cyan-500"
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                    rows={3}
+                    className="resize-none focus-visible:ring-cyan-500"
+                    placeholder="Tell customers about your services..."
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="businessEmail">Business email</Label>
+                  <Input
+                    id="businessEmail"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="focus-visible:ring-cyan-500"
+                    placeholder="you@company.com"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="serviceArea">Service area</Label>
+                  <Input
+                    id="serviceArea"
+                    type="text"
+                    value={serviceArea}
+                    onChange={(e) => setServiceArea(e.target.value)}
+                    className="focus-visible:ring-cyan-500"
+                    placeholder="e.g., Dallas-Fort Worth metro area"
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  disabled={loading || !businessName}
+                  size="lg"
+                  className="mt-2 w-full font-semibold text-black bg-cyan-500 rounded-xl hover:bg-cyan-400"
+                >
+                  {loading ? 'Saving...' : 'Continue'}
+                </Button>
+              </form>
+            ) : null}
+          </CardContent>
+        </Card>
       </div>
-    </div>
+    </AuthShell>
   );
 }
