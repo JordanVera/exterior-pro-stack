@@ -1,6 +1,11 @@
 import chalk from 'chalk';
 import { TRPCError } from '@trpc/server';
-import { router, publicProcedure, protectedProcedure, customerProcedure } from '../trpc';
+import {
+  router,
+  publicProcedure,
+  protectedProcedure,
+  customerProcedure,
+} from '../trpc';
 import {
   sendCodeInput,
   verifyCodeInput,
@@ -37,7 +42,14 @@ export const authRouter = router({
       await sendSMS(
         input.phone,
         chalk.cyanBright.bold(
-          `Your Exterior Pro verification code is: ${chalk.yellowBright.bold(code)}`,
+          `Your Exterior Pro verification code is: ${chalk.yellowBright.bold(code)} - User Type: ${chalk.yellowBright.bold(
+            (
+              await ctx.db.user.findUnique({
+                where: { phone: input.phone },
+                select: { role: true },
+              })
+            )?.role ?? 'unknown',
+          )}`,
         ),
       );
 
@@ -254,11 +266,11 @@ export const authRouter = router({
       return ctx.db.customerProfile.update({
         where: { userId: ctx.user.userId },
         data: {
-          ...(input.firstName !== undefined ? { firstName: input.firstName } : {}),
-          ...(input.lastName !== undefined ? { lastName: input.lastName } : {}),
-          ...(input.email !== undefined
-            ? { email: input.email || null }
+          ...(input.firstName !== undefined
+            ? { firstName: input.firstName }
             : {}),
+          ...(input.lastName !== undefined ? { lastName: input.lastName } : {}),
+          ...(input.email !== undefined ? { email: input.email || null } : {}),
         },
       });
     }),
