@@ -1,20 +1,46 @@
 import Stripe from "stripe";
 
-const secretKey = process.env.STRIPE_SECRET_KEY ?? "";
+export { Stripe };
 
-if (!secretKey) {
-  console.warn("STRIPE_SECRET_KEY is not set. Stripe functionality will be unavailable.");
+function createStripeClient(): Stripe | null {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) {
+    console.warn("STRIPE_SECRET_KEY is not set. Stripe functionality will be unavailable.");
+    return null;
+  }
+  return new Stripe(secretKey, { typescript: true });
+}
+
+let client: Stripe | null | undefined;
+
+function getStripeClient(): Stripe | null {
+  if (client === undefined) {
+    client = createStripeClient();
+  }
+  return client;
+}
+
+export function requireStripe() {
+  const stripeClient = getStripeClient();
+  if (!stripeClient) {
+    throw new Error(
+      "Payments are not configured. Set STRIPE_SECRET_KEY to enable checkout."
+    );
+  }
+  return stripeClient;
 }
 
 /**
- * Stripe SDK client instance. Always call methods on this object —
- * never set a module-level API key.
+ * Lazy Stripe client so Next.js can collect page data at build time
+ * without requiring STRIPE_SECRET_KEY during import.
  */
-export const stripe = new Stripe(secretKey, {
-  typescript: true,
+export const stripe: Stripe = new Proxy({} as Stripe, {
+  get(_target, prop) {
+    const instance = requireStripe();
+    const value = Reflect.get(instance, prop, instance);
+    return typeof value === "function" ? value.bind(instance) : value;
+  },
 });
-
-export { Stripe };
 
 export const PLATFORM_FEE_BPS = Number(process.env.PLATFORM_FEE_BPS ?? "1800");
 
@@ -24,15 +50,6 @@ export function getAppUrl() {
     process.env.APP_URL ||
     "http://localhost:3000"
   );
-}
-
-export function requireStripe() {
-  if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error(
-      "Payments are not configured. Set STRIPE_SECRET_KEY to enable checkout."
-    );
-  }
-  return stripe;
 }
 
 export function toCents(amount: number | string | { toNumber?: () => number }) {

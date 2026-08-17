@@ -29,7 +29,10 @@ export const connectRouter = router({
       payoutsEnabled: fresh?.stripeTransfersEnabled ?? false,
       email: fresh?.email ?? null,
       contractorAgreedAt: fresh?.contractorAgreedAt ?? null,
-      publishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "",
+      publishableKey:
+        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
+        process.env.STRIPE_PUBLIC_KEY ||
+        "",
     };
   }),
 

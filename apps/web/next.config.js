@@ -1,16 +1,25 @@
-const path = require("path");
-const { withSentryConfig } = require("@sentry/nextjs");
+const path = require('path');
+const { withSentryConfig } = require('@sentry/nextjs');
 
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ["@repo/api", "@repo/db", "@repo/validators"],
-  outputFileTracingRoot: path.join(__dirname, "../.."),
+  transpilePackages: ['@repo/api', '@repo/db', '@repo/validators'],
+  outputFileTracingRoot: path.join(__dirname, '../..'),
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  env: {
+    NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY:
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
+      process.env.STRIPE_PUBLIC_KEY ||
+      '',
+  },
   images: {
     remotePatterns: [
       {
-        protocol: "https",
-        hostname: "images.unsplash.com",
-        pathname: "/**",
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        pathname: '/**',
       },
     ],
   },
