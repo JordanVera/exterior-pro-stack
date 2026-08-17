@@ -38,8 +38,8 @@ export const CATEGORY_COLORS = [
 ];
 
 export function formatPrice(price: number | string, unit?: string) {
-  const num = typeof price === 'string' ? parseFloat(price) : price;
-  const str = `$${num.toFixed(2)}`;
+  const num = Number(price);
+  const str = `$${Number.isFinite(num) ? num.toFixed(2) : '0.00'}`;
   if (unit === 'SQFT') return `${str}/sq ft`;
   if (unit === 'HOUR') return `${str}/hr`;
   return str;
@@ -75,7 +75,16 @@ export function timeAgo(date: string) {
   });
 }
 
-export const STEPS = ['Category', 'Service', 'Property', 'Review'];
+export function requestJobPath(opts?: {
+  serviceId?: string;
+  propertyId?: string;
+}) {
+  const params = new URLSearchParams();
+  if (opts?.serviceId) params.set('serviceId', opts.serviceId);
+  if (opts?.propertyId) params.set('propertyId', opts.propertyId);
+  const query = params.toString();
+  return query ? `/customer/jobs/new?${query}` : '/customer/jobs/new';
+}
 
 export interface PropertySummary {
   property: {
@@ -91,8 +100,8 @@ export interface PropertySummary {
     id: string;
     serviceName: string;
     completedAt: string;
-    service: any;
-    property: any;
+    service: { id: string; name: string };
+    property: { id: string };
   } | null;
 }
 
@@ -108,9 +117,9 @@ export function groupDataByProperty(
     id: string;
     status: string;
     propertyId: string;
-    completedAt?: string | null;
-    service: { name: string };
-    property: any;
+    completedAt?: string | Date | null;
+    service: { id: string; name: string };
+    property: { id: string };
   }[],
 ): PropertySummary[] {
   return properties.map((property) => {
@@ -134,7 +143,7 @@ export function groupDataByProperty(
       ? {
           id: completedJobs[0].id,
           serviceName: completedJobs[0].service.name,
-          completedAt: completedJobs[0].completedAt!,
+          completedAt: String(completedJobs[0].completedAt!),
           service: completedJobs[0].service,
           property: completedJobs[0].property,
         }

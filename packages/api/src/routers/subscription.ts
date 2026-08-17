@@ -7,10 +7,23 @@ import {
   pauseSubscriptionInput,
   resumeSubscriptionInput,
 } from "@repo/validators";
-import { notifySubscriptionCreated } from "../lib/notifications";
+import {
+  createBillingPortalSession,
+  createPlanCheckoutSession,
+} from "../lib/payments";
+import { requireStripe } from "../lib/stripe";
+
+function asStripeError(err: unknown): never {
+  const message = err instanceof Error ? err.message : "Payments unavailable";
+  throw new TRPCError({
+    code: message.includes("STRIPE_SECRET_KEY")
+      ? "PRECONDITION_FAILED"
+      : "BAD_REQUEST",
+    message,
+  });
+}
 
 export const subscriptionRouter = router({
-  /** Public: list available subscription plans */
   listPlans: publicProcedure.query(async ({ ctx }) => {
     return ctx.db.subscriptionPlan.findMany({
       where: { active: true },
@@ -25,7 +38,6 @@ export const subscriptionRouter = router({
     });
   }),
 
-  /** Public: get a single plan by ID */
   getPlan: publicProcedure
     .input(z.object({ planId: z.string().cuid() }))
     .query(async ({ ctx, input }) => {
@@ -41,19 +53,19 @@ export const subscriptionRouter = router({
       });
     }),
 
-  /** Customer: subscribe to a plan */
+  /** Customer: start Stripe Checkout for a plan (does not create a DB subscription). */
   subscribe: customerProcedure
     .input(createSubscriptionInput)
     .mutation(async ({ ctx, input }) => {
       const profile = await ctx.db.customerProfile.findUnique({
         where: { userId: ctx.user.userId },
+        include: { user: true },
       });
 
       if (!profile) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
       }
 
-      // Verify property belongs to customer
       const property = await ctx.db.property.findUnique({
         where: { id: input.propertyId },
       });
@@ -62,7 +74,6 @@ export const subscriptionRouter = router({
         throw new TRPCError({ code: "NOT_FOUND", message: "Property not found" });
       }
 
-      // Verify plan exists
       const plan = await ctx.db.subscriptionPlan.findUnique({
         where: { id: input.planId },
       });
@@ -71,7 +82,6 @@ export const subscriptionRouter = router({
         throw new TRPCError({ code: "NOT_FOUND", message: "Plan not found" });
       }
 
-      // Check for existing active subscription on this property
       const existing = await ctx.db.customerSubscription.findFirst({
         where: {
           customerId: profile.id,
@@ -87,47 +97,39 @@ export const subscriptionRouter = router({
         });
       }
 
-      const now = new Date();
-      const periodEnd = new Date(now);
-
-      switch (input.billingFrequency) {
-        case "MONTHLY":
-          periodEnd.setMonth(periodEnd.getMonth() + 1);
-          break;
-        case "QUARTERLY":
-          periodEnd.setMonth(periodEnd.getMonth() + 3);
-          break;
-        case "ANNUALLY":
-          periodEnd.setFullYear(periodEnd.getFullYear() + 1);
-          break;
-      }
-
-      const subscription = await ctx.db.customerSubscription.create({
-        data: {
+      try {
+        return await createPlanCheckoutSession({
           customerId: profile.id,
           planId: input.planId,
           propertyId: input.propertyId,
-          status: "ACTIVE",
           billingFrequency: input.billingFrequency,
-          currentPeriodStart: now,
-          currentPeriodEnd: periodEnd,
-        },
-        include: {
-          plan: { include: { services: { include: { service: true } } } },
-          property: true,
-        },
-      });
-
-      // Notify customer
-      notifySubscriptionCreated(
-        ctx.user.userId,
-        plan.name
-      ).catch(console.error);
-
-      return subscription;
+          email: profile.email,
+          name: `${profile.firstName} ${profile.lastName}`,
+          phone: profile.user.phone,
+          stripeCustomerId: profile.stripeCustomerId,
+        });
+      } catch (err) {
+        asStripeError(err);
+      }
     }),
 
-  /** Customer: list their subscriptions */
+  createBillingPortalSession: customerProcedure.mutation(async ({ ctx }) => {
+    const profile = await ctx.db.customerProfile.findUnique({
+      where: { userId: ctx.user.userId },
+    });
+    if (!profile?.stripeCustomerId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "No billing account yet. Subscribe to a plan first.",
+      });
+    }
+    try {
+      return await createBillingPortalSession(profile.stripeCustomerId);
+    } catch (err) {
+      asStripeError(err);
+    }
+  }),
+
   listForCustomer: customerProcedure.query(async ({ ctx }) => {
     const profile = await ctx.db.customerProfile.findUnique({
       where: { userId: ctx.user.userId },
@@ -148,7 +150,6 @@ export const subscriptionRouter = router({
     });
   }),
 
-  /** Customer: cancel a subscription */
   cancel: customerProcedure
     .input(cancelSubscriptionInput)
     .mutation(async ({ ctx, input }) => {
@@ -175,17 +176,21 @@ export const subscriptionRouter = router({
         });
       }
 
+      if (subscription.stripeSubscriptionId) {
+        try {
+          await requireStripe().subscriptions.cancel(subscription.stripeSubscriptionId);
+        } catch (err) {
+          asStripeError(err);
+        }
+      }
+
       return ctx.db.customerSubscription.update({
         where: { id: input.subscriptionId },
         data: { status: "CANCELLED" },
-        include: {
-          plan: true,
-          property: true,
-        },
+        include: { plan: true, property: true },
       });
     }),
 
-  /** Customer: pause a subscription */
   pause: customerProcedure
     .input(pauseSubscriptionInput)
     .mutation(async ({ ctx, input }) => {
@@ -212,17 +217,23 @@ export const subscriptionRouter = router({
         });
       }
 
+      if (subscription.stripeSubscriptionId) {
+        try {
+          await requireStripe().subscriptions.update(subscription.stripeSubscriptionId, {
+            pause_collection: { behavior: "void" },
+          });
+        } catch (err) {
+          asStripeError(err);
+        }
+      }
+
       return ctx.db.customerSubscription.update({
         where: { id: input.subscriptionId },
         data: { status: "PAUSED" },
-        include: {
-          plan: true,
-          property: true,
-        },
+        include: { plan: true, property: true },
       });
     }),
 
-  /** Customer: resume a paused subscription */
   resume: customerProcedure
     .input(resumeSubscriptionInput)
     .mutation(async ({ ctx, input }) => {
@@ -249,13 +260,20 @@ export const subscriptionRouter = router({
         });
       }
 
+      if (subscription.stripeSubscriptionId) {
+        try {
+          await requireStripe().subscriptions.update(subscription.stripeSubscriptionId, {
+            pause_collection: "",
+          } as never);
+        } catch (err) {
+          asStripeError(err);
+        }
+      }
+
       return ctx.db.customerSubscription.update({
         where: { id: input.subscriptionId },
         data: { status: "ACTIVE" },
-        include: {
-          plan: true,
-          property: true,
-        },
+        include: { plan: true, property: true },
       });
     }),
 });

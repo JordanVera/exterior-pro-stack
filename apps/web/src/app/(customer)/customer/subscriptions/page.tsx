@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
-import { MapPin, Calendar, Pause, Play, XCircle, ArrowLeft } from 'lucide-react';
+import { MapPin, Calendar, Pause, Play, XCircle, ArrowLeft, CreditCard } from 'lucide-react';
 
 const FREQUENCY_LABELS: Record<string, string> = {
   WEEKLY: 'Weekly',
@@ -35,6 +35,10 @@ export default function SubscriptionsPage() {
   };
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('checkout') === 'success') {
+      toast.success('Payment received. Your subscription is active.');
+    }
     fetchSubscriptions();
   }, []);
 
@@ -59,6 +63,18 @@ export default function SubscriptionsPage() {
       fetchSubscriptions();
     } catch (err: any) {
       toast.error(err.message || 'Failed to resume subscription');
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleBillingPortal = async () => {
+    setActionLoading('portal');
+    try {
+      const result = await trpc.subscription.createBillingPortalSession.mutate();
+      window.location.href = result.url;
+    } catch (err: any) {
+      toast.error(err.message || 'Could not open billing portal');
     } finally {
       setActionLoading(null);
     }
@@ -108,6 +124,16 @@ export default function SubscriptionsPage() {
             Manage your active service subscriptions
           </p>
         </div>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handleBillingPortal}
+          disabled={actionLoading === 'portal'}
+          className="ml-auto text-xs rounded-full"
+        >
+          <CreditCard className="w-3 h-3 mr-1" />
+          Manage billing
+        </Button>
       </div>
 
       {subscriptions.length === 0 ? (
@@ -122,7 +148,7 @@ export default function SubscriptionsPage() {
             </p>
             <Button
               onClick={() => router.push('/customer/plans')}
-              className="rounded-full bg-cyan-500 hover:bg-cyan-400"
+              className="rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
             >
               Browse Plans
             </Button>

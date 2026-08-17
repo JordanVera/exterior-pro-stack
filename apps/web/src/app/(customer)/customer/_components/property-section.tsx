@@ -5,48 +5,32 @@ import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { MapPin, Plus, RotateCcw } from 'lucide-react';
-import type { PropertySummary } from './utils';
+import { requestJobPath, type PropertySummary } from './utils';
 
 interface PropertySectionProps {
   summaries: PropertySummary[];
-  onRequestJob: (property: {
-    id: string;
-    address: string;
-    city: string;
-    state: string;
-    zip: string;
-  }) => void;
-  onRebook: (job: {
-    id: string;
-    service: any;
-    property: any;
-  }) => void;
 }
 
-export function PropertySection({
-  summaries,
-  onRequestJob,
-  onRebook,
-}: PropertySectionProps) {
+export function PropertySection({ summaries }: PropertySectionProps) {
   const router = useRouter();
 
   if (summaries.length === 0) {
     return (
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-neutral-900 dark:text-white">
+        <h2 className="mb-4 text-lg font-semibold text-foreground">
           My Homes
         </h2>
-        <Card className="border-dashed shadow-none">
+        <Card className="border-dashed border-border bg-background/80 shadow-none backdrop-blur-xl">
           <CardContent className="py-10 text-center">
-            <MapPin className="w-8 h-8 mx-auto mb-3 text-neutral-400" />
-            <p className="mb-3 text-sm text-neutral-500">
+            <MapPin className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
+            <p className="mb-3 text-sm text-muted-foreground">
               Add your first property to get started.
             </p>
             <Button
               onClick={() => router.push('/customer/settings')}
-              className="rounded-full bg-cyan-500 hover:bg-cyan-400"
+              className="rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
             >
-              <Plus className="w-4 h-4 mr-1" />
+              <Plus className="mr-1 h-4 w-4" />
               Add Property
             </Button>
           </CardContent>
@@ -57,15 +41,13 @@ export function PropertySection({
 
   return (
     <section>
-      <div className="flex items-center justify-between mb-5">
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
-          My Homes
-        </h2>
+      <div className="mb-5 flex items-center justify-between">
+        <h2 className="text-lg font-semibold text-foreground">My Homes</h2>
         <Button
           variant="link"
           size="sm"
           onClick={() => router.push('/customer/settings')}
-          className="h-auto p-0 text-xs text-cyan-500 hover:text-cyan-400"
+          className="h-auto p-0 text-xs text-brand-navy hover:text-brand-navy/70 dark:text-brand-lime dark:hover:text-brand-lime/80"
         >
           Manage
         </Button>
@@ -85,20 +67,20 @@ export function PropertySection({
             <Card
               key={property.id}
               className={cn(
-                'overflow-hidden shadow-none transition-all duration-200',
-                'hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20',
+                'overflow-hidden border-border bg-background/80 shadow-none backdrop-blur-xl transition-all duration-200',
+                'hover:-translate-y-0.5 hover:border-brand-lime/50 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20',
               )}
             >
-              <CardContent className="p-4 flex flex-col min-h-[140px]">
-                <div className="flex items-start flex-1 gap-3">
-                  <div className="flex items-center justify-center flex-shrink-0 rounded-lg w-9 h-9 bg-cyan-500/10">
-                    <MapPin className="w-4 h-4 text-cyan-500" />
+              <CardContent className="flex min-h-[140px] flex-col p-4">
+                <div className="flex flex-1 items-start gap-3">
+                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-brand-lime/10">
+                    <MapPin className="h-4 w-4 text-brand-lime" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate text-neutral-900 dark:text-white">
+                  <div className="min-w-0 flex-1">
+                    <div className="truncate text-sm font-medium text-foreground">
                       {property.address}
                     </div>
-                    <div className="text-xs text-neutral-500 mt-0.5">
+                    <div className="mt-0.5 text-xs text-muted-foreground">
                       {property.city}, {property.state}
                     </div>
                   </div>
@@ -107,17 +89,17 @@ export function PropertySection({
                 {hasActivity && (
                   <div className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
                     {activeJobsCount > 0 && (
-                      <span className="rounded-full bg-cyan-500/10 px-2 py-0.5 text-cyan-600 dark:text-cyan-400 font-medium">
+                      <span className="rounded-full bg-brand-lime/10 px-2 py-0.5 font-medium text-brand-navy dark:text-brand-lime">
                         {activeJobsCount} active
                       </span>
                     )}
                     {openJobsCount > 0 && (
-                      <span className="rounded-full bg-amber-500/10 px-2 py-0.5 text-amber-600 dark:text-amber-400 font-medium">
+                      <span className="rounded-full bg-amber-500/10 px-2 py-0.5 font-medium text-amber-600 dark:text-amber-400">
                         {openJobsCount} open
                       </span>
                     )}
                     {lastCompletedJob && (
-                      <span className="block truncate text-neutral-500">
+                      <span className="block truncate text-muted-foreground">
                         Last: {lastCompletedJob.serviceName}{' '}
                         {new Date(
                           lastCompletedJob.completedAt,
@@ -130,12 +112,16 @@ export function PropertySection({
                   </div>
                 )}
 
-                <div className="mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-800 flex flex-col gap-1.5">
+                <div className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3">
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => onRequestJob(property)}
-                    className="w-full text-xs rounded-full h-7"
+                    onClick={() =>
+                      router.push(
+                        requestJobPath({ propertyId: property.id }),
+                      )
+                    }
+                    className="h-7 w-full rounded-full text-xs"
                   >
                     Request job
                   </Button>
@@ -144,15 +130,16 @@ export function PropertySection({
                       variant="ghost"
                       size="sm"
                       onClick={() =>
-                        onRebook({
-                          id: lastCompletedJob.id,
-                          service: lastCompletedJob.service,
-                          property: lastCompletedJob.property,
-                        })
+                        router.push(
+                          requestJobPath({
+                            serviceId: lastCompletedJob.service.id,
+                            propertyId: lastCompletedJob.property.id,
+                          }),
+                        )
                       }
-                      className="w-full text-xs rounded-full h-7 text-cyan-500 hover:text-cyan-400 hover:bg-cyan-500/10"
+                      className="h-7 w-full rounded-full text-xs text-brand-navy hover:bg-brand-lime/10 dark:text-brand-lime"
                     >
-                      <RotateCcw className="w-3 h-3 mr-1" />
+                      <RotateCcw className="mr-1 h-3 w-3" />
                       Book again
                     </Button>
                   )}

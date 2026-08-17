@@ -13,6 +13,7 @@ enum UserRole {
   CUSTOMER
   PROVIDER
   ADMIN
+  CREW
 }
 
 enum BidStatus {
@@ -87,7 +88,28 @@ enum NotificationType {
   SUBSCRIPTION_RENEWED
   SUBSCRIPTION_CANCELLED
   NEW_PROVIDER_SIGNUP
+  PAYOUT_SENT
   GENERAL
+}
+
+enum PaymentKind {
+  SUBSCRIPTION
+  JOB
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
+  CANCELED
+}
+
+enum TransferStatus {
+  PENDING
+  PAID
+  FAILED
+  REVERSED
 }
 
 // ─── Core User ──────────────────────────────────────────────────────────────
@@ -102,6 +124,7 @@ model User {
 
   customerProfile CustomerProfile?
   providerProfile ProviderProfile?
+  crewMemberships CrewMember[]
   notifications   Notification[]
   pushTokens      PushToken[]
 }
@@ -121,24 +144,30 @@ model CustomerProfile {
   user          User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   properties    Property[]
   subscriptions CustomerSubscription[]
+  payments      Payment[]
 }
 
 model ProviderProfile {
-  id              String   @id @default(cuid())
-  userId          String   @unique
-  businessName    String
-  description     String?  @db.Text
-  serviceArea     String?
-  serviceAreaZips String?
-  verified        Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                     String    @id @default(cuid())
+  userId                 String    @unique
+  businessName           String
+  description            String?   @db.Text
+  email                  String?
+  serviceArea            String?
+  serviceAreaZips        String?
+  verified               Boolean   @default(false)
+  stripeAccountId        String?   @unique
+  stripeTransfersEnabled Boolean   @default(false)
+  contractorAgreedAt     DateTime?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
 
   user          User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   bids          JobBid[]
   crews         Crew[]
   services      ProviderService[]
   subscriptions CustomerSubscription[]
+  transfers     Transfer[]
 }
 
 // ─── Properties ─────────────────────────────────────────────────────────────
@@ -154,7 +183,7 @@ model Property {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  customer      CustomerProfile      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customer      CustomerProfile        @relation(fields: [customerId], references: [id], onDelete: Cascade)
   jobs          Job[]
   subscriptions CustomerSubscription[]
 }
@@ -254,6 +283,7 @@ model CustomerSubscription {
   property Property         @relation(fields: [propertyId], references: [id])
   provider ProviderProfile? @relation(fields: [assignedProviderId], references: [id])
   jobs     Job[]
+  payments Payment[]
 }
 
 // ─── Jobs & Bids ────────────────────────────────────────────────────────────
@@ -281,6 +311,7 @@ model Job {
   bids              JobBid[]              @relation("JobBids")
   assignments       JobAssignment[]
   recurringSchedule RecurringSchedule?
+  payments          Payment[]
 }
 
 model JobBid {
@@ -317,13 +348,15 @@ model Crew {
 model CrewMember {
   id        String   @id @default(cuid())
   crewId    String
+  userId    String?  @unique
   name      String
   phone     String?
   role      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  crew Crew @relation(fields: [crewId], references: [id], onDelete: Cascade)
+  crew Crew  @relation(fields: [crewId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
 
 // ─── Scheduling ─────────────────────────────────────────────────────────────
@@ -391,4 +424,51 @@ model PushToken {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Payments & Payouts ─────────────────────────────────────────────────────
+
+model Payment {
+  id                      String        @id @default(cuid())
+  kind                    PaymentKind
+  status                  PaymentStatus @default(PENDING)
+  amountCents             Int
+  platformFeeCents        Int           @default(0)
+  stripeFeeCents          Int           @default(0)
+  transferAmountCents     Int           @default(0)
+  currency                String        @default("usd")
+  stripeCheckoutSessionId String?       @unique
+  stripePaymentIntentId   String?
+  stripeInvoiceId         String?
+  receiptUrl              String?
+  customerId              String
+  jobId                   String?
+  subscriptionId          String?
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
+
+  customer     CustomerProfile       @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  job          Job?                  @relation(fields: [jobId], references: [id])
+  subscription CustomerSubscription? @relation(fields: [subscriptionId], references: [id])
+  transfers    Transfer[]
+
+  @@index([customerId, createdAt])
+  @@index([jobId])
+  @@index([subscriptionId])
+}
+
+model Transfer {
+  id               String         @id @default(cuid())
+  paymentId        String
+  providerId       String
+  amountCents      Int
+  status           TransferStatus @default(PENDING)
+  stripeTransferId String?        @unique
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  payment  Payment         @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+  provider ProviderProfile @relation(fields: [providerId], references: [id])
+
+  @@index([providerId, createdAt])
 }

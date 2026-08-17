@@ -1,26 +1,39 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { trpc } from "../../../../lib/trpc";
-import { toast } from "sonner";
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { toast } from 'sonner';
+import { Search } from 'lucide-react';
+import { trpc } from '../../../../lib/trpc';
+import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { formatPrice, STATUS_BADGE } from '../_components/utils';
 
 export default function AvailableJobsPage() {
   const [openJobs, setOpenJobs] = useState<any[]>([]);
   const [myBids, setMyBids] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [biddingJobId, setBiddingJobId] = useState<string | null>(null);
-  const [price, setPrice] = useState("");
-  const [notes, setNotes] = useState("");
+  const [price, setPrice] = useState('');
+  const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [payoutsEnabled, setPayoutsEnabled] = useState(true);
 
   const fetchData = () => {
     Promise.all([
       trpc.job.listOpen.query(),
       trpc.job.listMyBids.query(),
+      trpc.connect.getStatus.query().catch(() => null),
     ])
-      .then(([jobs, bids]) => {
+      .then(([jobs, bids, connect]) => {
         setOpenJobs(jobs);
         setMyBids(bids);
+        if (connect) setPayoutsEnabled(connect.payoutsEnabled);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
@@ -32,7 +45,7 @@ export default function AvailableJobsPage() {
 
   const handleSubmitBid = async (jobId: string) => {
     if (!price || Number(price) <= 0) {
-      toast.error("Please enter a valid price");
+      toast.error('Please enter a valid price');
       return;
     }
     setSubmitting(true);
@@ -42,13 +55,13 @@ export default function AvailableJobsPage() {
         price: Number(price),
         notes: notes || undefined,
       });
-      toast.success("Bid submitted successfully!");
+      toast.success('Bid submitted successfully');
       setBiddingJobId(null);
-      setPrice("");
-      setNotes("");
+      setPrice('');
+      setNotes('');
       fetchData();
     } catch (err: any) {
-      toast.error(err.message || "Failed to submit bid");
+      toast.error(err.message || 'Failed to submit bid');
     } finally {
       setSubmitting(false);
     }
@@ -57,231 +70,275 @@ export default function AvailableJobsPage() {
   const handleWithdrawBid = async (bidId: string) => {
     try {
       await trpc.bid.withdraw.mutate({ bidId });
-      toast.success("Bid withdrawn");
+      toast.success('Bid withdrawn');
       fetchData();
     } catch (err: any) {
-      toast.error(err.message || "Failed to withdraw bid");
+      toast.error(err.message || 'Failed to withdraw bid');
     }
   };
 
-  const inputClass =
-    "block rounded-lg border border-gray-300 dark:border-neutral-700 px-3 py-2 text-gray-900 dark:text-white bg-white dark:bg-neutral-950 focus:ring-2 focus:ring-green-500 focus:border-transparent outline-none";
-
   if (loading) {
     return (
-      <div className="text-gray-500 dark:text-neutral-400">
-        Loading available jobs...
+      <div className="space-y-6">
+        <Skeleton className="w-48 h-8" />
+        <Skeleton className="h-32 rounded-xl" />
+        <Skeleton className="h-32 rounded-xl" />
       </div>
     );
   }
 
-  const pendingBids = myBids.filter((b) => b.status === "PENDING");
-  const acceptedBids = myBids.filter((b) => b.status === "ACCEPTED");
+  const pendingBids = myBids.filter((b) => b.status === 'PENDING');
+  const acceptedBids = myBids.filter((b) => b.status === 'ACCEPTED');
 
   return (
     <div className="space-y-8">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-          Available Jobs
-        </h2>
-        <p className="text-gray-500 dark:text-neutral-400 mt-1">
-          Browse open job requests in your service area and submit bids
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          Available jobs
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Browse open requests in your service area and submit bids.
         </p>
       </div>
 
-      {/* Open Jobs */}
+      {!payoutsEnabled && (
+        <Card className="shadow-none border-amber-500/30 bg-amber-500/5">
+          <CardContent className="p-4 text-sm text-amber-800 dark:text-amber-200">
+            Complete payout onboarding before bidding.{' '}
+            <Link href="/provider/payouts" className="underline">
+              Set up payouts
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+
       {openJobs.length > 0 ? (
-        <div>
-          <h3 className="text-lg font-semibold text-cyan-600 dark:text-cyan-400 mb-3">
-            Open Jobs ({openJobs.length})
-          </h3>
-          <div className="space-y-4">
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold text-foreground">
+            Open jobs
+            <span className="ml-2 text-sm font-normal text-muted-foreground">
+              {openJobs.length}
+            </span>
+          </h2>
+          <div className="space-y-3">
             {openJobs.map((job) => {
               const bidCount = job.bids?.length || 0;
               return (
-                <div
+                <Card
                   key={job.id}
-                  className="bg-white dark:bg-neutral-900 rounded-xl p-5 border border-gray-200 dark:border-neutral-800"
+                  className="shadow-none backdrop-blur-xl border-border bg-background/80"
                 >
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-semibold text-gray-900 dark:text-white">
-                          {job.service.name}
-                        </h4>
-                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400">
-                          OPEN
-                        </span>
+                  <CardContent className="p-5 space-y-4">
+                    <div className="flex gap-3 justify-between items-start">
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap gap-2 items-center">
+                          <h3 className="text-sm font-semibold text-foreground">
+                            {job.service.name}
+                          </h3>
+                          <Badge
+                            variant="secondary"
+                            className={cn(
+                              'rounded-full border-0 text-[10px] uppercase tracking-wide',
+                              STATUS_BADGE.OPEN.bg,
+                              STATUS_BADGE.OPEN.text,
+                            )}
+                          >
+                            Open
+                          </Badge>
+                        </div>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {job.property.address}, {job.property.city},{' '}
+                          {job.property.state} {job.property.zip}
+                        </p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          Base price:{' '}
+                          {formatPrice(job.service.basePrice, job.service.unit)}
+                        </p>
+                        {job.customerNotes && (
+                          <p className="mt-2 text-xs text-muted-foreground">
+                            Customer notes: {job.customerNotes}
+                          </p>
+                        )}
+                        {bidCount > 0 && (
+                          <p className="mt-1 text-[11px] text-muted-foreground">
+                            {bidCount} bid{bidCount > 1 ? 's' : ''} already
+                            submitted
+                          </p>
+                        )}
                       </div>
-                      <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">
-                        {job.property.address}, {job.property.city},{" "}
-                        {job.property.state} {job.property.zip}
-                      </p>
-                      <p className="text-sm text-gray-500 dark:text-neutral-400">
-                        Base price: $
-                        {Number(job.service.basePrice).toFixed(2)}/
-                        {job.service.unit === "SQFT"
-                          ? "sq ft"
-                          : job.service.unit === "HOUR"
-                            ? "hr"
-                            : "flat"}
-                      </p>
-                      {job.customerNotes && (
-                        <p className="text-sm text-gray-400 dark:text-neutral-500 mt-2">
-                          Customer notes: {job.customerNotes}
-                        </p>
-                      )}
-                      {bidCount > 0 && (
-                        <p className="text-xs text-gray-400 dark:text-neutral-500 mt-1">
-                          {bidCount} bid{bidCount > 1 ? "s" : ""} already
-                          submitted
-                        </p>
-                      )}
                     </div>
-                  </div>
 
-                  {biddingJobId === job.id ? (
-                    <div className="mt-4 p-4 bg-gray-50 dark:bg-neutral-950 rounded-lg space-y-3">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
-                          Your Price *
-                        </label>
-                        <div className="flex items-center">
-                          <span className="text-gray-500 dark:text-neutral-400 mr-1">
-                            $
-                          </span>
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={price}
-                            onChange={(e) => setPrice(e.target.value)}
-                            className={`${inputClass} w-40`}
-                            placeholder="0.00"
+                    {biddingJobId === job.id ? (
+                      <div className="p-4 space-y-3 rounded-xl border border-border bg-muted/40">
+                        <div>
+                          <label className="block mb-1 text-xs font-medium text-muted-foreground">
+                            Your price
+                          </label>
+                          <div className="flex gap-1 items-center">
+                            <span className="text-sm text-muted-foreground">
+                              $
+                            </span>
+                            <Input
+                              type="number"
+                              step="0.01"
+                              min="0"
+                              value={price}
+                              onChange={(e) => setPrice(e.target.value)}
+                              className="w-40"
+                              placeholder="0.00"
+                            />
+                          </div>
+                        </div>
+                        <div>
+                          <label className="block mb-1 text-xs font-medium text-muted-foreground">
+                            Notes (optional)
+                          </label>
+                          <Textarea
+                            value={notes}
+                            onChange={(e) => setNotes(e.target.value)}
+                            rows={2}
+                            className="resize-none"
+                            placeholder="Timeline, approach, what's included..."
                           />
                         </div>
+                        <div className="flex gap-2">
+                          <Button
+                            onClick={() => handleSubmitBid(job.id)}
+                            disabled={submitting}
+                            className="bg-brand-lime text-brand-ink rounded-full hover:bg-brand-lime/90"
+                            size="sm"
+                          >
+                            {submitting ? 'Submitting...' : 'Submit bid'}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="rounded-full"
+                            onClick={() => {
+                              setBiddingJobId(null);
+                              setPrice('');
+                              setNotes('');
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 dark:text-neutral-300 mb-1">
-                          Notes (optional)
-                        </label>
-                        <textarea
-                          value={notes}
-                          onChange={(e) => setNotes(e.target.value)}
-                          rows={2}
-                          className={`${inputClass} w-full resize-none`}
-                          placeholder="Details about your bid, timeline, approach..."
-                        />
-                      </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleSubmitBid(job.id)}
-                          disabled={submitting}
-                          className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50"
-                        >
-                          {submitting ? "Submitting..." : "Submit Bid"}
-                        </button>
-                        <button
-                          onClick={() => {
-                            setBiddingJobId(null);
-                            setPrice("");
-                            setNotes("");
-                          }}
-                          className="px-4 py-2 text-gray-600 dark:text-neutral-400 text-sm rounded-lg border border-gray-300 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors"
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    <button
-                      onClick={() => setBiddingJobId(job.id)}
-                      className="mt-4 px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
-                    >
-                      Submit a Bid
-                    </button>
-                  )}
-                </div>
+                    ) : (
+                      <Button
+                        onClick={() => setBiddingJobId(job.id)}
+                        className="bg-brand-lime text-brand-ink rounded-full hover:bg-brand-lime/90"
+                        size="sm"
+                      >
+                        Submit a bid
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
               );
             })}
           </div>
-        </div>
+        </section>
       ) : (
-        <div className="text-center py-12 text-gray-500 dark:text-neutral-400">
-          No open jobs in your service area right now. Check back soon!
+        <div className="py-16 text-center">
+          <div className="flex justify-center items-center mx-auto mb-4 w-14 h-14 rounded-full bg-muted">
+            <Search className="w-7 h-7 text-muted-foreground" />
+          </div>
+          <h3 className="mb-1 text-base font-semibold text-foreground">
+            No open jobs right now
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Check back soon for requests in your service area.
+          </p>
         </div>
       )}
 
-      {/* My Pending Bids */}
       {pendingBids.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold text-orange-600 dark:text-orange-400 mb-3">
-            My Pending Bids ({pendingBids.length})
-          </h3>
-          <div className="space-y-3">
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold text-foreground">
+            Pending bids
+            <span className="ml-2 text-sm font-normal text-muted-foreground">
+              {pendingBids.length}
+            </span>
+          </h2>
+          <div className="space-y-2">
             {pendingBids.map((bid) => (
-              <div
+              <Card
                 key={bid.id}
-                className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-orange-200 dark:border-orange-900 flex items-center justify-between"
+                className="shadow-none border-border bg-background/80"
               >
-                <div>
-                  <div className="font-medium text-gray-900 dark:text-white">
-                    {bid.job.service.name}
+                <CardContent className="flex gap-3 justify-between items-center p-4">
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-foreground">
+                      {bid.job.service.name}
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {bid.job.property.address}, {bid.job.property.city} · $
+                      {Number(bid.price).toFixed(2)}
+                    </p>
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-neutral-400">
-                    {bid.job.property.address}, {bid.job.property.city}
+                  <div className="flex gap-2 items-center">
+                    <Badge
+                      variant="secondary"
+                      className="rounded-full border-0 bg-amber-500/10 text-[10px] uppercase tracking-wide text-amber-500"
+                    >
+                      Pending
+                    </Badge>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleWithdrawBid(bid.id)}
+                      className="h-7 text-xs text-red-500 hover:bg-red-500/10 hover:text-red-500"
+                    >
+                      Withdraw
+                    </Button>
                   </div>
-                  <div className="text-sm font-medium text-gray-700 dark:text-neutral-300 mt-0.5">
-                    Your bid: ${Number(bid.price).toFixed(2)}
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400">
-                    PENDING
-                  </span>
-                  <button
-                    onClick={() => handleWithdrawBid(bid.id)}
-                    className="text-sm text-red-500 hover:text-red-400"
-                  >
-                    Withdraw
-                  </button>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
-        </div>
+        </section>
       )}
 
-      {/* Accepted Bids */}
       {acceptedBids.length > 0 && (
-        <div>
-          <h3 className="text-lg font-semibold text-green-600 dark:text-green-400 mb-3">
-            Won Bids ({acceptedBids.length})
-          </h3>
-          <div className="space-y-3">
+        <section className="space-y-3">
+          <h2 className="text-lg font-semibold text-foreground">
+            Won bids
+            <span className="ml-2 text-sm font-normal text-muted-foreground">
+              {acceptedBids.length}
+            </span>
+          </h2>
+          <div className="space-y-2">
             {acceptedBids.map((bid) => (
-              <div
+              <Card
                 key={bid.id}
-                className="bg-white dark:bg-neutral-900 rounded-xl p-4 border border-green-200 dark:border-green-900 flex items-center justify-between"
+                className="shadow-none border-border bg-background/80"
               >
-                <div>
-                  <div className="font-medium text-gray-900 dark:text-white">
-                    {bid.job.service.name}
+                <CardContent className="flex gap-3 justify-between items-center p-4">
+                  <div className="min-w-0">
+                    <div className="text-sm font-medium text-foreground">
+                      {bid.job.service.name}
+                    </div>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {bid.job.property.address}, {bid.job.property.city} · $
+                      {Number(bid.price).toFixed(2)}
+                    </p>
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-neutral-400">
-                    {bid.job.property.address}, {bid.job.property.city}
-                  </div>
-                  <div className="text-sm font-medium text-green-700 dark:text-green-400 mt-0.5">
-                    Accepted: ${Number(bid.price).toFixed(2)}
-                  </div>
-                </div>
-                <span className="px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
-                  ACCEPTED
-                </span>
-              </div>
+                  <Badge
+                    variant="secondary"
+                    className={cn(
+                      'rounded-full border-0 text-[10px] uppercase tracking-wide',
+                      STATUS_BADGE.COMPLETED.bg,
+                      STATUS_BADGE.COMPLETED.text,
+                    )}
+                  >
+                    Accepted
+                  </Badge>
+                </CardContent>
+              </Card>
             ))}
           </div>
-        </div>
+        </section>
       )}
     </div>
   );

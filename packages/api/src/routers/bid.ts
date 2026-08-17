@@ -1,11 +1,18 @@
-import { z } from "zod";
-import { TRPCError } from "@trpc/server";
-import { router, customerProcedure, providerProcedure } from "../trpc";
-import { submitBidInput, acceptBidInput, declineBidInput, withdrawBidInput } from "@repo/validators";
-import { notifyBidReceived, notifyBidAccepted } from "../lib/notifications";
+import { z } from 'zod';
+import { TRPCError } from '@trpc/server';
+import { router, customerProcedure, providerProcedure } from '../trpc';
+import {
+  submitBidInput,
+  acceptBidInput,
+  declineBidInput,
+  withdrawBidInput,
+} from '@repo/validators';
+import { notifyBidReceived, notifyBidAccepted } from '../lib/notifications';
+import { assertProviderPayoutReady } from '../lib/connect';
+import { createJobCheckoutSession } from '../lib/payments';
+import { toCents } from '../lib/stripe';
 
 export const bidRouter = router({
-  /** Provider: submit a bid on an open job */
   submit: providerProcedure
     .input(submitBidInput)
     .mutation(async ({ ctx, input }) => {
@@ -14,8 +21,13 @@ export const bidRouter = router({
       });
 
       if (!profile) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
       }
+
+      await assertProviderPayoutReady(profile.id);
 
       const job = await ctx.db.job.findUnique({
         where: { id: input.jobId },
@@ -26,25 +38,26 @@ export const bidRouter = router({
       });
 
       if (!job) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
       }
 
-      if (job.status !== "OPEN") {
+      if (job.status !== 'OPEN') {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Can only bid on open jobs",
+          code: 'BAD_REQUEST',
+          message: 'Can only bid on open jobs',
         });
       }
 
-      // Check provider hasn't already bid
       const existingBid = await ctx.db.jobBid.findUnique({
-        where: { jobId_providerId: { jobId: input.jobId, providerId: profile.id } },
+        where: {
+          jobId_providerId: { jobId: input.jobId, providerId: profile.id },
+        },
       });
 
       if (existingBid) {
         throw new TRPCError({
-          code: "CONFLICT",
-          message: "You have already submitted a bid for this job",
+          code: 'CONFLICT',
+          message: 'You have already submitted a bid for this job',
         });
       }
 
@@ -54,7 +67,7 @@ export const bidRouter = router({
           providerId: profile.id,
           price: input.price,
           notes: input.notes,
-          status: "PENDING",
+          status: 'PENDING',
         },
         include: {
           provider: true,
@@ -62,17 +75,15 @@ export const bidRouter = router({
         },
       });
 
-      // Notify customer of new bid
       notifyBidReceived(
         job.property.customer.userId,
         profile.businessName,
-        job.service.name
+        job.service.name,
       ).catch(console.error);
 
       return bid;
     }),
 
-  /** Customer: list bids for a specific job */
   listForJob: customerProcedure
     .input(z.object({ jobId: z.string().cuid() }))
     .query(async ({ ctx, input }) => {
@@ -81,53 +92,63 @@ export const bidRouter = router({
       });
 
       if (!profile) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
       }
 
-      // Verify the job belongs to this customer (via property)
       const job = await ctx.db.job.findUnique({
         where: { id: input.jobId },
         include: { property: true },
       });
 
       if (!job || job.property.customerId !== profile.id) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
       }
 
       return ctx.db.jobBid.findMany({
         where: { jobId: input.jobId },
-        include: {
-          provider: true,
-        },
-        orderBy: { createdAt: "desc" },
+        include: { provider: true },
+        orderBy: { createdAt: 'desc' },
       });
     }),
 
-  /** Customer: accept a bid */
+  /**
+   * Customer: accept a bid.
+   * One-time jobs redirect to Stripe Checkout; subscription jobs (already billed) accept immediately.
+   */
   accept: customerProcedure
     .input(acceptBidInput)
     .mutation(async ({ ctx, input }) => {
       const profile = await ctx.db.customerProfile.findUnique({
         where: { userId: ctx.user.userId },
+        include: { user: true },
       });
 
       if (!profile) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
       }
 
       const job = await ctx.db.job.findUnique({
         where: { id: input.jobId },
-        include: { property: true },
+        include: {
+          property: true,
+          service: true,
+        },
       });
 
       if (!job || job.property.customerId !== profile.id) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
       }
 
-      if (job.status !== "OPEN") {
+      if (job.status !== 'OPEN') {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Can only accept bids on open jobs",
+          code: 'BAD_REQUEST',
+          message: 'Can only accept bids on open jobs',
         });
       }
 
@@ -137,46 +158,58 @@ export const bidRouter = router({
       });
 
       if (!bid || bid.jobId !== input.jobId) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Bid not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Bid not found' });
       }
 
-      // Accept this bid and decline all others
-      await ctx.db.$transaction([
-        ctx.db.jobBid.update({
-          where: { id: input.bidId },
-          data: { status: "ACCEPTED" },
-        }),
-        ctx.db.jobBid.updateMany({
-          where: { jobId: input.jobId, id: { not: input.bidId } },
-          data: { status: "DECLINED" },
-        }),
-        ctx.db.job.update({
-          where: { id: input.jobId },
-          data: {
-            acceptedBidId: input.bidId,
-            status: "PENDING",
-          },
-        }),
-      ]);
+      if (!bid.provider.stripeTransfersEnabled) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: 'This provider has not finished payout setup yet.',
+        });
+      }
 
-      // Notify the winning provider
-      notifyBidAccepted(
-        bid.provider.userId,
-        job.service?.name || "Service"
-      ).catch(console.error);
+      if (job.type === 'SUBSCRIPTION') {
+        await ctx.db.$transaction([
+          ctx.db.jobBid.update({
+            where: { id: input.bidId },
+            data: { status: 'ACCEPTED' },
+          }),
+          ctx.db.jobBid.updateMany({
+            where: { jobId: input.jobId, id: { not: input.bidId } },
+            data: { status: 'DECLINED' },
+          }),
+          ctx.db.job.update({
+            where: { id: input.jobId },
+            data: { acceptedBidId: input.bidId, status: 'PENDING' },
+          }),
+        ]);
 
-      return ctx.db.job.findUnique({
-        where: { id: input.jobId },
-        include: {
-          property: true,
-          service: { include: { category: true } },
-          acceptedBid: { include: { provider: true } },
-          bids: { include: { provider: true } },
-        },
+        notifyBidAccepted(bid.provider.userId, job.service.name).catch(
+          console.error,
+        );
+
+        return {
+          checkoutUrl: null as string | null,
+          jobId: job.id,
+        };
+      }
+
+      const checkout = await createJobCheckoutSession({
+        customerId: profile.id,
+        jobId: job.id,
+        bidId: bid.id,
+        providerId: bid.providerId,
+        amountCents: toCents(bid.price),
+        description: `${job.service.name} — ${job.property.address}`,
+        email: profile.email,
+        name: `${profile.firstName} ${profile.lastName}`,
+        phone: profile.user.phone,
+        stripeCustomerId: profile.stripeCustomerId,
       });
+
+      return { checkoutUrl: checkout.checkoutUrl, jobId: job.id };
     }),
 
-  /** Customer: decline a bid */
   decline: customerProcedure
     .input(declineBidInput)
     .mutation(async ({ ctx, input }) => {
@@ -185,7 +218,10 @@ export const bidRouter = router({
       });
 
       if (!profile) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
       }
 
       const job = await ctx.db.job.findUnique({
@@ -194,7 +230,7 @@ export const bidRouter = router({
       });
 
       if (!job || job.property.customerId !== profile.id) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
       }
 
       const bid = await ctx.db.jobBid.findUnique({
@@ -202,17 +238,16 @@ export const bidRouter = router({
       });
 
       if (!bid || bid.jobId !== input.jobId) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Bid not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Bid not found' });
       }
 
       return ctx.db.jobBid.update({
         where: { id: input.bidId },
-        data: { status: "DECLINED" },
+        data: { status: 'DECLINED' },
         include: { provider: true },
       });
     }),
 
-  /** Provider: withdraw their bid */
   withdraw: providerProcedure
     .input(withdrawBidInput)
     .mutation(async ({ ctx, input }) => {
@@ -221,7 +256,10 @@ export const bidRouter = router({
       });
 
       if (!profile) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
       }
 
       const bid = await ctx.db.jobBid.findUnique({
@@ -229,19 +267,19 @@ export const bidRouter = router({
       });
 
       if (!bid || bid.providerId !== profile.id) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Bid not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Bid not found' });
       }
 
-      if (bid.status !== "PENDING") {
+      if (bid.status !== 'PENDING') {
         throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Can only withdraw pending bids",
+          code: 'BAD_REQUEST',
+          message: 'Can only withdraw pending bids',
         });
       }
 
       return ctx.db.jobBid.update({
         where: { id: input.bidId },
-        data: { status: "WITHDRAWN" },
+        data: { status: 'WITHDRAWN' },
       });
     }),
 });

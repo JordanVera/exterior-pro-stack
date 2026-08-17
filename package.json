@@ -13,10 +13,11 @@
   },
   "overrides": {
     "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0"
+    "@types/react-dom": "^19.0.0",
+    "expo": "^57.0.13"
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=22.13"
   },
   "name": "with-react-native-web",
   "packageManager": "npm@10.9.2",

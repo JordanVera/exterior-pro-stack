@@ -104,12 +104,28 @@ export const crewRouter = router({
         throw new TRPCError({ code: "NOT_FOUND", message: "Crew not found" });
       }
 
+      const existingUser = await ctx.db.user.findUnique({
+        where: { phone: input.phone },
+      });
+
+      let userId: string | undefined;
+      if (existingUser && (existingUser.role == null || existingUser.role === "CREW")) {
+        if (!existingUser.role) {
+          await ctx.db.user.update({
+            where: { id: existingUser.id },
+            data: { role: "CREW" },
+          });
+        }
+        userId = existingUser.id;
+      }
+
       return ctx.db.crewMember.create({
         data: {
           crewId: input.crewId,
           name: input.name,
           phone: input.phone,
           role: input.role,
+          userId,
         },
       });
     }),

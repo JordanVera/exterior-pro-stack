@@ -7,7 +7,7 @@ export const adminRouter = router({
   listUsers: adminProcedure
     .input(
       z.object({
-        role: z.enum(["CUSTOMER", "PROVIDER", "ADMIN"]).optional(),
+        role: z.enum(["CUSTOMER", "PROVIDER", "ADMIN", "CREW"]).optional(),
         search: z.string().optional(),
         limit: z.number().min(1).max(100).default(20),
         cursor: z.string().cuid().optional(),
@@ -83,6 +83,8 @@ export const adminRouter = router({
       totalBids,
       pendingBids,
       totalSubscriptions,
+      paymentsAgg,
+      transfersAgg,
     ] = await Promise.all([
       ctx.db.user.count(),
       ctx.db.user.count({ where: { role: "CUSTOMER" } }),
@@ -95,6 +97,14 @@ export const adminRouter = router({
       ctx.db.jobBid.count(),
       ctx.db.jobBid.count({ where: { status: "PENDING" } }),
       ctx.db.customerSubscription.count({ where: { status: "ACTIVE" } }),
+      ctx.db.payment.aggregate({
+        _sum: { amountCents: true },
+        where: { status: "SUCCEEDED" },
+      }),
+      ctx.db.transfer.aggregate({
+        _sum: { amountCents: true },
+        where: { status: "PAID" },
+      }),
     ]);
 
     return {
@@ -109,7 +119,14 @@ export const adminRouter = router({
       totalBids,
       pendingBids,
       totalSubscriptions,
+      gmvCents: paymentsAgg._sum.amountCents ?? 0,
+      payoutsCents: transfersAgg._sum.amountCents ?? 0,
     };
+  }),
+
+  syncStripePlans: adminProcedure.mutation(async () => {
+    const { syncAllPlanStripePrices } = await import("../lib/payments");
+    return syncAllPlanStripePrices();
   }),
 
   /** List all jobs with filtering */

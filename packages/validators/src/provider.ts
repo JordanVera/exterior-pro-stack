@@ -5,6 +5,7 @@ export const updateProviderProfileInput = z.object({
   description: z.string().max(2000).optional(),
   serviceArea: z.string().max(500).optional(),
   serviceAreaZips: z.string().max(1000).optional(),
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
 });
 
 export const setProviderServicesInput = z.object({

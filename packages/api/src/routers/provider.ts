@@ -67,9 +67,13 @@ export const providerRouter = router({
   updateProfile: providerProcedure
     .input(updateProviderProfileInput)
     .mutation(async ({ ctx, input }) => {
+      const data = {
+        ...input,
+        email: input.email === "" ? null : input.email,
+      };
       return ctx.db.providerProfile.update({
         where: { userId: ctx.user.userId },
-        data: input,
+        data,
       });
     }),
 

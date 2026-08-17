@@ -1,87 +1,178 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { trpc } from "../../../../lib/trpc";
-import { setToken } from "../../../../lib/auth";
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
+import { ArrowRight, Home, Wrench } from 'lucide-react';
+import { trpc } from '../../../../lib/trpc';
+import { setToken } from '../../../../lib/auth';
+import { isAuthIntent } from '@/lib/auth-intent';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+} from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { BackgroundBeams } from '@/components/ui/background-beams';
+import { cn } from '@/lib/utils';
 
 export default function RoleSelectionPage() {
-  const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  return (
+    <Suspense>
+      <RoleSelectionContent />
+    </Suspense>
+  );
+}
 
-  const handleSelectRole = async (role: "CUSTOMER" | "PROVIDER") => {
+function RoleSelectionContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const intentParam = searchParams.get('intent');
+  const intent = isAuthIntent(intentParam) ? intentParam : null;
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSelectRole = async (role: 'CUSTOMER' | 'PROVIDER') => {
     setLoading(true);
-    setError("");
+    setError('');
     try {
       const result = await trpc.auth.selectRole.mutate({ role });
-      setToken(result.token);
-      router.push("/onboarding/profile");
+      await setToken(result.token);
+      router.push('/onboarding/profile');
     } catch (err: any) {
-      setError(err.message || "Failed to select role");
+      setError(err.message || 'Failed to select role');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-50 to-green-50 dark:from-black dark:to-black">
-      <div className="w-full max-w-lg mx-4">
-        <div className="bg-white dark:bg-neutral-900 rounded-2xl shadow-xl dark:shadow-neutral-900/50 p-8 border border-transparent dark:border-neutral-800">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Welcome!</h1>
-            <p className="mt-2 text-gray-500 dark:text-neutral-400">
-              How would you like to use Exterior Pro?
-            </p>
-          </div>
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-background text-foreground">
+      <div className="bg-grid-fade pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
+      <BackgroundBeams className="opacity-40" delay={0} />
 
-          {error && (
-            <p className="text-red-500 dark:text-red-400 text-sm text-center mb-4">{error}</p>
-          )}
+      <header className="relative z-20 px-4 pt-4">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-brand-navy/70">
+          <Link href="/" className="flex items-center gap-2 pl-1">
+            <Image
+              src="/logos/logo-stacked.png"
+              alt="Exterior Pro"
+              width={84}
+              height={32}
+              priority
+            />
+          </Link>
+          <ThemeToggle />
+        </nav>
+      </header>
 
-          <div className="space-y-4">
-            <button
-              onClick={() => handleSelectRole("CUSTOMER")}
-              disabled={loading}
-              className="w-full p-6 border-2 border-gray-200 dark:border-neutral-800 rounded-xl hover:border-cyan-500 dark:hover:border-cyan-500 hover:bg-cyan-50 dark:hover:bg-cyan-950/30 transition-all text-left group disabled:opacity-50"
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-cyan-100 dark:bg-cyan-950 rounded-xl flex items-center justify-center text-2xl group-hover:bg-cyan-200 dark:group-hover:bg-cyan-900 transition-colors">
-                  🏠
-                </div>
-                <div>
-                  <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
-                    I need services
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-neutral-400">
-                    Book pressure washing, lawn care, painting, and more for your property.
-                  </p>
-                </div>
-              </div>
-            </button>
+      <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-12">
+        <div className="w-full max-w-lg">
+          <Card className="relative rounded-2xl border border-border bg-background/80 p-8 shadow-lg backdrop-blur-xl">
+            <CardHeader className="mb-6 space-y-3 p-0 text-center">
+              <p className="inline-flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-brand-navy dark:text-brand-lime">
+                <span className="h-px w-6 bg-brand-lime" />
+                Get started
+              </p>
+              <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                Welcome
+              </h1>
+              <CardDescription>
+                How would you like to use Exterior Pro?
+              </CardDescription>
+            </CardHeader>
 
-            <button
-              onClick={() => handleSelectRole("PROVIDER")}
-              disabled={loading}
-              className="w-full p-6 border-2 border-gray-200 dark:border-neutral-800 rounded-xl hover:border-green-500 dark:hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-950/30 transition-all text-left group disabled:opacity-50"
-            >
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-green-100 dark:bg-green-950 rounded-xl flex items-center justify-center text-2xl group-hover:bg-green-200 dark:group-hover:bg-green-900 transition-colors">
-                  🔧
+            <CardContent className="space-y-4 p-0">
+              {error ? (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              ) : null}
+
+              <button
+                type="button"
+                onClick={() => handleSelectRole('CUSTOMER')}
+                disabled={loading}
+                className={cn(
+                  'group w-full rounded-xl border p-6 text-left transition-all',
+                  'disabled:cursor-not-allowed disabled:opacity-50',
+                  intent === 'customer'
+                    ? 'border-brand-lime/70 bg-brand-lime/10'
+                    : 'border-border bg-background/60 hover:border-brand-lime/60 hover:bg-brand-lime/5',
+                )}
+              >
+                <div className="flex items-start gap-4">
+                  <div
+                    className={cn(
+                      'flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-colors',
+                      intent === 'customer'
+                        ? 'bg-brand-lime/20 text-brand-navy dark:text-brand-lime'
+                        : 'bg-brand-lime/10 text-brand-navy group-hover:bg-brand-lime/20 dark:text-brand-lime',
+                    )}
+                  >
+                    <Home className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-lg font-semibold text-foreground">
+                      I need services
+                    </h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Book pressure washing, lawn care, painting, and more for
+                      your property.
+                    </p>
+                  </div>
+                  <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                 </div>
-                <div>
-                  <h3 className="font-semibold text-lg text-gray-900 dark:text-white">
-                    I provide services
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500 dark:text-neutral-400">
-                    Manage your crew, respond to quotes, and grow your exterior service business.
-                  </p>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleSelectRole('PROVIDER')}
+                disabled={loading}
+                className={cn(
+                  'group w-full rounded-xl border p-6 text-left transition-all',
+                  'disabled:cursor-not-allowed disabled:opacity-50',
+                  intent === 'provider'
+                    ? 'border-brand-lime/70 bg-brand-lime/10'
+                    : 'border-border bg-background/60 hover:border-brand-lime/60 hover:bg-brand-lime/5',
+                )}
+              >
+                <div className="flex items-start gap-4">
+                  <div
+                    className={cn(
+                      'flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-colors',
+                      intent === 'provider'
+                        ? 'bg-brand-lime/20 text-brand-navy dark:text-brand-lime'
+                        : 'bg-brand-lime/10 text-brand-navy group-hover:bg-brand-lime/20 dark:text-brand-lime',
+                    )}
+                  >
+                    <Wrench className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-lg font-semibold text-foreground">
+                      I provide services
+                    </h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Manage your crew, respond to quotes, and grow your
+                      exterior service business.
+                    </p>
+                  </div>
+                  <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
                 </div>
-              </div>
-            </button>
-          </div>
+              </button>
+
+              {loading ? (
+                <p className="text-center text-sm text-muted-foreground">
+                  Setting up your account...
+                </p>
+              ) : null}
+            </CardContent>
+          </Card>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

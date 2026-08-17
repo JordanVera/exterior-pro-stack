@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: mysql://root:password@localhost:3306/exterior_pro
+      JWT_SECRET: ci-jwt-secret
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npx prisma validate --schema=packages/db/prisma/schema.prisma
+      - run: npx prisma generate --schema=packages/db/prisma/schema.prisma
+      - run: npm run build

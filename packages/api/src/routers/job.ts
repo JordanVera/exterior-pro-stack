@@ -1,19 +1,31 @@
-import { z } from "zod";
-import { TRPCError } from "@trpc/server";
-import { router, customerProcedure, providerProcedure } from "../trpc";
+import { z } from 'zod';
+import { TRPCError } from '@trpc/server';
+import type { Prisma } from '@repo/db';
+import { router, customerProcedure, providerProcedure, fieldProcedure } from '../trpc';
 import {
   createJobInput,
   scheduleJobInput,
   assignCrewInput,
   updateJobStatusInput,
   createRecurringScheduleInput,
-} from "@repo/validators";
+  cancelJobInput,
+  listMineInput,
+  getJobByIdInput,
+} from '@repo/validators';
 import {
   notifyNewJobAvailable,
   notifyJobScheduled,
   notifyJobInProgress,
   notifyJobCompleted,
-} from "../lib/notifications";
+  notifyJobCancelled,
+} from '../lib/notifications';
+import {
+  fieldJobInclude,
+  getFieldAccess,
+  jobWhereForAccess,
+  todayRange,
+  assertJobAccess,
+} from '../lib/field-access';
 
 export const jobRouter = router({
   /** Customer: create a new job request (broadcasts to local providers) */
@@ -25,7 +37,10 @@ export const jobRouter = router({
       });
 
       if (!profile) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
       }
 
       // Verify the property belongs to this customer
@@ -34,7 +49,10 @@ export const jobRouter = router({
       });
 
       if (!property || property.customerId !== profile.id) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Property not found" });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Property not found',
+        });
       }
 
       const job = await ctx.db.job.create({
@@ -42,8 +60,8 @@ export const jobRouter = router({
           propertyId: input.propertyId,
           serviceId: input.serviceId,
           customerNotes: input.customerNotes,
-          type: "ONE_TIME",
-          status: "OPEN",
+          type: 'ONE_TIME',
+          status: 'OPEN',
         },
         include: {
           property: true,
@@ -69,7 +87,7 @@ export const jobRouter = router({
         notifyNewJobAvailable(
           provider.userId,
           job.service.name,
-          `${property.address}, ${property.city}`
+          `${property.address}, ${property.city}`,
         ).catch(console.error);
       }
 
@@ -82,10 +100,17 @@ export const jobRouter = router({
       z
         .object({
           status: z
-            .enum(["OPEN", "PENDING", "SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED"])
+            .enum([
+              'OPEN',
+              'PENDING',
+              'SCHEDULED',
+              'IN_PROGRESS',
+              'COMPLETED',
+              'CANCELLED',
+            ])
             .optional(),
         })
-        .optional()
+        .optional(),
     )
     .query(async ({ ctx, input }) => {
       const profile = await ctx.db.customerProfile.findUnique({
@@ -93,7 +118,10 @@ export const jobRouter = router({
       });
 
       if (!profile) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
       }
 
       const propertyIds = await ctx.db.property.findMany({
@@ -113,9 +141,112 @@ export const jobRouter = router({
           bids: { include: { provider: true } },
           assignments: { include: { crew: true } },
           recurringSchedule: true,
+          payments: true,
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
       });
+    }),
+
+  /** Customer: get a single job they own */
+  getForCustomer: customerProcedure
+    .input(z.object({ jobId: z.string().cuid() }))
+    .query(async ({ ctx, input }) => {
+      const profile = await ctx.db.customerProfile.findUnique({
+        where: { userId: ctx.user.userId },
+      });
+
+      if (!profile) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
+      }
+
+      const job = await ctx.db.job.findUnique({
+        where: { id: input.jobId },
+        include: {
+          property: true,
+          service: { include: { category: true } },
+          acceptedBid: { include: { provider: true } },
+          bids: { include: { provider: true } },
+          assignments: { include: { crew: true } },
+          recurringSchedule: true,
+          payments: true,
+        },
+      });
+
+      if (!job || job.property.customerId !== profile.id) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
+      }
+
+      return job;
+    }),
+
+  /** Customer: cancel an open job request */
+  cancelForCustomer: customerProcedure
+    .input(cancelJobInput)
+    .mutation(async ({ ctx, input }) => {
+      const profile = await ctx.db.customerProfile.findUnique({
+        where: { userId: ctx.user.userId },
+      });
+
+      if (!profile) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
+      }
+
+      const job = await ctx.db.job.findUnique({
+        where: { id: input.jobId },
+        include: {
+          property: true,
+          service: true,
+          bids: { include: { provider: true } },
+        },
+      });
+
+      if (!job || job.property.customerId !== profile.id) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
+      }
+
+      if (job.status !== 'OPEN') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Only open job requests can be cancelled',
+        });
+      }
+
+      const [updated] = await ctx.db.$transaction([
+        ctx.db.job.update({
+          where: { id: input.jobId },
+          data: { status: 'CANCELLED' },
+          include: {
+            property: true,
+            service: { include: { category: true } },
+            acceptedBid: { include: { provider: true } },
+            bids: { include: { provider: true } },
+            assignments: { include: { crew: true } },
+            recurringSchedule: true,
+            payments: true,
+          },
+        }),
+        ctx.db.jobBid.updateMany({
+          where: { jobId: input.jobId, status: 'PENDING' },
+          data: { status: 'DECLINED' },
+        }),
+      ]);
+
+      const pendingProviders = job.bids.filter(
+        (bid) => bid.status === 'PENDING',
+      );
+      for (const bid of pendingProviders) {
+        notifyJobCancelled(bid.provider.userId, job.service.name).catch(
+          console.error,
+        );
+      }
+
+      return updated;
     }),
 
   /** Provider: list open jobs in their service area */
@@ -125,7 +256,7 @@ export const jobRouter = router({
         .object({
           serviceId: z.string().cuid().optional(),
         })
-        .optional()
+        .optional(),
     )
     .query(async ({ ctx, input }) => {
       const profile = await ctx.db.providerProfile.findUnique({
@@ -134,17 +265,20 @@ export const jobRouter = router({
       });
 
       if (!profile) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
       }
 
       const providerServiceIds = profile.services.map((s) => s.serviceId);
       const providerZips = profile.serviceAreaZips
-        ? profile.serviceAreaZips.split(",").map((z) => z.trim())
+        ? profile.serviceAreaZips.split(',').map((z) => z.trim())
         : [];
 
       return ctx.db.job.findMany({
         where: {
-          status: "OPEN",
+          status: 'OPEN',
           serviceId: input?.serviceId
             ? input.serviceId
             : { in: providerServiceIds },
@@ -160,7 +294,7 @@ export const jobRouter = router({
           service: { include: { category: true } },
           bids: { select: { id: true } },
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
       });
     }),
 
@@ -170,10 +304,17 @@ export const jobRouter = router({
       z
         .object({
           status: z
-            .enum(["OPEN", "PENDING", "SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED"])
+            .enum([
+              'OPEN',
+              'PENDING',
+              'SCHEDULED',
+              'IN_PROGRESS',
+              'COMPLETED',
+              'CANCELLED',
+            ])
             .optional(),
         })
-        .optional()
+        .optional(),
     )
     .query(async ({ ctx, input }) => {
       const profile = await ctx.db.providerProfile.findUnique({
@@ -181,7 +322,10 @@ export const jobRouter = router({
       });
 
       if (!profile) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
       }
 
       return ctx.db.job.findMany({
@@ -196,7 +340,7 @@ export const jobRouter = router({
           assignments: { include: { crew: { include: { members: true } } } },
           recurringSchedule: true,
         },
-        orderBy: [{ scheduledDate: "asc" }, { createdAt: "desc" }],
+        orderBy: [{ scheduledDate: 'asc' }, { createdAt: 'desc' }],
       });
     }),
 
@@ -207,7 +351,7 @@ export const jobRouter = router({
     });
 
     if (!profile) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Profile not found' });
     }
 
     return ctx.db.jobBid.findMany({
@@ -220,7 +364,7 @@ export const jobRouter = router({
           },
         },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     });
   }),
 
@@ -233,7 +377,10 @@ export const jobRouter = router({
       });
 
       if (!profile) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
       }
 
       const job = await ctx.db.job.findUnique({
@@ -241,8 +388,12 @@ export const jobRouter = router({
         include: { acceptedBid: true },
       });
 
-      if (!job || !job.acceptedBid || job.acceptedBid.providerId !== profile.id) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
+      if (
+        !job ||
+        !job.acceptedBid ||
+        job.acceptedBid.providerId !== profile.id
+      ) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
       }
 
       const updated = await ctx.db.job.update({
@@ -250,7 +401,7 @@ export const jobRouter = router({
         data: {
           scheduledDate: new Date(input.scheduledDate),
           scheduledTime: input.scheduledTime,
-          status: "SCHEDULED",
+          status: 'SCHEDULED',
         },
         include: {
           property: { include: { customer: { include: { user: true } } } },
@@ -265,8 +416,18 @@ export const jobRouter = router({
         updated.property.customer.userId,
         updated.service.name,
         input.scheduledDate,
-        input.scheduledTime
+        input.scheduledTime,
       ).catch(console.error);
+
+      const customerEmail = updated.property.customer.email;
+      if (customerEmail) {
+        const { sendEmail } = await import('../lib/email');
+        sendEmail({
+          to: customerEmail,
+          subject: `Job scheduled — ${updated.service.name}`,
+          text: `Hi ${updated.property.customer.firstName},\n\nYour ${updated.service.name} job is scheduled for ${input.scheduledDate}${input.scheduledTime ? ` at ${input.scheduledTime}` : ''}.\n\nExterior Pro`,
+        }).catch(console.error);
+      }
 
       return updated;
     }),
@@ -280,7 +441,10 @@ export const jobRouter = router({
       });
 
       if (!profile) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
       }
 
       // Verify job belongs to provider via accepted bid
@@ -289,8 +453,12 @@ export const jobRouter = router({
         include: { acceptedBid: true },
       });
 
-      if (!job || !job.acceptedBid || job.acceptedBid.providerId !== profile.id) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
+      if (
+        !job ||
+        !job.acceptedBid ||
+        job.acceptedBid.providerId !== profile.id
+      ) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
       }
 
       // Verify crew belongs to provider
@@ -299,7 +467,7 @@ export const jobRouter = router({
       });
 
       if (!crew || crew.providerId !== profile.id) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Crew not found" });
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Crew not found' });
       }
 
       return ctx.db.jobAssignment.create({
@@ -312,15 +480,18 @@ export const jobRouter = router({
     }),
 
   /** Provider: update job status */
-  updateStatus: providerProcedure
+  updateStatus: fieldProcedure
     .input(updateJobStatusInput)
     .mutation(async ({ ctx, input }) => {
-      const profile = await ctx.db.providerProfile.findUnique({
-        where: { userId: ctx.user.userId },
-      });
+      const { access } = await assertJobAccess(ctx, input.jobId);
 
-      if (!profile) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
+      if (access.kind === 'crew') {
+        if (input.status !== 'IN_PROGRESS' && input.status !== 'COMPLETED') {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Crews can only start or complete assigned jobs',
+          });
+        }
       }
 
       const job = await ctx.db.job.findUnique({
@@ -328,8 +499,8 @@ export const jobRouter = router({
         include: { acceptedBid: true },
       });
 
-      if (!job || !job.acceptedBid || job.acceptedBid.providerId !== profile.id) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
+      if (!job) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
       }
 
       const updated = await ctx.db.job.update({
@@ -337,7 +508,7 @@ export const jobRouter = router({
         data: {
           status: input.status,
           notes: input.notes,
-          ...(input.status === "COMPLETED" ? { completedAt: new Date() } : {}),
+          ...(input.status === 'COMPLETED' ? { completedAt: new Date() } : {}),
         },
         include: {
           property: { include: { customer: { include: { user: true } } } },
@@ -347,14 +518,15 @@ export const jobRouter = router({
         },
       });
 
-      // Send notifications based on status change
       const customerId = updated.property.customer.userId;
       const serviceName = updated.service.name;
 
-      if (input.status === "IN_PROGRESS") {
+      if (input.status === 'IN_PROGRESS') {
         notifyJobInProgress(customerId, serviceName).catch(console.error);
-      } else if (input.status === "COMPLETED") {
+      } else if (input.status === 'COMPLETED') {
         notifyJobCompleted(customerId, serviceName).catch(console.error);
+        const { payoutForCompletedJob } = await import('../lib/payments');
+        payoutForCompletedJob(updated.id).catch(console.error);
       }
 
       return updated;
@@ -369,7 +541,10 @@ export const jobRouter = router({
       });
 
       if (!profile) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
       }
 
       const job = await ctx.db.job.findUnique({
@@ -377,8 +552,12 @@ export const jobRouter = router({
         include: { acceptedBid: true },
       });
 
-      if (!job || !job.acceptedBid || job.acceptedBid.providerId !== profile.id) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
+      if (
+        !job ||
+        !job.acceptedBid ||
+        job.acceptedBid.providerId !== profile.id
+      ) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
       }
 
       return ctx.db.recurringSchedule.upsert({
@@ -403,7 +582,7 @@ export const jobRouter = router({
     });
 
     if (!profile) {
-      throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Profile not found' });
     }
 
     const now = new Date();
@@ -412,7 +591,7 @@ export const jobRouter = router({
     return ctx.db.job.findMany({
       where: {
         acceptedBid: { providerId: profile.id },
-        status: { in: ["SCHEDULED", "IN_PROGRESS"] },
+        status: { in: ['SCHEDULED', 'IN_PROGRESS'] },
         scheduledDate: { gte: now, lte: nextWeek },
       },
       include: {
@@ -420,7 +599,51 @@ export const jobRouter = router({
         service: true,
         assignments: { include: { crew: { include: { members: true } } } },
       },
-      orderBy: [{ scheduledDate: "asc" }],
+      orderBy: [{ scheduledDate: 'asc' }],
     });
+  }),
+
+  /** Provider or crew: jobs visible to the signed-in field user */
+  listMine: fieldProcedure.input(listMineInput).query(async ({ ctx, input }) => {
+    const access = await getFieldAccess(ctx);
+    const { start, end } = todayRange();
+    const view = input?.view ?? 'active';
+
+    const extra: Prisma.JobWhereInput = input?.status
+      ? { status: input.status }
+      : view === 'today'
+        ? {
+            OR: [
+              { status: 'IN_PROGRESS' },
+              { status: 'SCHEDULED', scheduledDate: { gte: start, lte: end } },
+            ],
+          }
+        : view === 'active'
+          ? { status: { in: ['PENDING', 'SCHEDULED', 'IN_PROGRESS'] } }
+          : {};
+
+    return ctx.db.job.findMany({
+      where: {
+        ...jobWhereForAccess(access),
+        ...extra,
+      },
+      include: fieldJobInclude,
+      orderBy: [{ scheduledDate: 'asc' }, { createdAt: 'desc' }],
+    });
+  }),
+
+  /** Provider or crew: single job they can access */
+  getById: fieldProcedure.input(getJobByIdInput).query(async ({ ctx, input }) => {
+    const access = await getFieldAccess(ctx);
+    const job = await ctx.db.job.findFirst({
+      where: { id: input.jobId, ...jobWhereForAccess(access) },
+      include: fieldJobInclude,
+    });
+
+    if (!job) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
+    }
+
+    return job;
   }),
 });

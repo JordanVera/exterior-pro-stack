@@ -1,12 +1,18 @@
 import chalk from 'chalk';
 import { TRPCError } from '@trpc/server';
-import { router, publicProcedure, protectedProcedure } from '../trpc';
+import {
+  router,
+  publicProcedure,
+  protectedProcedure,
+  customerProcedure,
+} from '../trpc';
 import {
   sendCodeInput,
   verifyCodeInput,
   selectRoleInput,
   customerOnboardingInput,
   providerOnboardingInput,
+  updateCustomerProfileInput,
 } from '@repo/validators';
 import { signToken } from '../lib/jwt';
 import { sendSMS, generateVerificationCode } from '../lib/sms';
@@ -36,7 +42,14 @@ export const authRouter = router({
       await sendSMS(
         input.phone,
         chalk.cyanBright.bold(
-          `Your Exterior Pro verification code is: ${chalk.yellowBright.bold(code)}`,
+          `Your Exterior Pro verification code is: ${chalk.yellowBright.bold(code)} - User Type: ${chalk.yellowBright.bold(
+            (
+              await ctx.db.user.findUnique({
+                where: { phone: input.phone },
+                select: { role: true },
+              })
+            )?.role ?? 'unknown',
+          )}`,
         ),
       );
 
@@ -95,6 +108,24 @@ export const authRouter = router({
         });
       }
 
+      const crewMember = await ctx.db.crewMember.findFirst({
+        where: { phone: input.phone },
+      });
+
+      if (crewMember && (user.role == null || user.role === 'CREW')) {
+        user = await ctx.db.user.update({
+          where: { id: user.id },
+          data: { role: 'CREW' },
+          include: { customerProfile: true, providerProfile: true },
+        });
+        if (crewMember.userId !== user.id) {
+          await ctx.db.crewMember.update({
+            where: { id: crewMember.id },
+            data: { userId: user.id },
+          });
+        }
+      }
+
       const token = await signToken({
         userId: user.id,
         role: user.role ?? 'CUSTOMER',
@@ -120,6 +151,15 @@ export const authRouter = router({
       include: {
         customerProfile: true,
         providerProfile: true,
+        crewMemberships: {
+          include: {
+            crew: {
+              include: {
+                provider: { select: { businessName: true } },
+              },
+            },
+          },
+        },
       },
     });
 
@@ -127,14 +167,29 @@ export const authRouter = router({
       throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
     }
 
+    const crewMember = user.crewMemberships[0] ?? null;
+
     return {
       id: user.id,
       phone: user.phone,
       role: user.role,
       verified: user.verified,
+      createdAt: user.createdAt,
       hasProfile: !!(user.customerProfile || user.providerProfile),
       customerProfile: user.customerProfile,
       providerProfile: user.providerProfile,
+      crewMember: crewMember
+        ? {
+            id: crewMember.id,
+            name: crewMember.name,
+            role: crewMember.role,
+            crew: {
+              id: crewMember.crew.id,
+              name: crewMember.crew.name,
+              businessName: crewMember.crew.provider.businessName,
+            },
+          }
+        : null,
     };
   }),
 
@@ -193,6 +248,33 @@ export const authRouter = router({
       return profile;
     }),
 
+  /** Customer: update name and email after onboarding */
+  updateCustomerProfile: customerProcedure
+    .input(updateCustomerProfileInput)
+    .mutation(async ({ ctx, input }) => {
+      const profile = await ctx.db.customerProfile.findUnique({
+        where: { userId: ctx.user.userId },
+      });
+
+      if (!profile) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
+      }
+
+      return ctx.db.customerProfile.update({
+        where: { userId: ctx.user.userId },
+        data: {
+          ...(input.firstName !== undefined
+            ? { firstName: input.firstName }
+            : {}),
+          ...(input.lastName !== undefined ? { lastName: input.lastName } : {}),
+          ...(input.email !== undefined ? { email: input.email || null } : {}),
+        },
+      });
+    }),
+
   /** Complete provider onboarding */
   completeProviderOnboarding: protectedProcedure
     .input(providerOnboardingInput)
@@ -203,12 +285,14 @@ export const authRouter = router({
           businessName: input.businessName,
           description: input.description,
           serviceArea: input.serviceArea,
+          email: input.email || undefined,
         },
         create: {
           userId: ctx.user.userId,
           businessName: input.businessName,
           description: input.description,
           serviceArea: input.serviceArea,
+          email: input.email || undefined,
         },
       });
 

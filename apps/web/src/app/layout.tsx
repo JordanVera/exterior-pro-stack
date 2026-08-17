@@ -1,5 +1,12 @@
+import { Outfit } from 'next/font/google';
 import './globals.css';
 import { Toaster } from '@/components/ui/sonner';
+
+const outfit = Outfit({
+  subsets: ['latin'],
+  variable: '--font-outfit',
+  display: 'swap',
+});
 
 export default function RootLayout({
   children,
@@ -7,7 +14,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark" suppressHydrationWarning>
+    <html lang="en" className={`dark ${outfit.variable}`} suppressHydrationWarning>
       <head>
         <link rel="icon" href="/logos/logo-icon.ico" sizes="any" />
         {/* Inline script to set theme before paint — prevents flash */}
@@ -26,7 +33,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="antialiased text-gray-900 bg-white dark:bg-black dark:text-neutral-100">
+      <body className={`${outfit.className} antialiased bg-brand-mist text-brand-navy dark:bg-brand-night dark:text-neutral-100`}>
         <Toaster />
         {children}
       </body>
