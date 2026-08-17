@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useState } from "react";
-import { loadConnectAndInitialize, type StripeConnectInstance } from "@stripe/connect-js/pure";
+import { useCallback, useEffect, useState } from 'react';
+import { loadConnectAndInitialize, type StripeConnectInstance } from '@stripe/connect-js/pure';
 import {
   ConnectComponentsProvider,
   ConnectAccountOnboarding,
@@ -9,17 +9,21 @@ import {
   ConnectAccountManagement,
   ConnectPayouts,
   ConnectPayments,
-} from "@stripe/react-connect-js";
-import { trpc } from "../../../../lib/trpc";
-import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import Link from "next/link";
+} from '@stripe/react-connect-js';
+import { toast } from 'sonner';
+import Link from 'next/link';
+import { trpc } from '../../../../lib/trpc';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 export default function ProviderPayoutsPage() {
   const [status, setStatus] = useState<any>(null);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState('');
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
@@ -36,27 +40,24 @@ export default function ProviderPayoutsPage() {
 
   useEffect(() => {
     loadStatus()
-      .catch((err) => toast.error(err.message || "Failed to load payouts"))
+      .catch((err) => toast.error(err.message || 'Failed to load payouts'))
       .finally(() => setLoading(false));
   }, [loadStatus]);
 
-  const initConnect = useCallback(
-    async (publishableKey: string) => {
-      const instance = loadConnectAndInitialize({
-        publishableKey,
-        fetchClientSecret: async () => {
-          const result = await trpc.connect.createAccountSession.mutate();
-          return result.clientSecret;
-        },
-      });
-      setConnectInstance(instance);
-    },
-    []
-  );
+  const initConnect = useCallback(async (publishableKey: string) => {
+    const instance = loadConnectAndInitialize({
+      publishableKey,
+      fetchClientSecret: async () => {
+        const result = await trpc.connect.createAccountSession.mutate();
+        return result.clientSecret;
+      },
+    });
+    setConnectInstance(instance);
+  }, []);
 
   const handleStart = async () => {
     if (!agreed) {
-      toast.error("Please agree to the contractor terms");
+      toast.error('Please agree to the contractor terms');
       return;
     }
     setStarting(true);
@@ -73,9 +74,9 @@ export default function ProviderPayoutsPage() {
         });
         setConnectInstance(instance);
       }
-      toast.success("Payout onboarding started");
+      toast.success('Payout onboarding started');
     } catch (err: any) {
-      toast.error(err.message || "Failed to start onboarding");
+      toast.error(err.message || 'Failed to start onboarding');
     } finally {
       setStarting(false);
     }
@@ -88,61 +89,82 @@ export default function ProviderPayoutsPage() {
   }, [status, connectInstance, initConnect]);
 
   if (loading) {
-    return <div className="text-neutral-500">Loading payouts...</div>;
+    return (
+      <div className="max-w-3xl space-y-6">
+        <Skeleton className="h-8 w-32" />
+        <Skeleton className="h-24 rounded-xl" />
+      </div>
+    );
   }
 
   return (
     <div className="max-w-3xl space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Payouts</h1>
-        <p className="text-sm text-neutral-500">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          Payouts
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
           Connect your bank account to receive payouts after completed jobs.
         </p>
       </div>
 
-      <div className="p-4 text-sm border rounded-xl border-neutral-200 dark:border-neutral-800">
-        Status:{" "}
-        <span className={status?.payoutsEnabled ? "text-green-600" : "text-amber-600"}>
-          {status?.payoutsEnabled ? "Payouts enabled" : "Onboarding required"}
-        </span>
-      </div>
+      <Card className="border-border bg-background/80 shadow-none">
+        <CardContent className="flex items-center justify-between p-5">
+          <span className="text-sm text-muted-foreground">Status</span>
+          <Badge
+            variant="secondary"
+            className={cn(
+              'rounded-full border-0 text-[10px] uppercase tracking-wide',
+              status?.payoutsEnabled
+                ? 'bg-green-500/10 text-green-500'
+                : 'bg-amber-500/10 text-amber-500',
+            )}
+          >
+            {status?.payoutsEnabled ? 'Payouts enabled' : 'Onboarding required'}
+          </Badge>
+        </CardContent>
+      </Card>
 
       {!status?.stripeAccountId && (
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="email">Business email</Label>
-            <Input
-              id="email"
-              type="email"
-              className="mt-1"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@company.com"
-            />
-          </div>
-          <label className="flex items-start gap-2 text-sm">
-            <input
-              type="checkbox"
-              className="mt-1"
-              checked={agreed}
-              onChange={(e) => setAgreed(e.target.checked)}
-            />
-            <span>
-              I agree to the{" "}
-              <Link href="/contractor-agreement" className="text-cyan-600 underline">
-                Independent Contractor Agreement
-              </Link>
-              .
-            </span>
-          </label>
-          <Button
-            onClick={handleStart}
-            disabled={starting || !email || !agreed}
-            className="bg-green-600 hover:bg-green-500"
-          >
-            {starting ? "Starting..." : "Set up payouts"}
-          </Button>
-        </div>
+        <Card className="border-border bg-background/80 shadow-none">
+          <CardContent className="space-y-4 p-5">
+            <div className="space-y-2">
+              <Label htmlFor="email">Business email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@company.com"
+              />
+            </div>
+            <label className="flex items-start gap-2 text-sm text-foreground">
+              <input
+                type="checkbox"
+                className="mt-1 accent-cyan-500"
+                checked={agreed}
+                onChange={(e) => setAgreed(e.target.checked)}
+              />
+              <span>
+                I agree to the{' '}
+                <Link
+                  href="/contractor-agreement"
+                  className="text-cyan-500 underline"
+                >
+                  Independent Contractor Agreement
+                </Link>
+                .
+              </span>
+            </label>
+            <Button
+              onClick={handleStart}
+              disabled={starting || !email || !agreed}
+              className="rounded-full bg-cyan-500 font-semibold text-black hover:bg-cyan-400"
+            >
+              {starting ? 'Starting...' : 'Set up payouts'}
+            </Button>
+          </CardContent>
+        </Card>
       )}
 
       {connectInstance && (
@@ -153,7 +175,7 @@ export default function ProviderPayoutsPage() {
               <ConnectAccountOnboarding
                 onExit={() => {
                   void loadStatus();
-                  toast.success("Onboarding updated");
+                  toast.success('Onboarding updated');
                 }}
               />
             )}

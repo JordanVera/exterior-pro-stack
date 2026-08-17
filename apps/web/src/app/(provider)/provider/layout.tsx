@@ -1,86 +1,187 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { useRouter, usePathname } from "next/navigation";
-import { trpc } from "../../../lib/trpc";
-import { isAuthenticated, clearToken } from "../../../lib/auth";
-import { NotificationBell } from "../../../components/NotificationBell";
-import { ThemeToggle } from "../../../components/ThemeToggle";
+import { useEffect, useState } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Menu, X } from 'lucide-react';
+import { trpc } from '../../../lib/trpc';
+import { isAuthenticated } from '../../../lib/auth';
+import { NotificationBell } from '../../../components/NotificationBell';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 const navItems = [
-  { href: "/provider", label: "Dashboard", icon: "📊" },
-  { href: "/provider/quotes", label: "Available Jobs", icon: "🔍" },
-  { href: "/provider/jobs", label: "My Jobs", icon: "📋" },
-  { href: "/provider/crews", label: "Crews", icon: "👷" },
-  { href: "/provider/payouts", label: "Payouts", icon: "💸" },
-  { href: "/provider/profile", label: "Profile", icon: "⚙️" },
+  { href: '/provider', label: 'Home' },
+  { href: '/provider/quotes', label: 'Available' },
+  { href: '/provider/jobs', label: 'Jobs' },
+  { href: '/provider/crews', label: 'Crews' },
+  { href: '/provider/payouts', label: 'Payouts' },
 ];
 
-export default function ProviderLayout({ children }: { children: React.ReactNode }) {
+function isNavActive(pathname: string | null, href: string) {
+  return (
+    pathname === href || (href !== '/provider' && pathname?.startsWith(href))
+  );
+}
+
+export default function ProviderLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const router = useRouter();
   const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated()) { router.push("/login"); return; }
-    trpc.auth.me.query().then((u) => {
-      if (u.role !== "PROVIDER") { router.push("/"); return; }
-      setUser(u);
-      setLoading(false);
-    }).catch(() => router.push("/login"));
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!isAuthenticated()) {
+      router.push('/login');
+      return;
+    }
+    trpc.auth.me
+      .query()
+      .then((u) => {
+        if (u.role !== 'PROVIDER') {
+          router.push('/');
+          return;
+        }
+        setUser(u);
+        setLoading(false);
+      })
+      .catch(() => router.push('/login'));
   }, [router]);
 
-  const handleLogout = async () => {
-    await clearToken();
-    router.push("/");
-  };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-white dark:bg-black">
-        <div className="text-gray-500 dark:text-neutral-400">Loading...</div>
-      </div>
-    );
-  }
+  const businessName = user?.providerProfile?.businessName || '';
+  const initials = businessName
+    .split(' ')
+    .slice(0, 2)
+    .map((part: string) => part[0])
+    .join('')
+    .toUpperCase() || '?';
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-black">
-      <header className="bg-white dark:bg-neutral-950 border-b border-gray-200 dark:border-neutral-800">
-        <div className="px-4 mx-auto max-w-7xl sm:px-6">
-          <div className="flex items-center justify-between h-16">
-            <h1 className="text-xl font-bold text-green-700 dark:text-green-400">
-              Exterior Pro <span className="text-sm font-normal text-gray-400 dark:text-neutral-500">Provider</span>
-            </h1>
-            <div className="flex items-center gap-3">
-              <ThemeToggle />
-              <NotificationBell />
-              <span className="text-sm text-gray-500 dark:text-neutral-400">{user?.providerProfile?.businessName}</span>
-              <button onClick={handleLogout} className="text-sm text-gray-500 dark:text-neutral-400 hover:text-gray-700 dark:hover:text-white">Sign Out</button>
+    <>
+      <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-black/50">
+          <div className="flex gap-4 items-center">
+            <Link href="/provider" className="flex gap-2 items-center pl-1">
+              <Image
+                src="/logos/logo-stacked.png"
+                alt="Exterior Pro"
+                width={84}
+                height={32}
+                priority
+              />
+            </Link>
+            <div className="hidden gap-1 items-center md:flex">
+              {loading
+                ? navItems.map((item) => (
+                    <Skeleton key={item.href} className="w-14 h-8 rounded-lg" />
+                  ))
+                : navItems.map((item) => {
+                    const active = isNavActive(pathname, item.href);
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          'px-3 py-2 text-sm rounded-lg transition-colors',
+                          active
+                            ? 'text-cyan-600 bg-cyan-500/10 dark:text-cyan-400'
+                            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                        )}
+                      >
+                        {item.label}
+                      </Link>
+                    );
+                  })}
             </div>
           </div>
-          <nav className="flex gap-1 -mb-px">
+
+          <div className="flex items-center gap-1.5">
+            <ThemeToggle />
+            {loading ? (
+              <>
+                <Skeleton className="w-8 h-8 rounded-full" />
+                <Skeleton className="w-8 h-8 rounded-full" />
+              </>
+            ) : (
+              <>
+                <NotificationBell />
+                <Link href="/provider/profile">
+                  <Avatar className="w-8 h-8">
+                    <AvatarFallback className="bg-gradient-to-br from-cyan-400 to-cyan-600 text-[11px] font-semibold text-white">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
+              </>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setOpen((value) => !value)}
+              aria-label={open ? 'Close menu' : 'Open menu'}
+              aria-expanded={open}
+            >
+              {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
+          </div>
+        </nav>
+
+        {open ? (
+          <div className="p-3 mx-auto mt-2 max-w-6xl rounded-2xl border shadow-xl backdrop-blur-xl border-border bg-background/95 md:hidden">
             {navItems.map((item) => {
-              const isActive = pathname === item.href || (item.href !== "/provider" && pathname?.startsWith(item.href));
+              const active = isNavActive(pathname, item.href);
               return (
-                <button
+                <Link
                   key={item.href}
-                  onClick={() => router.push(item.href)}
-                  className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
-                    isActive
-                      ? "border-green-500 text-green-600 dark:text-green-400"
-                      : "border-transparent text-gray-500 dark:text-neutral-400 hover:text-gray-700 dark:hover:text-white hover:border-gray-300 dark:hover:border-neutral-600"
-                  }`}
+                  href={item.href}
+                  className={cn(
+                    'block rounded-lg px-3 py-2.5 text-sm',
+                    active
+                      ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                  )}
                 >
-                  <span className="mr-1.5">{item.icon}</span>
                   {item.label}
-                </button>
+                </Link>
               );
             })}
-          </nav>
-        </div>
+          </div>
+        ) : null}
       </header>
-      <main className="px-4 py-8 mx-auto max-w-7xl sm:px-6">{children}</main>
-    </div>
+
+      <div className="min-h-screen bg-background text-foreground">
+        <main className="flex-1 px-5 pt-28 pb-16 mx-auto w-full max-w-6xl">
+          {loading ? (
+            <div className="space-y-10">
+              <div className="space-y-2">
+                <Skeleton className="w-48 h-8" />
+                <Skeleton className="w-32 h-4" />
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {[...Array(4)].map((_, i) => (
+                  <Skeleton key={i} className="h-20 rounded-xl" />
+                ))}
+              </div>
+            </div>
+          ) : (
+            children
+          )}
+        </main>
+      </div>
+    </>
   );
 }

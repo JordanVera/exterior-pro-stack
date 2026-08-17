@@ -20,6 +20,35 @@ const warn = (text: string) => console.log(chalk.yellow(`  ⚠ ${text}`));
 const count = (label: string, n: number) =>
   console.log(chalk.white(`  ${chalk.bold.magenta(n)} ${label}`));
 
+function daysFromNow(n: number) {
+  const d = new Date();
+  d.setDate(d.getDate() + n);
+  d.setHours(9, 0, 0, 0);
+  return d;
+}
+
+function toCents(amount: number) {
+  return Math.round(amount * 100);
+}
+
+/** Local copy of platform fee split (18% + 2.9% + 30¢). Do not import from @repo/api. */
+function splitCharge(amountCents: number) {
+  const stripeFeeCents = Math.round(amountCents * 0.029) + 30;
+  const platformFeeCents = Math.round((amountCents * 1800) / 10_000);
+  const transferAmountCents = Math.max(
+    0,
+    amountCents - platformFeeCents - stripeFeeCents,
+  );
+  return { stripeFeeCents, platformFeeCents, transferAmountCents };
+}
+
+const PAID_OUT_STATUSES = new Set([
+  'PENDING',
+  'SCHEDULED',
+  'IN_PROGRESS',
+  'COMPLETED',
+]);
+
 // ─── Main ───────────────────────────────────────────────────────────────────
 
 async function main() {
@@ -376,7 +405,10 @@ async function main() {
     },
   ];
 
-  // Delete existing data to avoid duplicates on re-seed.
+  // Delete existing data to avoid duplicates on re-seed (FK order).
+  await prisma.transfer.deleteMany({});
+  await prisma.payment.deleteMany({});
+  await prisma.notification.deleteMany({});
   await prisma.jobAssignment.deleteMany({});
   await prisma.recurringSchedule.deleteMany({});
   await prisma.jobBid.deleteMany({});
@@ -385,6 +417,8 @@ async function main() {
   await prisma.planService.deleteMany({});
   await prisma.subscriptionPlan.deleteMany({});
   await prisma.providerService.deleteMany({});
+  await prisma.crewMember.deleteMany({});
+  await prisma.crew.deleteMany({});
   await prisma.service.deleteMany({});
   await prisma.property.deleteMany({});
 
@@ -603,15 +637,37 @@ async function main() {
 
   header('Test Providers');
 
-  const providerData = [
+  const contractorAgreedAt = daysFromNow(-21);
+
+  const providerData: {
+    phone: string;
+    businessName: string;
+    description: string;
+    email?: string;
+    serviceArea: string;
+    serviceAreaZips: string;
+    verified: boolean;
+    stripeAccountId?: string;
+    stripeTransfersEnabled?: boolean;
+    contractorAgreedAt?: Date;
+    serviceNames: string[];
+    crews: {
+      name: string;
+      members: { name: string; phone?: string; role?: string }[];
+    }[];
+  }[] = [
     {
       phone: '+15552001001',
       businessName: 'DFW Power Wash Pros',
       description:
         'Top-rated pressure washing company serving the Dallas-Fort Worth metroplex since 2018. Residential and commercial.',
+      email: 'payouts@dfwpowerwash.example.com',
       serviceArea: 'Dallas, Fort Worth, Plano, Frisco, Arlington',
       serviceAreaZips: '75201,75208,75219,75024,75034,76102,76013',
       verified: true,
+      stripeAccountId: 'acct_seed_dfwpowerwash',
+      stripeTransfersEnabled: true,
+      contractorAgreedAt,
       serviceNames: [
         'Driveway Pressure Wash',
         'House Siding Wash',
@@ -642,9 +698,13 @@ async function main() {
       businessName: 'GreenScape Lawn & Garden',
       description:
         'Full-service lawn care and landscaping. Weekly maintenance plans and one-time projects. Licensed and insured.',
+      email: 'billing@greenscape.example.com',
       serviceArea: 'Plano, Frisco, McKinney, Allen, Richardson',
       serviceAreaZips: '75024,75034,75201,75208,75219,76013,76092,76051',
       verified: true,
+      stripeAccountId: 'acct_seed_greenscape',
+      stripeTransfersEnabled: true,
+      contractorAgreedAt,
       serviceNames: [
         'Weekly Lawn Mowing',
         'Bi-Weekly Lawn Mowing',
@@ -694,9 +754,13 @@ async function main() {
       businessName: 'Texas Exterior Painters',
       description:
         'Expert exterior painting with premium paints. Color consultation included. 5-year warranty on all jobs.',
+      email: 'hello@texaspainters.example.com',
       serviceArea: 'Dallas, Southlake, Keller, Colleyville, Grapevine',
       serviceAreaZips: '75201,75208,75219,76092,76051',
       verified: true,
+      stripeAccountId: 'acct_seed_texaspainters',
+      stripeTransfersEnabled: true,
+      contractorAgreedAt,
       serviceNames: [
         'Exterior House Painting',
         'Fence / Deck Staining',
@@ -724,9 +788,13 @@ async function main() {
       businessName: 'Crystal Clear Windows & Gutters',
       description:
         'Professional window cleaning and gutter services. Streak-free guaranteed. Serving DFW for 10+ years.',
+      email: 'payouts@crystalclear.example.com',
       serviceArea: 'Dallas, Fort Worth, Arlington, Grand Prairie',
       serviceAreaZips: '75201,75208,75219,76102,76013',
       verified: true,
+      stripeAccountId: 'acct_seed_crystalclear',
+      stripeTransfersEnabled: true,
+      contractorAgreedAt,
       serviceNames: [
         'Interior & Exterior Window Cleaning',
         'Exterior Only Window Cleaning',
@@ -783,9 +851,12 @@ async function main() {
       businessName: 'Handy Fence & Deck Co.',
       description:
         'Fence repair, deck restoration, and staining. Quality craftsmanship at honest prices.',
+      email: 'steve@handyfence.example.com',
       serviceArea: 'Fort Worth, Arlington, Mansfield, Burleson',
       serviceAreaZips: '76102,76013,75201',
       verified: true,
+      stripeTransfersEnabled: false,
+      contractorAgreedAt,
       serviceNames: [
         'Fence Repair',
         'Deck Sanding & Refinishing',
@@ -797,6 +868,105 @@ async function main() {
           members: [
             { name: 'Steve Larson', phone: '+15559006001', role: 'Owner/Lead' },
             { name: 'Dustin Hayes', role: 'Carpenter' },
+          ],
+        },
+      ],
+    },
+    {
+      phone: '+15552007007',
+      businessName: 'Metroplex Irrigation & Lighting',
+      description:
+        'Holiday lighting design plus seasonal exterior lighting. Fully insured crews serving North Texas.',
+      email: 'payouts@metroplexlights.example.com',
+      serviceArea: 'Dallas, Plano, Frisco, McKinney, Allen',
+      serviceAreaZips: '75201,75208,75219,75024,75034,76092',
+      verified: true,
+      stripeAccountId: 'acct_seed_metroplexlights',
+      stripeTransfersEnabled: true,
+      contractorAgreedAt,
+      serviceNames: [
+        'Holiday Light Installation',
+        'Holiday Light Removal & Storage',
+        'Gutter Clean & Flush',
+        'Trim & Shutters Painting',
+      ],
+      crews: [
+        {
+          name: 'Lighting Crew',
+          members: [
+            { name: 'Nina Patel', phone: '+15559007001', role: 'Lead' },
+            { name: 'Cole Ramirez', role: 'Installer' },
+            { name: 'Harper Lee', role: 'Installer' },
+          ],
+        },
+      ],
+    },
+    {
+      phone: '+15552008008',
+      businessName: 'All-Seasons Gutters DFW',
+      description:
+        'Gutter cleaning, flushing, and guard installation. Same-week residential appointments.',
+      serviceArea: 'Dallas, Arlington, Grand Prairie, Irving',
+      serviceAreaZips: '75201,75208,75219,76102,76013',
+      verified: true,
+      serviceNames: [
+        'Gutter Clean & Flush',
+        'Gutter Guard Installation',
+        'House Siding Wash',
+      ],
+      crews: [
+        {
+          name: 'Gutter Crew',
+          members: [
+            { name: 'Paul Nguyen', phone: '+15559008001', role: 'Lead' },
+            { name: 'Ricky Alvarez', role: 'Technician' },
+          ],
+        },
+      ],
+    },
+    {
+      phone: '+15552009009',
+      businessName: 'Prairie View Land Care',
+      description:
+        'New lawn-care outfit covering Frisco and McKinney. Awaiting admin verification.',
+      serviceArea: 'Frisco, McKinney, Allen',
+      serviceAreaZips: '75034,75024',
+      verified: false,
+      serviceNames: [
+        'Weekly Lawn Mowing',
+        'Bi-Weekly Lawn Mowing',
+        'Hedge Trimming',
+        'Leaf Removal',
+      ],
+      crews: [
+        {
+          name: 'Startup Crew',
+          members: [
+            { name: 'Jordan Blake', phone: '+15559009001', role: 'Owner' },
+          ],
+        },
+      ],
+    },
+    {
+      phone: '+15552010010',
+      businessName: 'Sparkle Soft Wash Co.',
+      description:
+        'Residential soft wash for siding, driveways, and roofs. Family-owned in Arlington.',
+      serviceArea: 'Arlington, Fort Worth, Mansfield',
+      serviceAreaZips: '76013,76102,75201',
+      verified: true,
+      serviceNames: [
+        'Driveway Pressure Wash',
+        'House Siding Wash',
+        'Deck / Patio Wash',
+        'Soft Wash Roof Treatment',
+      ],
+      crews: [
+        {
+          name: 'Wash Crew',
+          members: [
+            { name: 'Elena Cruz', phone: '+15559010001', role: 'Lead' },
+            { name: 'Mason Wright', role: 'Technician' },
           ],
         },
       ],
@@ -825,14 +995,28 @@ async function main() {
 
     const profile = await prisma.providerProfile.upsert({
       where: { userId: user.id },
-      update: {},
+      update: {
+        businessName: prov.businessName,
+        description: prov.description,
+        email: prov.email ?? null,
+        serviceArea: prov.serviceArea,
+        serviceAreaZips: prov.serviceAreaZips,
+        verified: prov.verified,
+        stripeAccountId: prov.stripeAccountId ?? null,
+        stripeTransfersEnabled: prov.stripeTransfersEnabled ?? false,
+        contractorAgreedAt: prov.contractorAgreedAt ?? null,
+      },
       create: {
         userId: user.id,
         businessName: prov.businessName,
         description: prov.description,
+        email: prov.email,
         serviceArea: prov.serviceArea,
         serviceAreaZips: prov.serviceAreaZips,
         verified: prov.verified,
+        stripeAccountId: prov.stripeAccountId,
+        stripeTransfersEnabled: prov.stripeTransfersEnabled ?? false,
+        contractorAgreedAt: prov.contractorAgreedAt,
       },
     });
 
@@ -887,7 +1071,12 @@ async function main() {
 
     const verified = prov.verified
       ? chalk.green('verified')
-      : chalk.yellow('pending');
+      : chalk.yellow('unverified');
+    const payout = prov.stripeTransfersEnabled
+      ? chalk.green('payouts ready')
+      : prov.contractorAgreedAt
+        ? chalk.yellow('onboarding started')
+        : chalk.gray('payouts not started');
     const crewCount = prov.crews.length;
     const memberCount = prov.crews.reduce(
       (sum, c) => sum + c.members.length,
@@ -895,11 +1084,15 @@ async function main() {
     );
 
     success(
-      `${chalk.white.bold(prov.businessName)} [${verified}] — ${chalk.yellow(prov.serviceNames.length)} services, ${chalk.cyan(crewCount)} crews (${memberCount} members)`,
+      `${chalk.white.bold(prov.businessName)} [${verified}, ${payout}] — ${chalk.yellow(prov.serviceNames.length)} services, ${chalk.cyan(crewCount)} crews (${memberCount} members)`,
     );
   }
 
   count('providers', providerData.length);
+  count(
+    'payout-ready providers',
+    providerData.filter((p) => p.stripeTransfersEnabled).length,
+  );
   count(
     'crews',
     providerData.reduce((sum, p) => sum + p.crews.length, 0),
@@ -996,7 +1189,7 @@ async function main() {
 
   // Fetch created data to wire up jobs
   const allCustomerProfiles = await prisma.customerProfile.findMany({
-    include: { properties: true },
+    include: { properties: true, user: true },
   });
   const allProviderProfiles = await prisma.providerProfile.findMany({
     include: { services: { include: { service: true } } },
@@ -1004,60 +1197,61 @@ async function main() {
 
   let jobsCreated = 0;
   let bidsCreated = 0;
+  let paymentsCreated = 0;
+  let transfersCreated = 0;
 
   const jobScenarios: {
     customerPhone: string;
+    propertyIndex?: number;
     serviceName: string;
     customerNotes?: string;
-    status: 'OPEN' | 'PENDING' | 'SCHEDULED' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
+    status:
+      | 'OPEN'
+      | 'PENDING'
+      | 'SCHEDULED'
+      | 'IN_PROGRESS'
+      | 'COMPLETED'
+      | 'CANCELLED';
     bids: {
       providerBusiness: string;
       price: number;
       notes?: string;
-      status: 'PENDING' | 'ACCEPTED' | 'DECLINED';
+      status: 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'WITHDRAWN';
     }[];
-    scheduledDate?: string;
+    scheduledOffsetDays?: number;
     scheduledTime?: string;
+    pendingTransfer?: boolean;
   }[] = [
+    // OPEN — no bids (Available board)
     {
-      customerPhone: '+15551001001',
-      serviceName: 'Driveway Pressure Wash',
-      customerNotes: 'Driveway has oil stains near the garage.',
-      status: 'SCHEDULED',
-      bids: [
-        {
-          providerBusiness: 'DFW Power Wash Pros',
-          price: 175,
-          notes: 'Oil stain treatment included at no extra charge.',
-          status: 'ACCEPTED',
-        },
-        {
-          providerBusiness: 'Lone Star Roof & Exterior',
-          price: 195,
-          notes: 'Can do it this weekend.',
-          status: 'DECLINED',
-        },
-      ],
-      scheduledDate: '2026-02-20',
-      scheduledTime: '09:00',
+      customerPhone: '+15551003003',
+      propertyIndex: 0,
+      serviceName: 'Interior & Exterior Window Cleaning',
+      customerNotes: '24 windows total on lake house. Some are hard to reach.',
+      status: 'OPEN',
+      bids: [],
     },
     {
-      customerPhone: '+15551001001',
-      serviceName: 'Weekly Lawn Mowing',
-      customerNotes: 'Front and back yard. Avoid flower beds near porch.',
-      status: 'COMPLETED',
-      bids: [
-        {
-          providerBusiness: 'GreenScape Lawn & Garden',
-          price: 50,
-          status: 'ACCEPTED',
-        },
-      ],
-      scheduledDate: '2026-02-05',
-      scheduledTime: '08:00',
+      customerPhone: '+15551005005',
+      propertyIndex: 0,
+      serviceName: 'Holiday Light Installation',
+      customerNotes:
+        'Front roofline, two trees, and porch columns. Warm white LEDs.',
+      status: 'OPEN',
+      bids: [],
     },
     {
       customerPhone: '+15551002002',
+      propertyIndex: 0,
+      serviceName: 'Garage Floor Epoxy Coating',
+      customerNotes: 'Two-car garage, oil stains near the door.',
+      status: 'OPEN',
+      bids: [],
+    },
+    // OPEN — pending bids (customer needs review)
+    {
+      customerPhone: '+15551002002',
+      propertyIndex: 0,
       serviceName: 'Exterior House Painting',
       customerNotes:
         'Two-story colonial, approx 2500 sqft exterior. Prefer warm gray.',
@@ -1073,43 +1267,8 @@ async function main() {
       ],
     },
     {
-      customerPhone: '+15551003003',
-      serviceName: 'Interior & Exterior Window Cleaning',
-      customerNotes: '24 windows total on lake house. Some are hard to reach.',
-      status: 'OPEN',
-      bids: [],
-    },
-    {
-      customerPhone: '+15551003003',
-      serviceName: 'Landscape Design Consultation',
-      status: 'IN_PROGRESS',
-      bids: [
-        {
-          providerBusiness: 'GreenScape Lawn & Garden',
-          price: 350,
-          notes: 'Includes 3D render of proposed design.',
-          status: 'ACCEPTED',
-        },
-      ],
-      scheduledDate: '2026-02-10',
-      scheduledTime: '10:00',
-    },
-    {
-      customerPhone: '+15551003003',
-      serviceName: 'Soft Wash Roof Treatment',
-      customerNotes: 'Significant algae on north-facing side.',
-      status: 'PENDING',
-      bids: [
-        {
-          providerBusiness: 'Lone Star Roof & Exterior',
-          price: 400,
-          notes: 'Heavy algae buildup requires double treatment.',
-          status: 'ACCEPTED',
-        },
-      ],
-    },
-    {
       customerPhone: '+15551004004',
+      propertyIndex: 0,
       serviceName: 'House Siding Wash',
       customerNotes: 'Vinyl siding, two-story.',
       status: 'OPEN',
@@ -1130,6 +1289,7 @@ async function main() {
     },
     {
       customerPhone: '+15551004004',
+      propertyIndex: 0,
       serviceName: 'Fence Repair',
       customerNotes:
         'Storm damage on back fence, about 3 sections need replacing.',
@@ -1144,45 +1304,8 @@ async function main() {
       ],
     },
     {
-      customerPhone: '+15551005005',
-      serviceName: 'Hedge Trimming',
-      customerNotes: 'HOA requires 48-hour notice. 12 large boxwood hedges.',
-      status: 'SCHEDULED',
-      bids: [
-        {
-          providerBusiness: 'GreenScape Lawn & Garden',
-          price: 180,
-          notes: '3 hours estimated. Will dispose of all clippings.',
-          status: 'ACCEPTED',
-        },
-      ],
-      scheduledDate: '2026-02-25',
-      scheduledTime: '07:30',
-    },
-    {
-      customerPhone: '+15551005005',
-      serviceName: 'Holiday Light Installation',
-      customerNotes:
-        'Front roofline, two trees, and porch columns. Warm white LEDs.',
-      status: 'OPEN',
-      bids: [],
-    },
-    {
-      customerPhone: '+15551001001',
-      serviceName: 'Gutter Clean & Flush',
-      status: 'COMPLETED',
-      bids: [
-        {
-          providerBusiness: 'Crystal Clear Windows & Gutters',
-          price: 165,
-          status: 'ACCEPTED',
-        },
-      ],
-      scheduledDate: '2026-01-28',
-      scheduledTime: '14:00',
-    },
-    {
       customerPhone: '+15551002002',
+      propertyIndex: 0,
       serviceName: 'Mulch Installation',
       customerNotes:
         'About 400 sqft of garden beds. Dark brown mulch preferred.',
@@ -1196,26 +1319,335 @@ async function main() {
         },
       ],
     },
+    {
+      customerPhone: '+15551001001',
+      propertyIndex: 1,
+      serviceName: 'Deck / Patio Wash',
+      customerNotes: 'Composite deck off the kitchen. Rental — tenant on site.',
+      status: 'OPEN',
+      bids: [
+        {
+          providerBusiness: 'DFW Power Wash Pros',
+          price: 190,
+          notes: 'Can complete in one afternoon.',
+          status: 'PENDING',
+        },
+        {
+          providerBusiness: 'Sparkle Soft Wash Co.',
+          price: 175,
+          notes: 'Withdrew — crew is booked through next week.',
+          status: 'WITHDRAWN',
+        },
+        {
+          providerBusiness: 'Lone Star Roof & Exterior',
+          price: 210,
+          notes: 'Includes patio furniture rinse.',
+          status: 'DECLINED',
+        },
+      ],
+    },
+    // PENDING — won, needs schedule (payout-ready winners)
+    {
+      customerPhone: '+15551003003',
+      propertyIndex: 0,
+      serviceName: 'House Siding Wash',
+      customerNotes: 'Lakefront vinyl. Avoid spraying toward the dock.',
+      status: 'PENDING',
+      bids: [
+        {
+          providerBusiness: 'DFW Power Wash Pros',
+          price: 310,
+          notes: 'Soft wash, two-story. Includes rinse of patio doors.',
+          status: 'ACCEPTED',
+        },
+      ],
+    },
+    {
+      customerPhone: '+15551001001',
+      propertyIndex: 0,
+      serviceName: 'Trim & Shutters Painting',
+      customerNotes: 'Match existing white trim. 14 shutters.',
+      status: 'PENDING',
+      bids: [
+        {
+          providerBusiness: 'Texas Exterior Painters',
+          price: 540,
+          status: 'ACCEPTED',
+        },
+      ],
+    },
+    {
+      customerPhone: '+15551004004',
+      propertyIndex: 0,
+      serviceName: 'Gutter Clean & Flush',
+      customerNotes: 'Corner lot, lots of oak debris.',
+      status: 'PENDING',
+      bids: [
+        {
+          providerBusiness: 'Crystal Clear Windows & Gutters',
+          price: 175,
+          status: 'ACCEPTED',
+        },
+      ],
+    },
+    // SCHEDULED — next 3–14 days
+    {
+      customerPhone: '+15551001001',
+      propertyIndex: 0,
+      serviceName: 'Driveway Pressure Wash',
+      customerNotes: 'Driveway has oil stains near the garage.',
+      status: 'SCHEDULED',
+      scheduledOffsetDays: 5,
+      scheduledTime: '09:00',
+      bids: [
+        {
+          providerBusiness: 'DFW Power Wash Pros',
+          price: 175,
+          notes: 'Oil stain treatment included at no extra charge.',
+          status: 'ACCEPTED',
+        },
+        {
+          providerBusiness: 'Lone Star Roof & Exterior',
+          price: 195,
+          notes: 'Can do it this weekend.',
+          status: 'DECLINED',
+        },
+      ],
+    },
+    {
+      customerPhone: '+15551005005',
+      propertyIndex: 0,
+      serviceName: 'Hedge Trimming',
+      customerNotes: 'HOA requires 48-hour notice. 12 large boxwood hedges.',
+      status: 'SCHEDULED',
+      scheduledOffsetDays: 8,
+      scheduledTime: '07:30',
+      bids: [
+        {
+          providerBusiness: 'GreenScape Lawn & Garden',
+          price: 180,
+          notes: '3 hours estimated. Will dispose of all clippings.',
+          status: 'ACCEPTED',
+        },
+      ],
+    },
+    {
+      customerPhone: '+15551002002',
+      propertyIndex: 0,
+      serviceName: 'Exterior Only Window Cleaning',
+      customerNotes: 'Two-story, 18 windows. Water-fed pole is fine.',
+      status: 'SCHEDULED',
+      scheduledOffsetDays: 3,
+      scheduledTime: '10:00',
+      bids: [
+        {
+          providerBusiness: 'Crystal Clear Windows & Gutters',
+          price: 145,
+          status: 'ACCEPTED',
+        },
+      ],
+    },
+    {
+      customerPhone: '+15551003003',
+      propertyIndex: 2,
+      serviceName: 'Holiday Light Installation',
+      customerNotes: 'New construction — no existing clips. Warm white LEDs.',
+      status: 'SCHEDULED',
+      scheduledOffsetDays: 12,
+      scheduledTime: '14:00',
+      bids: [
+        {
+          providerBusiness: 'Metroplex Irrigation & Lighting',
+          price: 620,
+          notes: 'Includes clips, timers, and takedown credit.',
+          status: 'ACCEPTED',
+        },
+      ],
+    },
+    // IN_PROGRESS
+    {
+      customerPhone: '+15551003003',
+      propertyIndex: 0,
+      serviceName: 'Landscape Design Consultation',
+      status: 'IN_PROGRESS',
+      scheduledOffsetDays: -1,
+      scheduledTime: '10:00',
+      pendingTransfer: true,
+      bids: [
+        {
+          providerBusiness: 'GreenScape Lawn & Garden',
+          price: 350,
+          notes: 'Includes 3D render of proposed design.',
+          status: 'ACCEPTED',
+        },
+      ],
+    },
+    {
+      customerPhone: '+15551004004',
+      propertyIndex: 0,
+      serviceName: 'Driveway Pressure Wash',
+      customerNotes: 'Oil spots near the street.',
+      status: 'IN_PROGRESS',
+      scheduledOffsetDays: 0,
+      scheduledTime: '08:00',
+      bids: [
+        {
+          providerBusiness: 'DFW Power Wash Pros',
+          price: 160,
+          status: 'ACCEPTED',
+        },
+      ],
+    },
+    {
+      customerPhone: '+15551001001',
+      propertyIndex: 1,
+      serviceName: 'Fence / Deck Staining',
+      customerNotes: 'Back cedar fence at the Plano rental.',
+      status: 'IN_PROGRESS',
+      scheduledOffsetDays: -1,
+      scheduledTime: '09:30',
+      bids: [
+        {
+          providerBusiness: 'Texas Exterior Painters',
+          price: 880,
+          status: 'ACCEPTED',
+        },
+      ],
+    },
+    // COMPLETED
+    {
+      customerPhone: '+15551001001',
+      propertyIndex: 0,
+      serviceName: 'Weekly Lawn Mowing',
+      customerNotes: 'Front and back yard. Avoid flower beds near porch.',
+      status: 'COMPLETED',
+      scheduledOffsetDays: -12,
+      scheduledTime: '08:00',
+      bids: [
+        {
+          providerBusiness: 'GreenScape Lawn & Garden',
+          price: 50,
+          status: 'ACCEPTED',
+        },
+      ],
+    },
+    {
+      customerPhone: '+15551001001',
+      propertyIndex: 1,
+      serviceName: 'Gutter Clean & Flush',
+      status: 'COMPLETED',
+      scheduledOffsetDays: -20,
+      scheduledTime: '14:00',
+      bids: [
+        {
+          providerBusiness: 'Crystal Clear Windows & Gutters',
+          price: 165,
+          status: 'ACCEPTED',
+        },
+      ],
+    },
+    {
+      customerPhone: '+15551002002',
+      propertyIndex: 0,
+      serviceName: 'Sidewalk & Walkway Wash',
+      status: 'COMPLETED',
+      scheduledOffsetDays: -8,
+      scheduledTime: '11:00',
+      bids: [
+        {
+          providerBusiness: 'DFW Power Wash Pros',
+          price: 120,
+          status: 'ACCEPTED',
+        },
+      ],
+    },
+    {
+      customerPhone: '+15551005005',
+      propertyIndex: 0,
+      serviceName: 'Weed Control Treatment',
+      customerNotes: 'Front beds and lawn. HOA-approved products only.',
+      status: 'COMPLETED',
+      scheduledOffsetDays: -15,
+      scheduledTime: '07:00',
+      bids: [
+        {
+          providerBusiness: 'GreenScape Lawn & Garden',
+          price: 85,
+          status: 'ACCEPTED',
+        },
+      ],
+    },
+    {
+      customerPhone: '+15551003003',
+      propertyIndex: 1,
+      serviceName: 'Screen Cleaning & Repair',
+      customerNotes: 'Commercial storefront — after hours.',
+      status: 'COMPLETED',
+      scheduledOffsetDays: -6,
+      scheduledTime: '18:00',
+      bids: [
+        {
+          providerBusiness: 'Crystal Clear Windows & Gutters',
+          price: 95,
+          status: 'ACCEPTED',
+        },
+      ],
+    },
+    // CANCELLED
+    {
+      customerPhone: '+15551005005',
+      propertyIndex: 1,
+      serviceName: 'Leaf Removal',
+      customerNotes: 'Apartment parking-lot beds only. Tenant cancelled.',
+      status: 'CANCELLED',
+      bids: [
+        {
+          providerBusiness: 'GreenScape Lawn & Garden',
+          price: 130,
+          status: 'PENDING',
+        },
+      ],
+    },
+    {
+      customerPhone: '+15551002002',
+      propertyIndex: 0,
+      serviceName: 'Tree Planting',
+      customerNotes: 'Customer postponed landscaping until fall.',
+      status: 'CANCELLED',
+      scheduledOffsetDays: -3,
+      scheduledTime: '09:00',
+      bids: [
+        {
+          providerBusiness: 'GreenScape Lawn & Garden',
+          price: 240,
+          status: 'ACCEPTED',
+        },
+      ],
+    },
   ];
 
   for (const scenario of jobScenarios) {
-    // Find customer profile & property
     const custProfile = allCustomerProfiles.find(
-      (cp) =>
-        customerData.find((cd) => cd.phone === scenario.customerPhone)
-          ?.firstName === cp.firstName,
+      (cp) => cp.user.phone === scenario.customerPhone,
     );
     if (!custProfile || custProfile.properties.length === 0) continue;
-    const property = custProfile.properties[0];
 
-    // Find service
+    const wantedAddress = customerData.find(
+      (cd) => cd.phone === scenario.customerPhone,
+    )?.properties[scenario.propertyIndex ?? 0]?.address;
+    const property =
+      custProfile.properties.find((p) => p.address === wantedAddress) ??
+      custProfile.properties[0];
+
     const svcId = serviceMap.get(scenario.serviceName);
     if (!svcId) continue;
 
-    // Determine accepted bid for linking
     const acceptedBidData = scenario.bids.find((b) => b.status === 'ACCEPTED');
+    const scheduledDate =
+      scenario.scheduledOffsetDays !== undefined
+        ? daysFromNow(scenario.scheduledOffsetDays)
+        : null;
 
-    // Create the job
     const job = await prisma.job.create({
       data: {
         propertyId: property.id,
@@ -1223,18 +1655,15 @@ async function main() {
         type: 'ONE_TIME',
         status: scenario.status,
         customerNotes: scenario.customerNotes,
-        scheduledDate: scenario.scheduledDate
-          ? new Date(scenario.scheduledDate)
-          : null,
+        scheduledDate,
         scheduledTime: scenario.scheduledTime || null,
-        completedAt:
-          scenario.status === 'COMPLETED' ? new Date('2026-02-05') : null,
+        completedAt: scenario.status === 'COMPLETED' ? scheduledDate : null,
       },
     });
     jobsCreated++;
 
-    // Create bids
     let acceptedBidId: string | null = null;
+    let acceptedProviderId: string | null = null;
     for (const bidData of scenario.bids) {
       const provProfile = allProviderProfiles.find(
         (pp) => pp.businessName === bidData.providerBusiness,
@@ -1254,10 +1683,10 @@ async function main() {
 
       if (bidData.status === 'ACCEPTED') {
         acceptedBidId = bid.id;
+        acceptedProviderId = provProfile.id;
       }
     }
 
-    // Link accepted bid to job
     if (acceptedBidId) {
       await prisma.job.update({
         where: { id: job.id },
@@ -1265,11 +1694,11 @@ async function main() {
       });
     }
 
-    // Assign a crew if the job is scheduled or beyond
     if (
       acceptedBidData &&
       scenario.status !== 'OPEN' &&
-      scenario.status !== 'PENDING'
+      scenario.status !== 'PENDING' &&
+      scenario.status !== 'CANCELLED'
     ) {
       const provProfile = allProviderProfiles.find(
         (pp) => pp.businessName === acceptedBidData.providerBusiness,
@@ -1286,6 +1715,53 @@ async function main() {
       }
     }
 
+    if (
+      acceptedBidData &&
+      acceptedProviderId &&
+      PAID_OUT_STATUSES.has(scenario.status)
+    ) {
+      const amountCents = toCents(acceptedBidData.price);
+      const split = splitCharge(amountCents);
+      const payment = await prisma.payment.create({
+        data: {
+          kind: 'JOB',
+          status: 'SUCCEEDED',
+          amountCents,
+          platformFeeCents: split.platformFeeCents,
+          stripeFeeCents: split.stripeFeeCents,
+          transferAmountCents: split.transferAmountCents,
+          customerId: custProfile.id,
+          jobId: job.id,
+          stripeCheckoutSessionId: `cs_seed_${job.id}`,
+          stripePaymentIntentId: `pi_seed_${job.id}`,
+        },
+      });
+      paymentsCreated++;
+
+      if (scenario.status === 'COMPLETED') {
+        await prisma.transfer.create({
+          data: {
+            paymentId: payment.id,
+            providerId: acceptedProviderId,
+            amountCents: split.transferAmountCents,
+            status: 'PAID',
+            stripeTransferId: `tr_seed_${job.id}`,
+          },
+        });
+        transfersCreated++;
+      } else if (scenario.pendingTransfer) {
+        await prisma.transfer.create({
+          data: {
+            paymentId: payment.id,
+            providerId: acceptedProviderId,
+            amountCents: split.transferAmountCents,
+            status: 'PENDING',
+          },
+        });
+        transfersCreated++;
+      }
+    }
+
     const statusColor =
       scenario.status === 'COMPLETED'
         ? chalk.green
@@ -1295,7 +1771,9 @@ async function main() {
             ? chalk.blue
             : scenario.status === 'OPEN'
               ? chalk.cyan
-              : chalk.gray;
+              : scenario.status === 'CANCELLED'
+                ? chalk.red
+                : chalk.gray;
 
     const bidInfo =
       scenario.bids.length > 0
@@ -1309,6 +1787,8 @@ async function main() {
 
   count('jobs', jobsCreated);
   count('bids', bidsCreated);
+  count('payments', paymentsCreated);
+  count('transfers', transfersCreated);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // SAMPLE SUBSCRIPTION
@@ -1332,14 +1812,55 @@ async function main() {
         propertyId: sarahProfile.properties[0].id,
         status: 'ACTIVE',
         billingFrequency: 'MONTHLY',
-        currentPeriodStart: new Date('2026-02-01'),
-        currentPeriodEnd: new Date('2026-03-01'),
+        currentPeriodStart: daysFromNow(-15),
+        currentPeriodEnd: daysFromNow(15),
         assignedProviderId: greenscapeProfile.id,
       },
     });
     success(
       `Sarah Johnson → ${basicPlan.name} (${chalk.green('ACTIVE')}, provider: GreenScape)`,
     );
+
+    const mowingId = serviceMap.get('Weekly Lawn Mowing');
+    if (mowingId) {
+      const subJob = await prisma.job.create({
+        data: {
+          propertyId: sarahProfile.properties[0].id,
+          serviceId: mowingId,
+          type: 'SUBSCRIPTION',
+          status: 'SCHEDULED',
+          subscriptionId: sub.id,
+          customerNotes: 'Recurring visit from Basic Lawn Care plan.',
+          scheduledDate: daysFromNow(4),
+          scheduledTime: '08:00',
+        },
+      });
+      const subBid = await prisma.jobBid.create({
+        data: {
+          jobId: subJob.id,
+          providerId: greenscapeProfile.id,
+          price: 45,
+          notes: 'Included in monthly plan.',
+          status: 'ACCEPTED',
+        },
+      });
+      await prisma.job.update({
+        where: { id: subJob.id },
+        data: { acceptedBidId: subBid.id },
+      });
+      const crew = await prisma.crew.findFirst({
+        where: { providerId: greenscapeProfile.id },
+      });
+      if (crew) {
+        await prisma.jobAssignment.create({
+          data: { jobId: subJob.id, crewId: crew.id },
+        });
+      }
+      success(
+        `Subscription job — Weekly Lawn Mowing (${chalk.blue('SCHEDULED')} in 4 days)`,
+      );
+    }
+
     count('subscriptions', 1);
   }
 
@@ -1434,6 +1955,15 @@ async function main() {
   const totalPlans = await prisma.subscriptionPlan.count();
   const totalSubs = await prisma.customerSubscription.count();
   const totalNotifs = await prisma.notification.count();
+  const totalPayments = await prisma.payment.count();
+  const totalTransfers = await prisma.transfer.count();
+  const payoutReady = await prisma.providerProfile.count({
+    where: { stripeTransfersEnabled: true },
+  });
+  const jobsByStatus = await prisma.job.groupBy({
+    by: ['status'],
+    _count: { _all: true },
+  });
 
   console.log(chalk.bold('  Database totals:'));
   console.log(`    Users ............. ${chalk.cyan(totalUsers)}`);
@@ -1443,16 +1973,29 @@ async function main() {
   console.log(`    Crews ............. ${chalk.cyan(totalCrews)}`);
   console.log(`    Crew Members ...... ${chalk.cyan(totalMembers)}`);
   console.log(`    Jobs .............. ${chalk.cyan(totalJobs)}`);
+  for (const row of jobsByStatus) {
+    console.log(
+      `      └ ${row.status.padEnd(12)} ${chalk.cyan(row._count._all)}`,
+    );
+  }
   console.log(`    Bids .............. ${chalk.cyan(totalBids)}`);
+  console.log(`    Payments .......... ${chalk.cyan(totalPayments)}`);
+  console.log(`    Transfers ......... ${chalk.cyan(totalTransfers)}`);
   console.log(`    Sub Plans ......... ${chalk.cyan(totalPlans)}`);
   console.log(`    Subscriptions ..... ${chalk.cyan(totalSubs)}`);
   console.log(`    Notifications ..... ${chalk.cyan(totalNotifs)}`);
+  console.log(`    Payout-ready ...... ${chalk.cyan(payoutReady)} providers`);
   console.log();
 
   console.log(chalk.dim('  Test login phones:'));
   console.log(chalk.dim('    Admin:    +10000000000'));
   console.log(chalk.dim('    Customer: +15551001001 through +15551005005'));
-  console.log(chalk.dim('    Provider: +15552001001 through +15552006006'));
+  console.log(chalk.dim('    Provider: +15552001001 through +15552010010'));
+  console.log(
+    chalk.dim(
+      '    Payout-ready: DFW Power Wash, GreenScape, Texas Painters, Crystal Clear, Metroplex Lights',
+    ),
+  );
   console.log();
 }
 

@@ -1,47 +1,76 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { trpc } from "../../../../lib/trpc";
-import { toast } from "sonner";
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { ClipboardList } from 'lucide-react';
+import { trpc } from '../../../../lib/trpc';
+import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { formatJobDateTime, STATUS_BADGE } from '../_components/utils';
 
-const statusColors: Record<string, string> = {
-  PENDING: "bg-gray-100 text-gray-700 dark:bg-neutral-800 dark:text-neutral-300",
-  SCHEDULED: "bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400",
-  IN_PROGRESS: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-  COMPLETED: "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-  CANCELLED: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-};
+const FILTERS = [
+  { value: '', label: 'All' },
+  { value: 'PENDING', label: 'Pending' },
+  { value: 'SCHEDULED', label: 'Scheduled' },
+  { value: 'IN_PROGRESS', label: 'Active' },
+  { value: 'COMPLETED', label: 'Done' },
+  { value: 'CANCELLED', label: 'Cancelled' },
+];
 
 export default function ProviderJobsPage() {
   const [jobs, setJobs] = useState<any[]>([]);
   const [crews, setCrews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<string>("");
+  const [filter, setFilter] = useState('');
   const [schedulingJobId, setSchedulingJobId] = useState<string | null>(null);
-  const [schedDate, setSchedDate] = useState("");
-  const [schedTime, setSchedTime] = useState("");
+  const [schedDate, setSchedDate] = useState('');
+  const [schedTime, setSchedTime] = useState('');
   const [assigningJobId, setAssigningJobId] = useState<string | null>(null);
-  const [selectedCrewId, setSelectedCrewId] = useState("");
+  const [selectedCrewId, setSelectedCrewId] = useState('');
 
   const fetchData = () => {
     const params = filter ? { status: filter as any } : undefined;
-    Promise.all([trpc.job.listForProvider.query(params), trpc.crew.list.query()])
-      .then(([j, c]) => { setJobs(j); setCrews(c); })
+    Promise.all([
+      trpc.job.listForProvider.query(params),
+      trpc.crew.list.query(),
+    ])
+      .then(([j, c]) => {
+        setJobs(j);
+        setCrews(c);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { setLoading(true); fetchData(); }, [filter]);
+  useEffect(() => {
+    setLoading(true);
+    fetchData();
+  }, [filter]);
 
   const handleSchedule = async (jobId: string) => {
     if (!schedDate || !schedTime) return;
     try {
-      await trpc.job.schedule.mutate({ jobId, scheduledDate: schedDate, scheduledTime: schedTime });
-      toast.success("Job scheduled");
+      await trpc.job.schedule.mutate({
+        jobId,
+        scheduledDate: schedDate,
+        scheduledTime: schedTime,
+      });
+      toast.success('Job scheduled');
       setSchedulingJobId(null);
       fetchData();
     } catch (err: any) {
-      toast.error(err.message || "Failed to schedule");
+      toast.error(err.message || 'Failed to schedule');
     }
   };
 
@@ -49,131 +78,277 @@ export default function ProviderJobsPage() {
     if (!selectedCrewId) return;
     try {
       await trpc.job.assignCrew.mutate({ jobId, crewId: selectedCrewId });
-      toast.success("Crew assigned");
+      toast.success('Crew assigned');
       setAssigningJobId(null);
+      setSelectedCrewId('');
       fetchData();
     } catch (err: any) {
-      toast.error(err.message || "Failed to assign crew");
+      toast.error(err.message || 'Failed to assign crew');
     }
   };
 
-  const handleStatusUpdate = async (jobId: string, status: "IN_PROGRESS" | "COMPLETED" | "CANCELLED") => {
+  const handleStatusUpdate = async (
+    jobId: string,
+    status: 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED',
+  ) => {
     try {
       await trpc.job.updateStatus.mutate({ jobId, status });
-      toast.success(`Job ${status === "COMPLETED" ? "completed" : status === "CANCELLED" ? "cancelled" : "started"}`);
+      toast.success(
+        `Job ${status === 'COMPLETED' ? 'completed' : status === 'CANCELLED' ? 'cancelled' : 'started'}`,
+      );
       fetchData();
     } catch (err: any) {
-      toast.error(err.message || "Failed to update status");
+      toast.error(err.message || 'Failed to update status');
     }
   };
 
-  const inputClass = "rounded border border-gray-300 dark:border-neutral-700 px-2 py-1 text-sm bg-white dark:bg-neutral-950 text-gray-900 dark:text-white";
-
-  if (loading) {
-    return <div className="text-gray-500 dark:text-neutral-400">Loading jobs...</div>;
+  if (loading && jobs.length === 0) {
+    return (
+      <div className="space-y-6">
+        <Skeleton className="w-32 h-8" />
+        <Skeleton className="w-full h-10 rounded-full" />
+        <Skeleton className="h-28 rounded-xl" />
+      </div>
+    );
   }
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">My Jobs</h2>
-        <p className="text-gray-500 dark:text-neutral-400 mt-1">Schedule, assign crews, and manage your accepted jobs</p>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          My jobs
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Schedule, assign crews, and manage accepted jobs.
+        </p>
       </div>
 
-      <div className="flex gap-2 flex-wrap">
-        {["", "PENDING", "SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED"].map((status) => (
-          <button key={status} onClick={() => setFilter(status)}
-            className={`px-3 py-1.5 text-sm rounded-lg border transition-colors ${
-              filter === status
-                ? "bg-green-600 text-white border-green-600"
-                : "bg-white dark:bg-neutral-900 text-gray-700 dark:text-neutral-300 border-gray-300 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-800"
-            }`}
+      <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+        {FILTERS.map((item) => (
+          <Badge
+            key={item.value}
+            variant="secondary"
+            onClick={() => setFilter(item.value)}
+            className={cn(
+              'cursor-pointer select-none rounded-full border-0 px-3.5 py-1.5 text-xs font-medium',
+              filter === item.value
+                ? 'bg-cyan-500 text-white hover:bg-cyan-500'
+                : 'hover:text-foreground',
+            )}
           >
-            {status ? status.replace("_", " ") : "All"}
-          </button>
+            {item.label}
+          </Badge>
         ))}
       </div>
 
-      <div className="space-y-4">
-        {jobs.map((job) => (
-          <div key={job.id} className="bg-white dark:bg-neutral-900 rounded-xl p-5 border border-gray-200 dark:border-neutral-800">
-            <div className="flex items-start justify-between">
-              <div>
-                <div className="flex items-center gap-3">
-                  <h3 className="font-semibold text-gray-900 dark:text-white">{job.service.name}</h3>
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors[job.status]}`}>{job.status.replace("_", " ")}</span>
-                  {job.type === "SUBSCRIPTION" && (
-                    <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400">SUB</span>
-                  )}
-                </div>
-                <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">{job.property.address}, {job.property.city}</p>
-                {job.acceptedBid && (
-                  <p className="text-sm font-medium text-gray-700 dark:text-neutral-300 mt-1">
-                    Price: ${Number(job.acceptedBid.price).toFixed(2)}
-                  </p>
-                )}
-                {job.customerNotes && (
-                  <p className="text-sm text-gray-400 dark:text-neutral-500 mt-1">
-                    Notes: {job.customerNotes}
-                  </p>
-                )}
-              </div>
-              <div className="text-right text-sm text-gray-500 dark:text-neutral-400">
-                {job.scheduledDate && <div>{new Date(job.scheduledDate).toLocaleDateString()}{job.scheduledTime && ` at ${job.scheduledTime}`}</div>}
-                {job.assignments.length > 0 && <div className="text-gray-400 dark:text-neutral-500">{job.assignments.map((a: any) => a.crew.name).join(", ")}</div>}
-              </div>
-            </div>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              {job.status === "PENDING" && (
-                <>
-                  {schedulingJobId === job.id ? (
-                    <div className="flex items-center gap-2">
-                      <input type="date" value={schedDate} onChange={(e) => setSchedDate(e.target.value)} className={inputClass} />
-                      <input type="time" value={schedTime} onChange={(e) => setSchedTime(e.target.value)} className={inputClass} />
-                      <button onClick={() => handleSchedule(job.id)} className="px-3 py-1 bg-cyan-600 text-white text-sm rounded hover:bg-cyan-700">Confirm</button>
-                      <button onClick={() => setSchedulingJobId(null)} className="px-3 py-1 text-gray-500 dark:text-neutral-400 text-sm">Cancel</button>
-                    </div>
-                  ) : (
-                    <button onClick={() => setSchedulingJobId(job.id)} className="px-3 py-1.5 bg-cyan-600 text-white text-sm font-medium rounded-lg hover:bg-cyan-700">Schedule</button>
-                  )}
-                </>
-              )}
-
-              {["PENDING", "SCHEDULED"].includes(job.status) && crews.length > 0 && (
-                <>
-                  {assigningJobId === job.id ? (
-                    <div className="flex items-center gap-2">
-                      <select value={selectedCrewId} onChange={(e) => setSelectedCrewId(e.target.value)} className={inputClass}>
-                        <option value="">Select crew...</option>
-                        {crews.map((c) => (<option key={c.id} value={c.id}>{c.name} ({c.members.length} members)</option>))}
-                      </select>
-                      <button onClick={() => handleAssignCrew(job.id)} className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700">Assign</button>
-                      <button onClick={() => setAssigningJobId(null)} className="px-3 py-1 text-gray-500 dark:text-neutral-400 text-sm">Cancel</button>
-                    </div>
-                  ) : (
-                    <button onClick={() => setAssigningJobId(job.id)} className="px-3 py-1.5 bg-green-50 dark:bg-green-950/30 text-green-700 dark:text-green-400 text-sm font-medium rounded-lg border border-green-200 dark:border-green-900 hover:bg-green-100 dark:hover:bg-green-950/50">Assign Crew</button>
-                  )}
-                </>
-              )}
-
-              {job.status === "SCHEDULED" && (
-                <button onClick={() => handleStatusUpdate(job.id, "IN_PROGRESS")} className="px-3 py-1.5 bg-yellow-50 dark:bg-yellow-950/30 text-yellow-700 dark:text-yellow-400 text-sm font-medium rounded-lg border border-yellow-200 dark:border-yellow-900 hover:bg-yellow-100 dark:hover:bg-yellow-950/50">Start Job</button>
-              )}
-
-              {job.status === "IN_PROGRESS" && (
-                <button onClick={() => handleStatusUpdate(job.id, "COMPLETED")} className="px-3 py-1.5 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700">Complete Job</button>
-              )}
-
-              {["PENDING", "SCHEDULED"].includes(job.status) && (
-                <button onClick={() => handleStatusUpdate(job.id, "CANCELLED")} className="px-3 py-1.5 text-red-600 dark:text-red-400 text-sm rounded-lg border border-red-200 dark:border-red-900 hover:bg-red-50 dark:hover:bg-red-950/30">Cancel</button>
-              )}
-            </div>
+      {jobs.length === 0 ? (
+        <div className="py-16 text-center">
+          <div className="flex justify-center items-center mx-auto mb-4 w-14 h-14 rounded-full bg-muted">
+            <ClipboardList className="w-7 h-7 text-muted-foreground" />
           </div>
-        ))}
+          <h3 className="mb-1 text-base font-semibold text-foreground">
+            No jobs yet
+          </h3>
+          <p className="text-sm text-muted-foreground">
+            Win bids on available jobs to see them here.
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {jobs.map((job) => {
+            const badge = STATUS_BADGE[job.status] || STATUS_BADGE.PENDING;
+            return (
+              <Card
+                key={job.id}
+                className="shadow-none backdrop-blur-xl border-border bg-background/80"
+              >
+                <CardContent className="p-5 space-y-4">
+                  <div className="flex gap-3 justify-between items-start">
+                    <div className="min-w-0">
+                      <div className="flex flex-wrap gap-2 items-center">
+                        <h3 className="text-sm font-semibold text-foreground">
+                          {job.service.name}
+                        </h3>
+                        <Badge
+                          variant="secondary"
+                          className={cn(
+                            'rounded-full border-0 text-[10px] uppercase tracking-wide',
+                            badge.bg,
+                            badge.text,
+                          )}
+                        >
+                          {badge.label}
+                        </Badge>
+                        {job.type === 'SUBSCRIPTION' && (
+                          <Badge
+                            variant="secondary"
+                            className="rounded-full border-0 bg-purple-500/10 text-[10px] text-purple-500"
+                          >
+                            Sub
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {job.property.address}, {job.property.city}
+                      </p>
+                      {job.acceptedBid && (
+                        <p className="mt-0.5 text-xs font-medium text-foreground">
+                          ${Number(job.acceptedBid.price).toFixed(2)}
+                        </p>
+                      )}
+                      {job.customerNotes && (
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Notes: {job.customerNotes}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex-shrink-0 text-xs text-right text-muted-foreground">
+                      {job.scheduledDate && (
+                        <div>
+                          {formatJobDateTime(
+                            job.scheduledDate,
+                            job.scheduledTime,
+                          )}
+                        </div>
+                      )}
+                      {job.assignments?.length > 0 && (
+                        <div>
+                          {job.assignments
+                            .map((a: any) => a.crew.name)
+                            .join(', ')}
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
-        {jobs.length === 0 && <div className="text-center py-12 text-gray-500 dark:text-neutral-400">No jobs yet. Win bids on available jobs to see them here.</div>}
-      </div>
+                  <div className="flex flex-wrap gap-2">
+                    {job.status === 'PENDING' &&
+                      (schedulingJobId === job.id ? (
+                        <div className="flex flex-wrap gap-2 items-center">
+                          <Input
+                            type="date"
+                            value={schedDate}
+                            onChange={(e) => setSchedDate(e.target.value)}
+                            className="w-auto h-8"
+                          />
+                          <Input
+                            type="time"
+                            value={schedTime}
+                            onChange={(e) => setSchedTime(e.target.value)}
+                            className="w-auto h-8"
+                          />
+                          <Button
+                            size="sm"
+                            className="h-8 text-black bg-cyan-500 rounded-full hover:bg-cyan-400"
+                            onClick={() => handleSchedule(job.id)}
+                          >
+                            Confirm
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8"
+                            onClick={() => setSchedulingJobId(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          size="sm"
+                          className="h-8 text-black bg-cyan-500 rounded-full hover:bg-cyan-400"
+                          onClick={() => setSchedulingJobId(job.id)}
+                        >
+                          Schedule
+                        </Button>
+                      ))}
+
+                    {['PENDING', 'SCHEDULED'].includes(job.status) &&
+                      crews.length > 0 &&
+                      (assigningJobId === job.id ? (
+                        <div className="flex flex-wrap gap-2 items-center">
+                          <Select
+                            value={selectedCrewId}
+                            onValueChange={setSelectedCrewId}
+                          >
+                            <SelectTrigger className="w-48 h-8">
+                              <SelectValue placeholder="Select crew" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {crews.map((crew) => (
+                                <SelectItem key={crew.id} value={crew.id}>
+                                  {crew.name} ({crew.members.length})
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Button
+                            size="sm"
+                            className="h-8 text-black bg-cyan-500 rounded-full hover:bg-cyan-400"
+                            onClick={() => handleAssignCrew(job.id)}
+                          >
+                            Assign
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8"
+                            onClick={() => setAssigningJobId(null)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 rounded-full"
+                          onClick={() => setAssigningJobId(job.id)}
+                        >
+                          Assign crew
+                        </Button>
+                      ))}
+
+                    {job.status === 'SCHEDULED' && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 rounded-full"
+                        onClick={() =>
+                          handleStatusUpdate(job.id, 'IN_PROGRESS')
+                        }
+                      >
+                        Start job
+                      </Button>
+                    )}
+
+                    {job.status === 'IN_PROGRESS' && (
+                      <Button
+                        size="sm"
+                        className="h-8 text-black bg-cyan-500 rounded-full hover:bg-cyan-400"
+                        onClick={() => handleStatusUpdate(job.id, 'COMPLETED')}
+                      >
+                        Complete job
+                      </Button>
+                    )}
+
+                    {['PENDING', 'SCHEDULED'].includes(job.status) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-8 text-red-500 rounded-full hover:bg-red-500/10 hover:text-red-500"
+                        onClick={() => handleStatusUpdate(job.id, 'CANCELLED')}
+                      >
+                        Cancel
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
