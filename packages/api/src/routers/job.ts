@@ -7,12 +7,14 @@ import {
   assignCrewInput,
   updateJobStatusInput,
   createRecurringScheduleInput,
+  cancelJobInput,
 } from '@repo/validators';
 import {
   notifyNewJobAvailable,
   notifyJobScheduled,
   notifyJobInProgress,
   notifyJobCompleted,
+  notifyJobCancelled,
 } from '../lib/notifications';
 
 export const jobRouter = router({
@@ -168,6 +170,73 @@ export const jobRouter = router({
       }
 
       return job;
+    }),
+
+  /** Customer: cancel an open job request */
+  cancelForCustomer: customerProcedure
+    .input(cancelJobInput)
+    .mutation(async ({ ctx, input }) => {
+      const profile = await ctx.db.customerProfile.findUnique({
+        where: { userId: ctx.user.userId },
+      });
+
+      if (!profile) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
+      }
+
+      const job = await ctx.db.job.findUnique({
+        where: { id: input.jobId },
+        include: {
+          property: true,
+          service: true,
+          bids: { include: { provider: true } },
+        },
+      });
+
+      if (!job || job.property.customerId !== profile.id) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
+      }
+
+      if (job.status !== 'OPEN') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Only open job requests can be cancelled',
+        });
+      }
+
+      const [updated] = await ctx.db.$transaction([
+        ctx.db.job.update({
+          where: { id: input.jobId },
+          data: { status: 'CANCELLED' },
+          include: {
+            property: true,
+            service: { include: { category: true } },
+            acceptedBid: { include: { provider: true } },
+            bids: { include: { provider: true } },
+            assignments: { include: { crew: true } },
+            recurringSchedule: true,
+            payments: true,
+          },
+        }),
+        ctx.db.jobBid.updateMany({
+          where: { jobId: input.jobId, status: 'PENDING' },
+          data: { status: 'DECLINED' },
+        }),
+      ]);
+
+      const pendingProviders = job.bids.filter(
+        (bid) => bid.status === 'PENDING',
+      );
+      for (const bid of pendingProviders) {
+        notifyJobCancelled(bid.provider.userId, job.service.name).catch(
+          console.error,
+        );
+      }
+
+      return updated;
     }),
 
   /** Provider: list open jobs in their service area */

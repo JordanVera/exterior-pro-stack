@@ -25,6 +25,14 @@ import {
   X,
 } from 'lucide-react';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
   STATUS_BADGE,
   formatJobDate,
   formatJobDateTime,
@@ -129,6 +137,8 @@ export default function JobDetailPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
 
   const fetchJob = useCallback(() => {
     if (!jobId) return;
@@ -170,6 +180,20 @@ export default function JobDetailPage() {
       toast.error(err.message || 'Failed to decline bid');
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  const handleCancelJob = async () => {
+    setCancelling(true);
+    try {
+      await trpc.job.cancelForCustomer.mutate({ jobId });
+      toast.success('Job request cancelled');
+      setCancelOpen(false);
+      fetchJob();
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to cancel job');
+    } finally {
+      setCancelling(false);
     }
   };
 
@@ -240,6 +264,15 @@ export default function JobDetailPage() {
               {job.property.zip}
             </p>
           </div>
+          {job.status === 'OPEN' && (
+            <Button
+              variant="outline"
+              className="rounded-full text-red-500 hover:bg-red-500/10 hover:text-red-500"
+              onClick={() => setCancelOpen(true)}
+            >
+              Cancel request
+            </Button>
+          )}
           {job.status === 'COMPLETED' && (
             <Button
               variant="outline"
@@ -431,6 +464,29 @@ export default function JobDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Cancel this request?</DialogTitle>
+            <DialogDescription>
+              Providers will no longer be able to bid. This can&apos;t be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelOpen(false)}>
+              Keep request
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleCancelJob}
+              disabled={cancelling}
+            >
+              {cancelling ? 'Cancelling...' : 'Cancel request'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

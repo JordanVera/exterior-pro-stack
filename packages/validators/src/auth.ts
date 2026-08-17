@@ -23,6 +23,12 @@ export const customerOnboardingInput = z.object({
   email: z.string().email("Invalid email").optional().or(z.literal("")),
 });
 
+export const updateCustomerProfileInput = z.object({
+  firstName: z.string().min(1, "First name is required").max(100).optional(),
+  lastName: z.string().min(1, "Last name is required").max(100).optional(),
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
+});
+
 export const providerOnboardingInput = z.object({
   businessName: z.string().min(1, "Business name is required").max(200),
   description: z.string().max(2000).optional(),
@@ -34,4 +40,5 @@ export type SendCodeInput = z.infer<typeof sendCodeInput>;
 export type VerifyCodeInput = z.infer<typeof verifyCodeInput>;
 export type SelectRoleInput = z.infer<typeof selectRoleInput>;
 export type CustomerOnboardingInput = z.infer<typeof customerOnboardingInput>;
+export type UpdateCustomerProfileInput = z.infer<typeof updateCustomerProfileInput>;
 export type ProviderOnboardingInput = z.infer<typeof providerOnboardingInput>;

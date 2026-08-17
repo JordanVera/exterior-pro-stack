@@ -34,6 +34,7 @@ import {
   Sun,
   LogOut,
   ChevronRight,
+  Mail,
 } from "lucide-react";
 
 export default function SettingsPage() {
@@ -67,6 +68,15 @@ export default function SettingsPage() {
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+  });
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileError, setProfileError] = useState("");
 
   const fetchData = () => {
     Promise.all([trpc.auth.me.query(), trpc.property.list.query()])
@@ -167,6 +177,43 @@ export default function SettingsPage() {
     setDeleteId(null);
   };
 
+  const startEditProfile = () => {
+    setProfileForm({
+      firstName: user?.customerProfile?.firstName || "",
+      lastName: user?.customerProfile?.lastName || "",
+      email: user?.customerProfile?.email || "",
+    });
+    setProfileError("");
+    setEditingProfile(true);
+  };
+
+  const saveProfile = async () => {
+    if (!profileForm.firstName.trim() || !profileForm.lastName.trim()) {
+      setProfileError("First and last name are required");
+      return;
+    }
+    setProfileSaving(true);
+    setProfileError("");
+    try {
+      const updated = await trpc.auth.updateCustomerProfile.mutate({
+        firstName: profileForm.firstName.trim(),
+        lastName: profileForm.lastName.trim(),
+        email: profileForm.email.trim(),
+      });
+      setUser((prev: any) =>
+        prev ? { ...prev, customerProfile: { ...prev.customerProfile, ...updated } } : prev,
+      );
+      toast.success("Profile updated");
+      setEditingProfile(false);
+    } catch (err: any) {
+      const msg = err.message || "Failed to update profile";
+      setProfileError(msg);
+      toast.error(msg);
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
   const handleSignOut = async () => {
     await clearToken();
     router.push("/");
@@ -202,50 +249,126 @@ export default function SettingsPage() {
       </h1>
 
       {/* ── Profile ── */}
-      <Card className="shadow-none overflow-hidden">
-        <CardHeader className="p-5 pb-0 flex flex-row items-center gap-3">
-          <Avatar className="h-10 w-10">
-            <AvatarFallback className="bg-gradient-to-br from-cyan-400 to-cyan-600 text-white text-sm font-semibold">
+      <Card className="overflow-hidden shadow-none">
+        <CardHeader className="flex flex-row gap-3 items-center p-5 pb-0">
+          <Avatar className="w-10 h-10">
+            <AvatarFallback className="text-sm font-semibold text-white bg-gradient-to-br from-cyan-400 to-cyan-600">
               {initials}
             </AvatarFallback>
           </Avatar>
-          <div>
+          <div className="flex-1 min-w-0">
             <CardTitle className="text-sm">
               {firstName} {lastName}
             </CardTitle>
             <p className="text-xs text-muted-foreground">{phone}</p>
           </div>
+          {!editingProfile && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={startEditProfile}
+              className="px-2 h-7 text-xs text-cyan-500 hover:text-cyan-400"
+            >
+              <Pencil className="w-3.5 h-3.5 mr-1" />
+              Edit
+            </Button>
+          )}
         </CardHeader>
         <CardContent className="p-5 pt-4">
-          <div className="space-y-0">
-            <div className="flex items-center justify-between py-3">
-              <div className="flex items-center gap-3">
-                <Phone className="w-4 h-4 text-neutral-400" />
-                <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                  Phone
+          {editingProfile ? (
+            <div className="space-y-3">
+              {profileError && (
+                <p className="text-xs text-red-400">{profileError}</p>
+              )}
+              <div className="grid grid-cols-2 gap-2">
+                <Input
+                  placeholder="First name"
+                  value={profileForm.firstName}
+                  onChange={(e) =>
+                    setProfileForm({ ...profileForm, firstName: e.target.value })
+                  }
+                  required
+                  className="text-sm"
+                />
+                <Input
+                  placeholder="Last name"
+                  value={profileForm.lastName}
+                  onChange={(e) =>
+                    setProfileForm({ ...profileForm, lastName: e.target.value })
+                  }
+                  required
+                  className="text-sm"
+                />
+              </div>
+              <Input
+                type="email"
+                placeholder="Email"
+                value={profileForm.email}
+                onChange={(e) =>
+                  setProfileForm({ ...profileForm, email: e.target.value })
+                }
+                className="text-sm"
+              />
+              <div className="flex gap-2">
+                <Button
+                  onClick={saveProfile}
+                  disabled={profileSaving}
+                  className="flex-1 bg-cyan-500 hover:bg-cyan-400"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  {profileSaving ? "Saving..." : "Save"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setEditingProfile(false)}
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-0">
+              <div className="flex justify-between items-center py-3">
+                <div className="flex gap-3 items-center">
+                  <Phone className="w-4 h-4 text-neutral-400" />
+                  <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                    Phone
+                  </span>
+                </div>
+                <span className="font-mono text-sm text-neutral-500">
+                  {phone}
                 </span>
               </div>
-              <span className="font-mono text-sm text-neutral-500">
-                {phone}
-              </span>
-            </div>
-            <Separator />
-            <div className="flex items-center justify-between py-3">
-              <div className="flex items-center gap-3">
-                <Calendar className="w-4 h-4 text-neutral-400" />
-                <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                  Member since
+              <Separator />
+              <div className="flex justify-between items-center py-3">
+                <div className="flex gap-3 items-center">
+                  <Mail className="w-4 h-4 text-neutral-400" />
+                  <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                    Email
+                  </span>
+                </div>
+                <span className="ml-4 text-sm truncate text-neutral-500">
+                  {user?.customerProfile?.email || "—"}
                 </span>
               </div>
-              <span className="text-sm text-neutral-500">{createdAt}</span>
+              <Separator />
+              <div className="flex justify-between items-center py-3">
+                <div className="flex gap-3 items-center">
+                  <Calendar className="w-4 h-4 text-neutral-400" />
+                  <span className="text-sm text-neutral-700 dark:text-neutral-300">
+                    Member since
+                  </span>
+                </div>
+                <span className="text-sm text-neutral-500">{createdAt}</span>
+              </div>
             </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
       {/* ── Properties ── */}
       <section>
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex justify-between items-center mb-3">
           <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
             My Properties
           </h2>
@@ -254,7 +377,7 @@ export default function SettingsPage() {
               variant="ghost"
               size="sm"
               onClick={() => setShowAdd(true)}
-              className="text-xs text-cyan-500 hover:text-cyan-400 h-7 px-2"
+              className="px-2 h-7 text-xs text-cyan-500 hover:text-cyan-400"
             >
               <Plus className="w-3.5 h-3.5 mr-1" />
               Add
@@ -264,16 +387,16 @@ export default function SettingsPage() {
 
         {/* add form */}
         {showAdd && (
-          <Card className="mb-3 animate-step-enter shadow-none border-cyan-500/30">
+          <Card className="mb-3 shadow-none animate-step-enter border-cyan-500/30">
             <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex justify-between items-center mb-3">
                 <span className="text-sm font-medium text-neutral-900 dark:text-white">
                   New Property
                 </span>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7"
+                  className="w-7 h-7"
                   onClick={() => {
                     setShowAdd(false);
                     setAddError("");
@@ -348,11 +471,11 @@ export default function SettingsPage() {
         )}
 
         {/* property list */}
-        <Card className="shadow-none overflow-hidden">
+        <Card className="overflow-hidden shadow-none">
           <div>
             {properties.length === 0 && !showAdd && (
               <CardContent className="py-10 text-center">
-                <MapPin className="w-8 h-8 mx-auto mb-3 text-neutral-300 dark:text-neutral-700" />
+                <MapPin className="mx-auto mb-3 w-8 h-8 text-neutral-300 dark:text-neutral-700" />
                 <p className="mb-3 text-sm text-neutral-500">
                   No properties added yet.
                 </p>
@@ -361,7 +484,7 @@ export default function SettingsPage() {
                   onClick={() => setShowAdd(true)}
                   className="text-sm text-cyan-500 hover:text-cyan-400"
                 >
-                  <Plus className="w-4 h-4 mr-1" />
+                  <Plus className="mr-1 w-4 h-4" />
                   Add your first property
                 </Button>
               </CardContent>
@@ -464,8 +587,8 @@ export default function SettingsPage() {
               return (
                 <div key={prop.id}>
                   {i > 0 && <Separator />}
-                  <div className="flex items-start justify-between gap-3 px-5 py-4">
-                    <div className="flex items-start min-w-0 gap-3">
+                  <div className="flex gap-3 justify-between items-start px-5 py-4">
+                    <div className="flex gap-3 items-start min-w-0">
                       <div className="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-800/60 flex items-center justify-center flex-shrink-0 mt-0.5">
                         <MapPin className="w-4 h-4 text-neutral-400" />
                       </div>
@@ -483,11 +606,11 @@ export default function SettingsPage() {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center flex-shrink-0 gap-1">
+                    <div className="flex flex-shrink-0 gap-1 items-center">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
+                        className="w-7 h-7 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
                         onClick={() => startEdit(prop)}
                       >
                         <Pencil className="w-3.5 h-3.5" />
@@ -495,7 +618,7 @@ export default function SettingsPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-7 w-7 text-neutral-400 hover:text-red-500"
+                        className="w-7 h-7 text-neutral-400 hover:text-red-500"
                         onClick={() => openDelete(prop.id)}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -510,13 +633,13 @@ export default function SettingsPage() {
       </section>
 
       {/* ── Appearance ── */}
-      <Card className="shadow-none overflow-hidden">
+      <Card className="overflow-hidden shadow-none">
         <CardHeader className="p-5 pb-0">
           <CardTitle className="text-sm">Appearance</CardTitle>
         </CardHeader>
         <CardContent className="p-5 pt-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+          <div className="flex justify-between items-center">
+            <div className="flex gap-3 items-center">
               <Sun className="w-4 h-4 text-neutral-400" />
               <span className="text-sm text-neutral-700 dark:text-neutral-300">
                 Theme
@@ -531,9 +654,9 @@ export default function SettingsPage() {
       <Button
         variant="outline"
         onClick={handleSignOut}
-        className="w-full justify-between text-red-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 border-neutral-200 dark:border-neutral-800/50"
+        className="justify-between w-full text-red-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 border-neutral-200 dark:border-neutral-800/50"
       >
-        <div className="flex items-center gap-3">
+        <div className="flex gap-3 items-center">
           <LogOut className="w-4 h-4" />
           <span className="text-sm font-medium">Sign Out</span>
         </div>

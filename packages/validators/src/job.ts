@@ -29,8 +29,13 @@ export const createRecurringScheduleInput = z.object({
   nextDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be YYYY-MM-DD"),
 });
 
+export const cancelJobInput = z.object({
+  jobId: z.string().cuid(),
+});
+
 export type CreateJobInput = z.infer<typeof createJobInput>;
 export type ScheduleJobInput = z.infer<typeof scheduleJobInput>;
 export type AssignCrewInput = z.infer<typeof assignCrewInput>;
 export type UpdateJobStatusInput = z.infer<typeof updateJobStatusInput>;
 export type CreateRecurringScheduleInput = z.infer<typeof createRecurringScheduleInput>;
+export type CancelJobInput = z.infer<typeof cancelJobInput>;

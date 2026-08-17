@@ -1,12 +1,13 @@
 import chalk from 'chalk';
 import { TRPCError } from '@trpc/server';
-import { router, publicProcedure, protectedProcedure } from '../trpc';
+import { router, publicProcedure, protectedProcedure, customerProcedure } from '../trpc';
 import {
   sendCodeInput,
   verifyCodeInput,
   selectRoleInput,
   customerOnboardingInput,
   providerOnboardingInput,
+  updateCustomerProfileInput,
 } from '@repo/validators';
 import { signToken } from '../lib/jwt';
 import { sendSMS, generateVerificationCode } from '../lib/sms';
@@ -132,6 +133,7 @@ export const authRouter = router({
       phone: user.phone,
       role: user.role,
       verified: user.verified,
+      createdAt: user.createdAt,
       hasProfile: !!(user.customerProfile || user.providerProfile),
       customerProfile: user.customerProfile,
       providerProfile: user.providerProfile,
@@ -191,6 +193,33 @@ export const authRouter = router({
       });
 
       return profile;
+    }),
+
+  /** Customer: update name and email after onboarding */
+  updateCustomerProfile: customerProcedure
+    .input(updateCustomerProfileInput)
+    .mutation(async ({ ctx, input }) => {
+      const profile = await ctx.db.customerProfile.findUnique({
+        where: { userId: ctx.user.userId },
+      });
+
+      if (!profile) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
+      }
+
+      return ctx.db.customerProfile.update({
+        where: { userId: ctx.user.userId },
+        data: {
+          ...(input.firstName !== undefined ? { firstName: input.firstName } : {}),
+          ...(input.lastName !== undefined ? { lastName: input.lastName } : {}),
+          ...(input.email !== undefined
+            ? { email: input.email || null }
+            : {}),
+        },
+      });
     }),
 
   /** Complete provider onboarding */

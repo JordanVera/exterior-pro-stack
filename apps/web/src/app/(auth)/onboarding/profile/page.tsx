@@ -65,7 +65,7 @@ export default function ProfileOnboardingPage() {
       .then((user) => {
         setRole(user.role);
         if (user.hasProfile) {
-          if (user.role === 'CUSTOMER') router.push('/customer');
+          if (user.role === 'CUSTOMER') router.push('/onboarding/property');
           else if (user.role === 'PROVIDER') router.push('/provider');
         }
       })
@@ -82,7 +82,7 @@ export default function ProfileOnboardingPage() {
         lastName,
         email: email || undefined,
       });
-      router.push('/customer');
+      router.push('/onboarding/property');
     } catch (err: any) {
       setError(err.message || 'Failed to complete profile');
     } finally {

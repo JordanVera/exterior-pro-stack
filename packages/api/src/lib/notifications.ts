@@ -133,6 +133,19 @@ export async function notifyJobCompleted(
   });
 }
 
+/** Notify a provider that a job they bid on was cancelled */
+export async function notifyJobCancelled(
+  providerId: string,
+  serviceName: string
+) {
+  return createNotification({
+    userId: providerId,
+    type: "JOB_CANCELLED",
+    title: "Job Cancelled",
+    body: `The ${serviceName} job you bid on was cancelled by the customer.`,
+  });
+}
+
 /** Notify provider of a job reminder */
 export async function notifyJobReminder(
   providerId: string,

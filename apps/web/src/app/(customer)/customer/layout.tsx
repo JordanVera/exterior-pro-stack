@@ -18,6 +18,7 @@ const navItems = [
   { href: '/customer', label: 'Home' },
   { href: '/customer/jobs', label: 'Jobs' },
   { href: '/customer/plans', label: 'Plans' },
+  { href: '/customer/subscriptions', label: 'Subscriptions' },
   { href: '/customer/payments', label: 'Payments' },
   { href: '/customer/settings', label: 'Settings' },
 ];

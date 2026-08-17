@@ -13,6 +13,7 @@ import { PropertySection } from './_components/property-section';
 import { RecentActivitySection } from './_components/recent-activity-section';
 import { NeedsAttentionSection } from './_components/needs-attention-section';
 import { UpcomingSection } from './_components/upcoming-section';
+import { FirstPropertyPrompt } from './_components/first-property-prompt';
 import { getPendingBids, type CustomerJob } from './_components/job-status';
 
 export default function CustomerHomePage() {
@@ -159,6 +160,17 @@ export default function CustomerHomePage() {
           <Skeleton className="h-48 rounded-xl" />
           <Skeleton className="h-48 rounded-xl" />
         </div>
+      </div>
+    );
+  }
+
+  if (properties.length === 0) {
+    return (
+      <div className="space-y-8">
+        <GreetingSection firstName={firstName} />
+        <FirstPropertyPrompt
+          onAdded={(property) => setProperties([property])}
+        />
       </div>
     );
   }
