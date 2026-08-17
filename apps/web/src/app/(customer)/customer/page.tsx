@@ -86,7 +86,10 @@ export default function CustomerHomePage() {
           icon: Briefcase,
           color: 'text-cyan-400',
           title: `Job requested: ${j.service.name}`,
-          sub: bidCount > 0 ? `${bidCount} bid${bidCount > 1 ? 's' : ''} received` : 'Waiting for bids',
+          sub:
+            bidCount > 0
+              ? `${bidCount} bid${bidCount > 1 ? 's' : ''} received`
+              : 'Waiting for bids',
           time: timeAgo(j.createdAt),
           date: new Date(j.createdAt),
         });
@@ -204,8 +207,8 @@ export default function CustomerHomePage() {
     return (
       <div className="space-y-8">
         <div className="space-y-2">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-4 w-32" />
+          <Skeleton className="w-48 h-8" />
+          <Skeleton className="w-32 h-4" />
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           {[...Array(4)].map((_, i) => (
@@ -213,7 +216,7 @@ export default function CustomerHomePage() {
           ))}
         </div>
         <div>
-          <Skeleton className="mb-4 h-6 w-32" />
+          <Skeleton className="mb-4 w-32 h-6" />
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {[...Array(6)].map((_, i) => (
               <Skeleton key={i} className="h-28 rounded-xl" />
