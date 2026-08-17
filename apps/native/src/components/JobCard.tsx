@@ -31,7 +31,7 @@ export function JobCard({
         {formatAddress(job.property)}
       </Text>
       {crewName ? (
-        <Text className="mt-2 text-sm text-cyan-400">{crewName}</Text>
+        <Text className="mt-2 text-sm text-brand-lime">{crewName}</Text>
       ) : null}
     </Pressable>
   );

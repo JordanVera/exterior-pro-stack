@@ -2,6 +2,7 @@ import { Redirect, Tabs } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useAuth } from "@/lib/auth";
 import { LoadingScreen } from "@/components/Screen";
+import { colors } from "@/lib/theme";
 
 export default function FieldLayout() {
   const { isReady, isFieldUser } = useAuth();
@@ -14,13 +15,13 @@ export default function FieldLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: "#111827",
-          borderTopColor: "rgba(255,255,255,0.08)",
+          backgroundColor: colors.navy,
+          borderTopColor: "rgba(200,245,66,0.12)",
           height: 84,
           paddingTop: 8,
         },
-        tabBarActiveTintColor: "#02ddf5",
-        tabBarInactiveTintColor: "#94a3b8",
+        tabBarActiveTintColor: colors.lime,
+        tabBarInactiveTintColor: colors.muted,
         tabBarLabelStyle: { fontSize: 12, fontWeight: "600" },
       }}
     >

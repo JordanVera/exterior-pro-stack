@@ -58,7 +58,7 @@ export const STATUS_BADGE: Record<
   string,
   { bg: string; text: string; label: string }
 > = {
-  OPEN: { bg: "bg-cyan-500/20", text: "text-cyan-400", label: "Open" },
+  OPEN: { bg: "bg-brand-lime/20", text: "text-brand-lime", label: "Open" },
   PENDING: { bg: "bg-slate-700", text: "text-slate-300", label: "Needs schedule" },
   SCHEDULED: { bg: "bg-blue-500/20", text: "text-blue-400", label: "Scheduled" },
   IN_PROGRESS: { bg: "bg-amber-500/20", text: "text-amber-400", label: "In progress" },

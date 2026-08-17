@@ -1,4 +1,5 @@
 import { ActivityIndicator, Pressable, Text } from "react-native";
+import { colors } from "@/lib/theme";
 
 export function PrimaryButton({
   label,
@@ -13,25 +14,27 @@ export function PrimaryButton({
   loading?: boolean;
   variant?: "primary" | "secondary" | "danger";
 }) {
-  const colors =
+  const colorsClass =
     variant === "danger"
       ? "bg-red-600"
       : variant === "secondary"
         ? "border border-white/20 bg-navy-700"
-        : "bg-cyan-500";
+        : "bg-brand-lime";
   const text =
     variant === "secondary" || variant === "danger"
       ? "text-white"
-      : "text-navy";
+      : "text-brand-ink";
 
   return (
     <Pressable
       onPress={onPress}
       disabled={disabled || loading}
-      className={`min-h-[56px] items-center justify-center rounded-2xl px-4 active:opacity-80 ${colors} ${disabled || loading ? "opacity-50" : ""}`}
+      className={`min-h-[56px] items-center justify-center rounded-2xl px-4 active:opacity-80 ${colorsClass} ${disabled || loading ? "opacity-50" : ""}`}
     >
       {loading ? (
-        <ActivityIndicator color={variant === "primary" ? "#0b1220" : "#fff"} />
+        <ActivityIndicator
+          color={variant === "primary" ? colors.ink : "#fff"}
+        />
       ) : (
         <Text className={`text-lg font-bold ${text}`}>{label}</Text>
       )}

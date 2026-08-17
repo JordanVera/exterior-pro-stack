@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { colors } from "@/lib/theme";
 
 export function Screen({
   children,
@@ -11,7 +12,7 @@ export function Screen({
 }) {
   return (
     <SafeAreaView
-      className="flex-1 bg-navy"
+      className="flex-1 bg-brand-night"
       edges={edges ?? ["top", "left", "right"]}
     >
       {children}
@@ -21,8 +22,8 @@ export function Screen({
 
 export function LoadingScreen() {
   return (
-    <View className="flex-1 items-center justify-center bg-navy">
-      <ActivityIndicator color="#02ddf5" size="large" />
+    <View className="flex-1 items-center justify-center bg-brand-night">
+      <ActivityIndicator color={colors.lime} size="large" />
     </View>
   );
 }

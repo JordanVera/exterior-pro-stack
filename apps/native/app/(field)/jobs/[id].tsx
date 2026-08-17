@@ -136,7 +136,7 @@ export default function JobDetailScreen() {
         <Text className="mt-2 text-base leading-6 text-white">{address}</Text>
         <Text className="mt-1 text-sm text-slate-400">{customerName}</Text>
         {assigned ? (
-          <Text className="mt-2 text-sm text-cyan-400">Crew: {assigned}</Text>
+          <Text className="mt-2 text-sm text-brand-lime">Crew: {assigned}</Text>
         ) : (
           <Text className="mt-2 text-sm text-amber-400">No crew assigned</Text>
         )}
@@ -181,10 +181,10 @@ export default function JobDetailScreen() {
                 <Pressable
                   key={day.iso}
                   onPress={() => setScheduleDate(day.iso)}
-                  className={`mr-2 rounded-2xl px-4 py-3 ${scheduleDate === day.iso ? "bg-cyan-500" : "bg-navy-700"}`}
+                  className={`mr-2 rounded-2xl px-4 py-3 ${scheduleDate === day.iso ? "bg-brand-lime" : "bg-navy-700"}`}
                 >
                   <Text
-                    className={`text-sm font-semibold ${scheduleDate === day.iso ? "text-navy" : "text-white"}`}
+                    className={`text-sm font-semibold ${scheduleDate === day.iso ? "text-brand-ink" : "text-white"}`}
                   >
                     {day.label}
                   </Text>
@@ -196,10 +196,10 @@ export default function JobDetailScreen() {
                 <Pressable
                   key={time}
                   onPress={() => setScheduleTime(time)}
-                  className={`rounded-full px-4 py-2 ${scheduleTime === time ? "bg-cyan-500" : "bg-navy-700"}`}
+                  className={`rounded-full px-4 py-2 ${scheduleTime === time ? "bg-brand-lime" : "bg-navy-700"}`}
                 >
                   <Text
-                    className={`font-semibold ${scheduleTime === time ? "text-navy" : "text-white"}`}
+                    className={`font-semibold ${scheduleTime === time ? "text-brand-ink" : "text-white"}`}
                   >
                     {time}
                   </Text>

@@ -12,9 +12,12 @@ export default function AccountScreen() {
   return (
     <Screen>
       <View className="flex-1 px-5 pt-2">
-        <Text className="text-3xl font-bold text-white">Account</Text>
+        <Text className="text-sm font-semibold uppercase tracking-widest text-brand-lime">
+          Exterior Pro
+        </Text>
+        <Text className="mt-1 text-3xl font-bold text-white">Account</Text>
         <View className="mt-6 rounded-2xl border border-white/10 bg-navy-800 p-5">
-          <Text className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+          <Text className="text-xs font-semibold uppercase tracking-wide text-brand-lime">
             {isCrew ? "Crew member" : "Provider"}
           </Text>
           <Text className="mt-2 text-2xl font-bold text-white">

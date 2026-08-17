@@ -1,13 +1,15 @@
 import { Stack } from "expo-router";
+import { colors } from "@/lib/theme";
 
 export default function JobsLayout() {
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: "#0b1220" },
-        headerTintColor: "#fff",
+        headerStyle: { backgroundColor: colors.night },
+        headerTintColor: colors.lime,
+        headerTitleStyle: { color: "#fff", fontWeight: "700" },
         headerShadowVisible: false,
-        contentStyle: { backgroundColor: "#0b1220" },
+        contentStyle: { backgroundColor: colors.night },
       }}
     >
       <Stack.Screen name="index" options={{ headerShown: false }} />

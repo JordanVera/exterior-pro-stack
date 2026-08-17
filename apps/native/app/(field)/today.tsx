@@ -30,7 +30,10 @@ export default function TodayScreen() {
         className="flex-1 px-5 pt-2"
         contentContainerClassName="pb-8"
       >
-        <Text className="text-sm text-slate-400">{getDateString()}</Text>
+        <Text className="text-sm font-semibold uppercase tracking-widest text-brand-lime">
+          Today
+        </Text>
+        <Text className="mt-1 text-sm text-slate-400">{getDateString()}</Text>
         <Text className="mt-1 text-3xl font-bold text-white">
           {getGreeting()}
           {name ? `, ${name}` : ""}

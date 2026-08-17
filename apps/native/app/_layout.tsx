@@ -4,6 +4,7 @@ import { StatusBar } from "expo-status-bar";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { AuthProvider } from "@/lib/auth";
 import { queryClient } from "@/lib/query";
+import { colors } from "@/lib/theme";
 
 export default function RootLayout() {
   return (
@@ -13,7 +14,7 @@ export default function RootLayout() {
         <Stack
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: "#0b1220" },
+            contentStyle: { backgroundColor: colors.night },
           }}
         />
       </AuthProvider>

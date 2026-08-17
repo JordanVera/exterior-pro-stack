@@ -5,15 +5,18 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        navy: {
-          DEFAULT: "#0b1220",
-          800: "#111827",
-          700: "#1e293b",
+        brand: {
+          lime: "#C8F542",
+          navy: "#0B1F33",
+          ink: "#0A1208",
+          night: "#070B12",
+          mist: "#F4F6F0",
         },
-        cyan: {
-          400: "#1ae4f2",
-          500: "#02ddf5",
-          600: "#02b8cc",
+        navy: {
+          DEFAULT: "#0B1F33",
+          900: "#070B12",
+          800: "#0B1F33",
+          700: "#163552",
         },
       },
     },
