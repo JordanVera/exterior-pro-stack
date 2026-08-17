@@ -23,22 +23,22 @@ export function RecentActivitySection({ items, onRebook }: RecentActivitySection
 
   return (
     <section>
-      <h2 className="mb-4 text-lg font-semibold text-neutral-900 dark:text-white">
+      <h2 className="mb-4 text-lg font-semibold text-foreground">
         Recent Activity
       </h2>
-      <div className="space-y-1">
+      <div className="space-y-1 rounded-2xl border border-border bg-background/80 p-4 backdrop-blur-xl">
         {items.map((item) => {
           const Icon = item.icon;
           return (
             <div key={item.id} className="flex items-center gap-3 py-2.5">
-              <div className="flex items-center justify-center flex-shrink-0 rounded-full w-7 h-7 bg-neutral-100 dark:bg-neutral-800/60">
-                <Icon className={cn('w-3.5 h-3.5', item.color)} />
+              <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-muted">
+                <Icon className={cn('h-3.5 w-3.5', item.color)} />
               </div>
-              <div className="flex-1 min-w-0">
-                <div className="text-sm truncate text-neutral-900 dark:text-neutral-200">
+              <div className="min-w-0 flex-1">
+                <div className="truncate text-sm text-foreground">
                   {item.title}
                 </div>
-                <div className="text-xs text-neutral-500">{item.sub}</div>
+                <div className="text-xs text-muted-foreground">{item.sub}</div>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
                 {item.job && onRebook && (
@@ -55,7 +55,7 @@ export function RecentActivitySection({ items, onRebook }: RecentActivitySection
                     Book again
                   </Button>
                 )}
-                <span className="text-[11px] text-neutral-400 dark:text-neutral-600">
+                <span className="text-[11px] text-muted-foreground">
                   {item.time}
                 </span>
               </div>

@@ -26,28 +26,29 @@ export function ActiveJobsSection({ jobs }: ActiveJobsSectionProps) {
 
   return (
     <section>
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
-          Active Jobs
-        </h2>
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg font-semibold text-foreground">Active Jobs</h2>
         <Button
           variant="link"
           size="sm"
           onClick={() => router.push('/customer/jobs')}
-          className="h-auto p-0 text-xs text-cyan-500 hover:text-cyan-400"
+          className="p-0 h-auto text-xs text-cyan-500 hover:text-cyan-400"
         >
           View all
         </Button>
       </div>
       <div className="space-y-2">
         {jobs.slice(0, 3).map((job) => (
-          <Card key={job.id} className="shadow-none">
-            <CardContent className="flex items-center justify-between p-4">
+          <Card
+            key={job.id}
+            className="shadow-none backdrop-blur-xl border-border bg-background/80"
+          >
+            <CardContent className="flex justify-between items-center p-4">
               <div className="min-w-0">
-                <div className="text-sm font-medium text-neutral-900 dark:text-white">
+                <div className="text-sm font-medium text-foreground">
                   {job.service.name}
                 </div>
-                <div className="text-xs text-neutral-500 mt-0.5 truncate">
+                <div className="mt-0.5 truncate text-xs text-muted-foreground">
                   {job.property.address}
                   {job.scheduledDate &&
                     ` · ${new Date(job.scheduledDate).toLocaleDateString(

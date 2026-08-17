@@ -33,18 +33,18 @@ export function PropertySection({
   if (summaries.length === 0) {
     return (
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-neutral-900 dark:text-white">
+        <h2 className="mb-4 text-lg font-semibold text-foreground">
           My Homes
         </h2>
-        <Card className="border-dashed shadow-none">
+        <Card className="border-dashed border-border bg-background/80 shadow-none backdrop-blur-xl">
           <CardContent className="py-10 text-center">
-            <MapPin className="w-8 h-8 mx-auto mb-3 text-neutral-400" />
-            <p className="mb-3 text-sm text-neutral-500">
+            <MapPin className="mx-auto mb-3 h-8 w-8 text-muted-foreground" />
+            <p className="mb-3 text-sm text-muted-foreground">
               Add your first property to get started.
             </p>
             <Button
               onClick={() => router.push('/customer/settings')}
-              className="rounded-full bg-cyan-500 hover:bg-cyan-400"
+              className="rounded-full bg-cyan-500 text-black hover:bg-cyan-400"
             >
               <Plus className="w-4 h-4 mr-1" />
               Add Property
@@ -58,7 +58,7 @@ export function PropertySection({
   return (
     <section>
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-lg font-semibold text-neutral-900 dark:text-white">
+        <h2 className="text-lg font-semibold text-foreground">
           My Homes
         </h2>
         <Button
@@ -85,8 +85,8 @@ export function PropertySection({
             <Card
               key={property.id}
               className={cn(
-                'overflow-hidden shadow-none transition-all duration-200',
-                'hover:-translate-y-0.5 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20',
+                'overflow-hidden border-border bg-background/80 shadow-none backdrop-blur-xl transition-all duration-200',
+                'hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20',
               )}
             >
               <CardContent className="p-4 flex flex-col min-h-[140px]">
@@ -95,10 +95,10 @@ export function PropertySection({
                     <MapPin className="w-4 h-4 text-cyan-500" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="text-sm font-medium truncate text-neutral-900 dark:text-white">
+                    <div className="truncate text-sm font-medium text-foreground">
                       {property.address}
                     </div>
-                    <div className="text-xs text-neutral-500 mt-0.5">
+                    <div className="mt-0.5 text-xs text-muted-foreground">
                       {property.city}, {property.state}
                     </div>
                   </div>
@@ -117,7 +117,7 @@ export function PropertySection({
                       </span>
                     )}
                     {lastCompletedJob && (
-                      <span className="block truncate text-neutral-500">
+                      <span className="block truncate text-muted-foreground">
                         Last: {lastCompletedJob.serviceName}{' '}
                         {new Date(
                           lastCompletedJob.completedAt,
@@ -130,7 +130,7 @@ export function PropertySection({
                   </div>
                 )}
 
-                <div className="mt-3 pt-3 border-t border-neutral-100 dark:border-neutral-800 flex flex-col gap-1.5">
+                <div className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3">
                   <Button
                     variant="outline"
                     size="sm"

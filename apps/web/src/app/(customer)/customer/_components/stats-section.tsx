@@ -22,8 +22,18 @@ interface StatsSectionProps {
 const STAT_ITEMS: Omit<StatItem, 'count'>[] = [
   { label: 'Open', sub: 'jobs', dot: 'bg-cyan-500', href: '/customer/jobs' },
   { label: 'Active', sub: 'jobs', dot: 'bg-blue-500', href: '/customer/jobs' },
-  { label: 'Completed', sub: 'jobs', dot: 'bg-green-500', href: '/customer/jobs' },
-  { label: 'Properties', sub: 'saved', dot: 'bg-neutral-400', href: '/customer/settings' },
+  {
+    label: 'Completed',
+    sub: 'jobs',
+    dot: 'bg-green-500',
+    href: '/customer/jobs',
+  },
+  {
+    label: 'Properties',
+    sub: 'saved',
+    dot: 'bg-muted-foreground',
+    href: '/customer/settings',
+  },
 ];
 
 export function StatsSection({
@@ -50,22 +60,18 @@ export function StatsSection({
       {stats.map((s) => (
         <Card
           key={s.label}
-          className="transition-all shadow-none cursor-pointer hover:border-neutral-300 dark:hover:border-neutral-700"
+          className="shadow-none backdrop-blur-xl transition-all cursor-pointer border-border bg-background/80 hover:border-cyan-500/50"
           onClick={() => router.push(s.href)}
         >
           <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-1.5">
-              <div className={cn('w-1.5 h-1.5 rounded-full', s.dot)} />
-              <span className="text-[10px] font-medium text-neutral-500 uppercase tracking-wider">
+            <div className="mb-1.5 flex items-center gap-2">
+              <div className={cn('h-1.5 w-1.5 rounded-full', s.dot)} />
+              <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
                 {s.label}
               </span>
             </div>
-            <div className="text-2xl font-bold text-neutral-900 dark:text-white">
-              {s.count}
-            </div>
-            <div className="text-[11px] text-neutral-400 dark:text-neutral-600">
-              {s.sub}
-            </div>
+            <div className="text-2xl font-bold text-foreground">{s.count}</div>
+            <div className="text-[11px] text-muted-foreground">{s.sub}</div>
           </CardContent>
         </Card>
       ))}

@@ -2,15 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Menu, X } from 'lucide-react';
 import { trpc } from '../../../lib/trpc';
 import { isAuthenticated } from '../../../lib/auth';
 import { NotificationBell } from '../../../components/NotificationBell';
+import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { cn } from '@/lib/utils';
-import Link from 'next/link';
-import Image from 'next/image';
 import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/customer', label: 'Home' },
@@ -19,6 +21,12 @@ const navItems = [
   { href: '/customer/payments', label: 'Payments' },
   { href: '/customer/settings', label: 'Settings' },
 ];
+
+function isNavActive(pathname: string | null, href: string) {
+  return (
+    pathname === href || (href !== '/customer' && pathname?.startsWith(href))
+  );
+}
 
 export default function CustomerLayout({
   children,
@@ -29,6 +37,11 @@ export default function CustomerLayout({
   const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
 
   useEffect(() => {
     if (!isAuthenticated()) {
@@ -48,153 +61,124 @@ export default function CustomerLayout({
       .catch(() => router.push('/login'));
   }, [router]);
 
-  if (loading) {
-    return (
-      <div className="flex flex-col min-h-screen bg-neutral-50 dark:bg-black">
-        {/* Navbar skeleton */}
-        <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-neutral-200/60 dark:border-neutral-800">
-          <div className="container flex items-center justify-between px-5 mx-auto h-14">
-            <div className="flex items-center gap-6">
-              <Skeleton className="w-[72px] h-8 rounded" />
-              <nav className="flex items-center gap-0.5">
-                {navItems.map((item) => (
-                  <Skeleton key={item.href} className="h-8 rounded-full w-14" />
-                ))}
-              </nav>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Skeleton className="w-8 h-8 rounded-full" />
-              <Skeleton className="w-8 h-8 rounded-full" />
-            </div>
-          </div>
-        </header>
-
-        {/* Main content skeleton - matches customer page layout */}
-        <main className="container flex-1 w-full px-5 py-6 mx-auto">
-          <div className="space-y-10">
-            {/* Greeting section */}
-            <div className="space-y-2">
-              <Skeleton className="w-48 h-8" />
-              <Skeleton className="w-32 h-4" />
-            </div>
-
-            {/* Stats section - 4 cards */}
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {[...Array(4)].map((_, i) => (
-                <Skeleton key={i} className="h-20 rounded-xl" />
-              ))}
-            </div>
-
-            {/* Job request section */}
-            <div>
-              <div className="flex items-center justify-between mb-5">
-                <Skeleton className="h-6 w-28" />
-              </div>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {[...Array(6)].map((_, i) => (
-                  <Skeleton key={i} className="h-24 rounded-xl" />
-                ))}
-              </div>
-            </div>
-
-            {/* Recent activity section */}
-            <div>
-              <Skeleton className="w-32 h-6 mb-4" />
-              <div className="space-y-2">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="flex items-center gap-3 py-2.5">
-                    <Skeleton className="flex-shrink-0 rounded-full h-7 w-7" />
-                    <div className="flex-1 space-y-1">
-                      <Skeleton className="h-4 w-full max-w-[200px]" />
-                      <Skeleton className="w-24 h-3" />
-                    </div>
-                    <Skeleton className="flex-shrink-0 w-10 h-3" />
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Active jobs section */}
-            <div>
-              <div className="flex items-center justify-between mb-4">
-                <Skeleton className="w-24 h-6" />
-                <Skeleton className="h-4 w-14" />
-              </div>
-              <div className="space-y-2">
-                {[...Array(2)].map((_, i) => (
-                  <Skeleton key={i} className="h-16 rounded-xl" />
-                ))}
-              </div>
-            </div>
-          </div>
-        </main>
-      </div>
-    );
-  }
-
   const firstName = user?.customerProfile?.firstName || '';
   const lastName = user?.customerProfile?.lastName || '';
   const initials =
     ((firstName[0] || '') + (lastName[0] || '')).toUpperCase() || '?';
 
   return (
-    <div className="flex flex-col min-h-screen bg-neutral-50 dark:bg-black">
-      <header className="sticky top-0 z-40 border-b border-gray-200 bg-white/80 dark:bg-black/80 backdrop-blur-xl border-neutral-200/60 dark:border-neutral-800">
-        <div className="container flex items-center justify-between px-5 mx-auto h-14">
-          <div className="flex items-center gap-6">
-            <Link href="/" className="flex items-center gap-2">
-              {/* <Image
-              src="/logos/logo-wide.png"
-              alt="Exterior Pro"
-              width={200}
-              height={80}
-            /> */}
+    <>
+      <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-black/50">
+          <div className="flex gap-4 items-center">
+            <Link href="/customer" className="flex gap-2 items-center pl-1">
               <Image
                 src="/logos/logo-stacked.png"
                 alt="Exterior Pro"
                 width={84}
                 height={32}
+                priority
               />
             </Link>
-            <nav className="flex items-center gap-0.5 overflow-x-auto scrollbar-hide">
-              {navItems.map((item) => {
-                const isActive =
-                  pathname === item.href ||
-                  (item.href !== '/customer' &&
-                    pathname?.startsWith(item.href));
-                return (
-                  <Button
-                    key={item.href}
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => router.push(item.href)}
-                    className={cn(
-                      'text-xs font-medium rounded-full px-3.5 h-8',
-                      isActive
-                        ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 hover:bg-cyan-500/15 hover:text-cyan-600 dark:hover:text-cyan-400'
-                        : 'text-neutral-500 hover:text-neutral-900 dark:hover:text-neutral-200',
-                    )}
-                  >
-                    {item.label}
-                  </Button>
-                );
-              })}
-            </nav>
+            <div className="hidden gap-1 items-center md:flex">
+              {loading
+                ? navItems.map((item) => (
+                    <Skeleton key={item.href} className="w-14 h-8 rounded-lg" />
+                  ))
+                : navItems.map((item) => {
+                    const active = isNavActive(pathname, item.href);
+                    return (
+                      <Link
+                        key={item.href}
+                        href={item.href}
+                        className={cn(
+                          'px-3 py-2 text-sm rounded-lg transition-colors',
+                          active
+                            ? 'text-cyan-600 bg-cyan-500/10 dark:text-cyan-400'
+                            : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                        )}
+                      >
+                        {item.label}
+                      </Link>
+                    );
+                  })}
+            </div>
           </div>
+
           <div className="flex items-center gap-1.5">
-            <NotificationBell />
-            <Avatar className="w-8 h-8">
-              <AvatarFallback className="bg-gradient-to-br from-cyan-400 to-cyan-600 text-white text-[11px] font-semibold">
-                {initials}
-              </AvatarFallback>
-            </Avatar>
+            <ThemeToggle />
+            {loading ? (
+              <>
+                <Skeleton className="w-8 h-8 rounded-full" />
+                <Skeleton className="w-8 h-8 rounded-full" />
+              </>
+            ) : (
+              <>
+                <NotificationBell />
+                <Link href="/customer/settings">
+                  <Avatar className="w-8 h-8">
+                    <AvatarFallback className="bg-gradient-to-br from-cyan-400 to-cyan-600 text-[11px] font-semibold text-white">
+                      {initials}
+                    </AvatarFallback>
+                  </Avatar>
+                </Link>
+              </>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setOpen((value) => !value)}
+              aria-label={open ? 'Close menu' : 'Open menu'}
+              aria-expanded={open}
+            >
+              {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </Button>
           </div>
-        </div>
+        </nav>
+
+        {open ? (
+          <div className="p-3 mx-auto mt-2 max-w-6xl rounded-2xl border shadow-xl backdrop-blur-xl border-border bg-background/95 md:hidden">
+            {navItems.map((item) => {
+              const active = isNavActive(pathname, item.href);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    'block rounded-lg px-3 py-2.5 text-sm',
+                    active
+                      ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400'
+                      : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </div>
+        ) : null}
       </header>
 
-      <main className="container flex-1 w-full px-5 py-6 mx-auto">
-        {children}
-      </main>
-    </div>
+      <div className="min-h-screen bg-background text-foreground">
+        <main className="flex-1 px-5 pt-28 pb-16 mx-auto w-full max-w-6xl">
+          {loading ? (
+            <div className="space-y-10">
+              <div className="space-y-2">
+                <Skeleton className="w-48 h-8" />
+                <Skeleton className="w-32 h-4" />
+              </div>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {[...Array(4)].map((_, i) => (
+                  <Skeleton key={i} className="h-20 rounded-xl" />
+                ))}
+              </div>
+            </div>
+          ) : (
+            children
+          )}
+        </main>
+      </div>
+    </>
   );
 }
