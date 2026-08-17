@@ -21,7 +21,7 @@ export function LandingNavbar() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-brand-navy/70">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-black/70">
         <Link href="/" className="flex gap-2 items-center pl-1">
           <Image
             src="/logos/logo-stacked.png"
@@ -55,7 +55,7 @@ export function LandingNavbar() {
           </Button>
           <Button
             onClick={() => router.push(loginPath())}
-            className="hidden h-9 rounded-full bg-brand-lime px-4 text-sm font-semibold text-brand-ink hover:bg-brand-lime/90 sm:inline-flex"
+            className="hidden px-4 h-9 text-sm font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90 sm:inline-flex"
           >
             Get started
           </Button>
@@ -85,7 +85,7 @@ export function LandingNavbar() {
             </a>
           ))}
           <Button
-            className="mt-2 w-full rounded-full bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
+            className="mt-2 w-full font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
             onClick={() => router.push(loginPath())}
           >
             Get started
