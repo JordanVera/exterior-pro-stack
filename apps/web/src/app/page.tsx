@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
@@ -18,11 +18,11 @@ export default function HomePage() {
     trpc.auth.me
       .query()
       .then((user) => {
-        if (user.role === 'ADMIN') router.push('/admin');
-        else if (!user.role) router.push('/onboarding/role');
-        else if (!user.hasProfile) router.push('/onboarding/profile');
-        else if (user.role === 'CUSTOMER') router.push('/customer');
-        else if (user.role === 'PROVIDER') router.push('/provider');
+        if (user.role === "ADMIN") router.push("/admin");
+        else if (!user.role) router.push("/onboarding/role");
+        else if (!user.hasProfile) router.push("/onboarding/profile");
+        else if (user.role === "CUSTOMER") router.push("/customer");
+        else if (user.role === "PROVIDER") router.push("/provider");
       })
       .catch(() => setChecking(false));
   }, [router]);
