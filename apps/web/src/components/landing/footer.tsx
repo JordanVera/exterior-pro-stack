@@ -16,7 +16,7 @@ export function LandingFooter() {
           <div className="col-span-2 md:col-span-1">
             <div className="mb-4">
               <Image
-                src="/logos/logo-stacked.png"
+                src="/logos/logo-stacked-lime.png"
                 alt="Exterior Pro"
                 width={110}
                 height={42}

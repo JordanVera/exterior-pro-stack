@@ -26,7 +26,7 @@ function AuthShell({ children }: { children: ReactNode }) {
         <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-brand-navy/70">
           <Link href="/" className="flex items-center gap-2 pl-1">
             <Image
-              src="/logos/logo-stacked.png"
+              src="/logos/logo-stacked-lime.png"
               alt="Exterior Pro"
               width={84}
               height={32}

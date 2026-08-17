@@ -50,15 +50,15 @@ function RoleSelectionContent() {
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-background text-foreground">
+    <div className="flex overflow-hidden relative flex-col min-h-screen bg-background text-foreground">
       <div className="bg-grid-fade pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
       <BackgroundBeams className="opacity-40" delay={0} />
 
       <header className="relative z-20 px-4 pt-4">
         <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-brand-navy/70">
-          <Link href="/" className="flex items-center gap-2 pl-1">
+          <Link href="/" className="flex gap-2 items-center pl-1">
             <Image
-              src="/logos/logo-stacked.png"
+              src="/logos/logo-stacked-lime.png"
               alt="Exterior Pro"
               width={84}
               height={32}
@@ -69,12 +69,12 @@ function RoleSelectionContent() {
         </nav>
       </header>
 
-      <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-12">
+      <main className="flex relative z-10 flex-1 justify-center items-center px-4 py-12">
         <div className="w-full max-w-lg">
-          <Card className="relative rounded-2xl border border-border bg-background/80 p-8 shadow-lg backdrop-blur-xl">
-            <CardHeader className="mb-6 space-y-3 p-0 text-center">
+          <Card className="relative p-8 rounded-2xl border shadow-lg backdrop-blur-xl border-border bg-background/80">
+            <CardHeader className="p-0 mb-6 space-y-3 text-center">
               <p className="inline-flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-brand-navy dark:text-brand-lime">
-                <span className="h-px w-6 bg-brand-lime" />
+                <span className="w-6 h-px bg-brand-lime" />
                 Get started
               </p>
               <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -85,7 +85,7 @@ function RoleSelectionContent() {
               </CardDescription>
             </CardHeader>
 
-            <CardContent className="space-y-4 p-0">
+            <CardContent className="p-0 space-y-4">
               {error ? (
                 <Alert variant="destructive">
                   <AlertDescription>{error}</AlertDescription>
@@ -104,7 +104,7 @@ function RoleSelectionContent() {
                     : 'border-border bg-background/60 hover:border-brand-lime/60 hover:bg-brand-lime/5',
                 )}
               >
-                <div className="flex items-start gap-4">
+                <div className="flex gap-4 items-start">
                   <div
                     className={cn(
                       'flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-colors',
@@ -113,9 +113,9 @@ function RoleSelectionContent() {
                         : 'bg-brand-lime/10 text-brand-navy group-hover:bg-brand-lime/20 dark:text-brand-lime',
                     )}
                   >
-                    <Home className="h-5 w-5" />
+                    <Home className="w-5 h-5" />
                   </div>
-                  <div className="min-w-0 flex-1">
+                  <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-semibold text-foreground">
                       I need services
                     </h3>
@@ -124,7 +124,7 @@ function RoleSelectionContent() {
                       your property.
                     </p>
                   </div>
-                  <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                  <ArrowRight className="mt-1 w-4 h-4 opacity-0 transition-opacity shrink-0 text-muted-foreground group-hover:opacity-100" />
                 </div>
               </button>
 
@@ -140,7 +140,7 @@ function RoleSelectionContent() {
                     : 'border-border bg-background/60 hover:border-brand-lime/60 hover:bg-brand-lime/5',
                 )}
               >
-                <div className="flex items-start gap-4">
+                <div className="flex gap-4 items-start">
                   <div
                     className={cn(
                       'flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-colors',
@@ -149,9 +149,9 @@ function RoleSelectionContent() {
                         : 'bg-brand-lime/10 text-brand-navy group-hover:bg-brand-lime/20 dark:text-brand-lime',
                     )}
                   >
-                    <Wrench className="h-5 w-5" />
+                    <Wrench className="w-5 h-5" />
                   </div>
-                  <div className="min-w-0 flex-1">
+                  <div className="flex-1 min-w-0">
                     <h3 className="text-lg font-semibold text-foreground">
                       I provide services
                     </h3>
@@ -160,12 +160,12 @@ function RoleSelectionContent() {
                       exterior service business.
                     </p>
                   </div>
-                  <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100" />
+                  <ArrowRight className="mt-1 w-4 h-4 opacity-0 transition-opacity shrink-0 text-muted-foreground group-hover:opacity-100" />
                 </div>
               </button>
 
               {loading ? (
-                <p className="text-center text-sm text-muted-foreground">
+                <p className="text-sm text-center text-muted-foreground">
                   Setting up your account...
                 </p>
               ) : null}
