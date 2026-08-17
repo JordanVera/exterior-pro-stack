@@ -13,13 +13,13 @@ todos:
     status: completed
   - id: native-auth-trpc
     content: tRPC client, SecureStore JWT, login/OTP, role gate
-    status: in_progress
+    status: completed
   - id: field-screens
     content: Today, jobs list, job detail (start/complete/navigate/assign) in NativeWind
-    status: pending
+    status: completed
   - id: seed-verify
     content: Seed a crew user and verify provider vs crew job scoping
-    status: pending
+    status: completed
 isProject: false
 ---
 

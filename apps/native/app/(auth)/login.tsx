@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -6,40 +6,40 @@ import {
   Text,
   TextInput,
   View,
-} from "react-native";
-import { Redirect, useRouter } from "expo-router";
-import { trpc } from "@/lib/trpc";
-import { useAuth } from "@/lib/auth";
-import { PrimaryButton } from "@/components/PrimaryButton";
-import { LoadingScreen, Screen } from "@/components/Screen";
+} from 'react-native';
+import { Redirect, useRouter } from 'expo-router';
+import { trpc } from '@/lib/trpc';
+import { useAuth } from '@/lib/auth';
+import { PrimaryButton } from '@/components/PrimaryButton';
+import { LoadingScreen, Screen } from '@/components/Screen';
 
 export default function LoginScreen() {
   const router = useRouter();
   const { isReady, isFieldUser, signIn, signOut } = useAuth();
-  const [step, setStep] = useState<"phone" | "code">("phone");
-  const [phone, setPhone] = useState("");
-  const [code, setCode] = useState("");
-  const [error, setError] = useState("");
+  const [step, setStep] = useState<'phone' | 'code'>('phone');
+  const [phone, setPhone] = useState('');
+  const [code, setCode] = useState('');
+  const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
   if (!isReady) return <LoadingScreen />;
-  if (isFieldUser) return <Redirect href="/(field)" />;
+  if (isFieldUser) return <Redirect href="/today" />;
 
-  const digits = phone.replace(/\D/g, "").slice(0, 10);
+  const digits = phone.replace(/\D/g, '').slice(0, 10);
   const fullPhone = `+1${digits}`;
 
   const sendCode = async () => {
     if (digits.length !== 10) {
-      setError("Enter a 10-digit phone number");
+      setError('Enter a 10-digit phone number');
       return;
     }
     setLoading(true);
-    setError("");
+    setError('');
     try {
       await trpc.auth.sendCode.mutate({ phone: fullPhone });
-      setStep("code");
+      setStep('code');
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send code");
+      setError(err instanceof Error ? err.message : 'Failed to send code');
     } finally {
       setLoading(false);
     }
@@ -47,27 +47,29 @@ export default function LoginScreen() {
 
   const verifyCode = async () => {
     if (code.length !== 6) {
-      setError("Enter the 6-digit code");
+      setError('Enter the 6-digit code');
       return;
     }
     setLoading(true);
-    setError("");
+    setError('');
     try {
       const result = await trpc.auth.verifyCode.mutate({
         phone: fullPhone,
         code,
       });
       const me = await signIn(result.token);
-      if (me.role !== "PROVIDER" && me.role !== "CREW") {
+      if (me.role !== 'PROVIDER' && me.role !== 'CREW') {
         await signOut();
         setError(
-          "This app is for crews and providers. Ask your owner to add your phone to a crew.",
+          'This app is for crews and providers. Ask your owner to add your phone to a crew.',
         );
         return;
       }
-      router.replace("/(field)");
+      router.replace('/today');
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Invalid verification code");
+      setError(
+        err instanceof Error ? err.message : 'Invalid verification code',
+      );
     } finally {
       setLoading(false);
     }
@@ -76,37 +78,37 @@ export default function LoginScreen() {
   return (
     <Screen>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1 px-5 pt-8"
       >
-        <Text className="text-sm font-semibold uppercase tracking-widest text-cyan-400">
+        <Text className="text-sm font-semibold tracking-widest text-cyan-400 uppercase">
           Exterior Pro
         </Text>
         <Text className="mt-2 text-3xl font-bold text-white">
-          {step === "phone" ? "Sign in" : "Check your texts"}
+          {step === 'phone' ? 'Sign in' : 'Check your texts'}
         </Text>
         <Text className="mt-2 text-base leading-6 text-slate-400">
-          {step === "phone"
-            ? "Use the phone number on your crew or provider account."
+          {step === 'phone'
+            ? 'Use the phone number on your crew or provider account.'
             : `We sent a 6-digit code to +1 ${digits}.`}
         </Text>
 
-        {step === "phone" ? (
+        {step === 'phone' ? (
           <View className="mt-8">
             <Text className="mb-2 text-sm font-medium text-slate-300">
               Phone number
             </Text>
-            <View className="flex-row overflow-hidden rounded-2xl border border-white/15 bg-navy-800">
-              <View className="justify-center border-r border-white/10 px-4">
+            <View className="overflow-hidden flex-row rounded-2xl border border-white/15 bg-navy-800">
+              <View className="justify-center px-4 border-r border-white/10">
                 <Text className="text-lg text-slate-300">+1</Text>
               </View>
               <TextInput
                 value={digits}
-                onChangeText={(value) => setPhone(value.replace(/\D/g, ""))}
+                onChangeText={(value) => setPhone(value.replace(/\D/g, ''))}
                 keyboardType="phone-pad"
                 placeholder="5551234567"
                 placeholderTextColor="#64748b"
-                className="h-14 flex-1 px-4 text-lg text-white"
+                className="flex-1 px-4 h-14 text-lg text-white"
                 autoFocus
               />
             </View>
@@ -128,7 +130,9 @@ export default function LoginScreen() {
             </Text>
             <TextInput
               value={code}
-              onChangeText={(value) => setCode(value.replace(/\D/g, "").slice(0, 6))}
+              onChangeText={(value) =>
+                setCode(value.replace(/\D/g, '').slice(0, 6))
+              }
               keyboardType="number-pad"
               placeholder="000000"
               placeholderTextColor="#64748b"
@@ -147,13 +151,15 @@ export default function LoginScreen() {
             </View>
             <Pressable
               onPress={() => {
-                setStep("phone");
-                setCode("");
-                setError("");
+                setStep('phone');
+                setCode('');
+                setError('');
               }}
-              className="mt-4 items-center py-3"
+              className="items-center py-3 mt-4"
             >
-              <Text className="text-base text-cyan-400">Use a different number</Text>
+              <Text className="text-base text-cyan-400">
+                Use a different number
+              </Text>
             </Pressable>
           </View>
         )}

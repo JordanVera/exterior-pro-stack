@@ -1960,6 +1960,7 @@ async function main() {
   divider();
   console.log();
 
+  const totalUsers = await prisma.user.count();
   const totalCrewUsers = await prisma.user.count({ where: { role: 'CREW' } });
   const totalProperties = await prisma.property.count();
   const totalServices = await prisma.service.count();
@@ -2007,7 +2008,9 @@ async function main() {
   console.log(chalk.dim('    Admin:    +10000000000'));
   console.log(chalk.dim('    Customer: +15551001001 through +15551005005'));
   console.log(chalk.dim('    Provider: +15552001001 through +15552010010'));
-  console.log(chalk.dim('    Crew:     +15559001001 (Carlos Rivera, DFW Alpha Team)'));
+  console.log(
+    chalk.dim('    Crew:     +15559001001 (Carlos Rivera, DFW Alpha Team)'),
+  );
   console.log(
     chalk.dim(
       '    Payout-ready: DFW Power Wash, GreenScape, Texas Painters, Crystal Clear, Metroplex Lights',

@@ -13,5 +13,5 @@ export default function Index() {
     return <Redirect href="/login" />;
   }
 
-  return <Redirect href="/(field)" />;
+  return <Redirect href="/today" />;
 }

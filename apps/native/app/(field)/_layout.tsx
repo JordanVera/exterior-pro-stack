@@ -25,7 +25,7 @@ export default function FieldLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="today"
         options={{
           title: "Today",
           tabBarIcon: ({ color, size }) => (
