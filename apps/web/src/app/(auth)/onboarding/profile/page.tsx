@@ -26,7 +26,7 @@ function AuthShell({ children }: { children: ReactNode }) {
       <BackgroundBeams className="opacity-40" delay={0} />
 
       <header className="relative z-20 px-4 pt-4">
-        <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-black/50">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-brand-navy/70">
           <Link href="/" className="flex gap-2 items-center pl-1">
             <Image
               src="/logos/logo-stacked.png"
@@ -113,7 +113,7 @@ export default function ProfileOnboardingPage() {
     return (
       <AuthShell>
         <div className="flex flex-col gap-3 items-center">
-          <div className="w-8 h-8 rounded-full border-2 animate-spin border-cyan-500/20 border-t-cyan-500" />
+          <div className="w-8 h-8 rounded-full border-2 animate-spin border-brand-lime/20 border-t-brand-lime" />
           <p className="text-sm text-muted-foreground">Loading</p>
         </div>
       </AuthShell>
@@ -125,8 +125,8 @@ export default function ProfileOnboardingPage() {
       <div className="w-full max-w-md">
         <Card className="relative p-8 rounded-2xl border shadow-lg backdrop-blur-xl border-border bg-background/80">
           <CardHeader className="p-0 mb-6 space-y-3 text-center">
-            <p className="inline-flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-600 dark:text-cyan-400">
-              <span className="w-6 h-px bg-cyan-500" />
+            <p className="inline-flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-brand-navy dark:text-brand-lime">
+              <span className="w-6 h-px bg-brand-lime" />
               Almost there
             </p>
             <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -155,7 +155,7 @@ export default function ProfileOnboardingPage() {
                     type="text"
                     value={firstName}
                     onChange={(e) => setFirstName(e.target.value)}
-                    className="focus-visible:ring-cyan-500"
+                    className="focus-visible:ring-brand-lime"
                     required
                   />
                 </div>
@@ -166,7 +166,7 @@ export default function ProfileOnboardingPage() {
                     type="text"
                     value={lastName}
                     onChange={(e) => setLastName(e.target.value)}
-                    className="focus-visible:ring-cyan-500"
+                    className="focus-visible:ring-brand-lime"
                     required
                   />
                 </div>
@@ -177,14 +177,14 @@ export default function ProfileOnboardingPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="focus-visible:ring-cyan-500"
+                    className="focus-visible:ring-brand-lime"
                   />
                 </div>
                 <Button
                   type="submit"
                   disabled={loading || !firstName || !lastName}
                   size="lg"
-                  className="mt-2 w-full font-semibold text-black bg-cyan-500 rounded-xl hover:bg-cyan-400"
+                  className="mt-2 w-full font-semibold bg-brand-lime text-brand-ink rounded-xl hover:bg-brand-lime/90"
                 >
                   {loading ? 'Saving...' : 'Continue'}
                 </Button>
@@ -200,7 +200,7 @@ export default function ProfileOnboardingPage() {
                     type="text"
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
-                    className="focus-visible:ring-cyan-500"
+                    className="focus-visible:ring-brand-lime"
                     required
                   />
                 </div>
@@ -211,7 +211,7 @@ export default function ProfileOnboardingPage() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     rows={3}
-                    className="resize-none focus-visible:ring-cyan-500"
+                    className="resize-none focus-visible:ring-brand-lime"
                     placeholder="Tell customers about your services..."
                   />
                 </div>
@@ -222,7 +222,7 @@ export default function ProfileOnboardingPage() {
                     type="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="focus-visible:ring-cyan-500"
+                    className="focus-visible:ring-brand-lime"
                     placeholder="you@company.com"
                   />
                 </div>
@@ -233,7 +233,7 @@ export default function ProfileOnboardingPage() {
                     type="text"
                     value={serviceArea}
                     onChange={(e) => setServiceArea(e.target.value)}
-                    className="focus-visible:ring-cyan-500"
+                    className="focus-visible:ring-brand-lime"
                     placeholder="e.g., Dallas-Fort Worth metro area"
                   />
                 </div>
@@ -241,7 +241,7 @@ export default function ProfileOnboardingPage() {
                   type="submit"
                   disabled={loading || !businessName}
                   size="lg"
-                  className="mt-2 w-full font-semibold text-black bg-cyan-500 rounded-xl hover:bg-cyan-400"
+                  className="mt-2 w-full font-semibold bg-brand-lime text-brand-ink rounded-xl hover:bg-brand-lime/90"
                 >
                   {loading ? 'Saving...' : 'Continue'}
                 </Button>

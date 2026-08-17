@@ -148,7 +148,7 @@ export default function SubscriptionsPage() {
             </p>
             <Button
               onClick={() => router.push('/customer/plans')}
-              className="rounded-full bg-cyan-500 hover:bg-cyan-400"
+              className="rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
             >
               Browse Plans
             </Button>

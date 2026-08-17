@@ -5,7 +5,7 @@ import { SectionEyebrow } from './section-eyebrow';
 
 function BentoVisual({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="relative flex-1 w-full overflow-hidden rounded-xl min-h-[6rem]">
+    <div className="relative min-h-[6rem] w-full flex-1 overflow-hidden rounded-xl">
       <Image
         src={src}
         alt={alt}
@@ -13,7 +13,7 @@ function BentoVisual({ src, alt }: { src: string; alt: string }) {
         sizes="(max-width: 768px) 100vw, (max-width: 1200px) 66vw, 40vw"
         className="object-cover transition duration-500 group-hover/bento:scale-105"
       />
-      <div className="absolute inset-0 bg-gradient-to-t to-transparent from-black/50 via-black/10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
     </div>
   );
 }
@@ -21,20 +21,19 @@ function BentoVisual({ src, alt }: { src: string; alt: string }) {
 export function WhySection() {
   return (
     <section className="py-24">
-      <div className="px-6 mx-auto max-w-7xl">
+      <div className="mx-auto max-w-7xl px-6">
         <div className="mb-16 max-w-3xl">
           <SectionEyebrow>Why Exterior Pro</SectionEyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-5xl">
             Not just another marketplace.
-            <span className="block mt-2 text-muted-foreground">
-              A smarter way to manage your property.
+            <span className="mt-2 block text-muted-foreground">
+              A smarter way to run exterior work.
             </span>
           </h2>
           <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
             Unlike generic platforms like Thumbtack or Angi, Exterior Pro
-            combines subscription-based recurring services with a
-            competitive bidding marketplace — built exclusively for exterior
-            property work.
+            combines subscription-based recurring services with a competitive
+            bidding marketplace — built exclusively for exterior property work.
           </p>
         </div>
 
@@ -49,7 +48,7 @@ export function WhySection() {
                 alt="Modern home exterior with a manicured lawn"
               />
             }
-            icon={<Target className="w-4 h-4 text-cyan-500" />}
+            icon={<Target className="h-4 w-4 text-brand-lime" />}
           />
           <BentoGridItem
             title="Verified providers"
@@ -60,7 +59,7 @@ export function WhySection() {
                 alt="Professional mowing a residential lawn"
               />
             }
-            icon={<ShieldCheck className="w-4 h-4 text-emerald-500" />}
+            icon={<ShieldCheck className="h-4 w-4 text-brand-lime" />}
           />
           <BentoGridItem
             title="Competitive bidding"
@@ -71,7 +70,7 @@ export function WhySection() {
                 alt="Comparing service quotes on a laptop"
               />
             }
-            icon={<Scale className="w-4 h-4 text-cyan-500" />}
+            icon={<Scale className="h-4 w-4 text-brand-lime" />}
           />
           <BentoGridItem
             className="md:col-span-2"
@@ -83,7 +82,7 @@ export function WhySection() {
                 alt="Lush green lawn maintained on a regular schedule"
               />
             }
-            icon={<Repeat className="w-4 h-4 text-cyan-500" />}
+            icon={<Repeat className="h-4 w-4 text-brand-lime" />}
           />
           <BentoGridItem
             title="Sticky providers"
@@ -94,7 +93,7 @@ export function WhySection() {
                 alt="Crew working together on an exterior job site"
               />
             }
-            icon={<Users className="w-4 h-4 text-cyan-500" />}
+            icon={<Users className="h-4 w-4 text-brand-lime" />}
           />
           <BentoGridItem
             className="md:col-span-2"
@@ -106,7 +105,7 @@ export function WhySection() {
                 alt="Checking job updates on a smartphone"
               />
             }
-            icon={<Bell className="w-4 h-4 text-emerald-500" />}
+            icon={<Bell className="h-4 w-4 text-brand-lime" />}
           />
         </BentoGrid>
       </div>

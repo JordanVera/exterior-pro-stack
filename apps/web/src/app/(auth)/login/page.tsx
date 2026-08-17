@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { trpc } from '../../../lib/trpc';
 import { setToken } from '../../../lib/auth';
+import { isAuthIntent, rolePath } from '@/lib/auth-intent';
 import {
   InputOTP,
   InputOTPGroup,
@@ -30,10 +31,21 @@ import { BackgroundBeams } from '@/components/ui/background-beams';
 type Step = 'phone' | 'code';
 
 const OTP_SLOT_CLASS =
-  'rounded-lg p-1.5 backdrop-blur-sm [&>div]:h-12 [&>div]:w-12 [&>div]:border [&>div]:border-border [&>div]:bg-background/60 [&>div]:text-foreground [&>div]:text-xl [&>div]:font-medium [&>div]:first:rounded-l-md [&>div]:last:rounded-r-md [&>div[data-active]]:ring-2 [&>div[data-active]]:ring-cyan-500 [&>div[data-active]]:border-cyan-500/50 [&>div[role=separator]]:h-12 [&>div[role=separator]]:w-0 [&>div[role=separator]]:border-0 [&>div[role=separator]]:bg-transparent [&>div[role=separator]]:flex [&>div[role=separator]]:items-center [&>div[role=separator]]:justify-center [&>div[role=separator]]:px-2';
+  'rounded-lg p-1.5 backdrop-blur-sm [&>div]:h-12 [&>div]:w-12 [&>div]:border [&>div]:border-border [&>div]:bg-background/60 [&>div]:text-foreground [&>div]:text-xl [&>div]:font-medium [&>div]:first:rounded-l-md [&>div]:last:rounded-r-md [&>div[data-active]]:ring-2 [&>div[data-active]]:ring-brand-lime [&>div[data-active]]:border-brand-lime/50 [&>div[role=separator]]:h-12 [&>div[role=separator]]:w-0 [&>div[role=separator]]:border-0 [&>div[role=separator]]:bg-transparent [&>div[role=separator]]:flex [&>div[role=separator]]:items-center [&>div[role=separator]]:justify-center [&>div[role=separator]]:px-2';
 
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
+  );
+}
+
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const intentParam = searchParams.get('intent');
+  const intent = isAuthIntent(intentParam) ? intentParam : null;
   const [step, setStep] = useState<Step>('phone');
   const [phone, setPhone] = useState('');
   const [code, setCode] = useState('');
@@ -87,7 +99,7 @@ export default function LoginPage() {
       await setToken(result.token);
       if (result.user.role === 'ADMIN') router.push('/admin');
       else if (result.user.isNewUser || !result.user.role)
-        router.push('/onboarding/role');
+        router.push(rolePath(intent));
       else if (!result.user.hasProfile) router.push('/onboarding/profile');
       else if (result.user.role === 'CUSTOMER') router.push('/customer');
       else if (result.user.role === 'PROVIDER') router.push('/provider');
@@ -99,13 +111,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex overflow-hidden relative flex-col min-h-screen bg-background text-foreground">
+    <div className="relative flex min-h-screen flex-col overflow-hidden bg-background text-foreground">
       <div className="bg-grid-fade pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
       <BackgroundBeams className="opacity-40" delay={0} />
 
       <header className="relative z-20 px-4 pt-4">
-        <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-black/50">
-          <Link href="/" className="flex gap-2 items-center pl-1">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-brand-navy/70">
+          <Link href="/" className="flex items-center gap-2 pl-1">
             <Image
               src="/logos/logo-stacked.png"
               alt="Exterior Pro"
@@ -114,7 +126,7 @@ export default function LoginPage() {
               priority
             />
           </Link>
-          <div className="flex gap-2 items-center">
+          <div className="flex items-center gap-2">
             <ThemeToggle />
             <Button
               type="button"
@@ -123,23 +135,27 @@ export default function LoginPage() {
               onClick={() => router.push('/')}
               className="gap-1.5 text-muted-foreground hover:text-foreground"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="h-4 w-4" />
               Back to home
             </Button>
           </div>
         </nav>
       </header>
 
-      <main className="flex relative z-10 flex-1 justify-center items-center px-4 py-12">
+      <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
-          <Card className="relative p-8 rounded-2xl border shadow-lg backdrop-blur-xl border-border bg-background/80">
-            <CardHeader className="p-0 mb-6 space-y-3 text-center">
+          <Card className="relative rounded-2xl border border-border bg-background/80 p-8 shadow-lg backdrop-blur-xl">
+            <CardHeader className="mb-6 space-y-3 p-0 text-center">
               <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                 {step === 'phone' ? 'Welcome back' : 'Check your messages'}
               </h1>
               <CardDescription>
                 {step === 'phone'
-                  ? 'Enter your phone number to get started'
+                  ? intent === 'provider'
+                    ? 'Enter your phone number to join as a provider'
+                    : intent === 'customer'
+                      ? 'Enter your phone number to get your property handled'
+                      : 'Enter your phone number to get started'
                   : 'Enter the verification code we sent you'}
               </CardDescription>
             </CardHeader>
@@ -150,7 +166,7 @@ export default function LoginPage() {
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone number</Label>
                     <div className="flex">
-                      <span className="inline-flex items-center px-4 h-9 text-sm rounded-l-md border border-r-0 border-input bg-muted/50 text-muted-foreground">
+                      <span className="inline-flex h-9 items-center rounded-l-md border border-r-0 border-input bg-muted/50 px-4 text-sm text-muted-foreground">
                         +1
                       </span>
                       <Input
@@ -159,7 +175,7 @@ export default function LoginPage() {
                         value={phone}
                         onChange={(e) => setPhone(formatPhone(e.target.value))}
                         placeholder="(555) 123-4567"
-                        className="flex-1 rounded-l-none focus-visible:ring-cyan-500"
+                        className="flex-1 rounded-l-none focus-visible:ring-brand-lime"
                         autoFocus
                       />
                     </div>
@@ -173,7 +189,7 @@ export default function LoginPage() {
                     type="submit"
                     disabled={loading || phone.length !== 10}
                     size="lg"
-                    className="w-full font-semibold text-black bg-cyan-500 rounded-xl hover:bg-cyan-400"
+                    className="w-full rounded-xl bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
                   >
                     {loading ? 'Sending...' : 'Send verification code'}
                   </Button>
@@ -185,7 +201,7 @@ export default function LoginPage() {
                   onSubmit={handleVerifyCode}
                   className="justify-center space-y-6"
                 >
-                  <div className="flex flex-col justify-center items-center space-y-2">
+                  <div className="flex flex-col items-center justify-center space-y-2">
                     <Label>Verification Code</Label>
                     <InputOTP
                       maxLength={6}
@@ -221,7 +237,7 @@ export default function LoginPage() {
                     type="submit"
                     disabled={loading || code.length !== 6}
                     size="lg"
-                    className="w-full font-semibold text-black bg-cyan-500 rounded-xl hover:bg-cyan-400"
+                    className="w-full rounded-xl bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
                   >
                     {loading ? 'Verifying...' : 'Verify code'}
                   </Button>
@@ -247,7 +263,7 @@ export default function LoginPage() {
             </CardContent>
           </Card>
 
-          <p className="mt-6 text-xs text-center text-muted-foreground">
+          <p className="mt-6 text-center text-xs text-muted-foreground">
             By continuing, you agree to our{' '}
             <Link
               href="/terms"

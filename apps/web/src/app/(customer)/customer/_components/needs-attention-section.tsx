@@ -22,7 +22,7 @@ export function NeedsAttentionSection({ jobs }: NeedsAttentionSectionProps) {
           variant="link"
           size="sm"
           asChild
-          className="h-auto p-0 text-xs text-cyan-500 hover:text-cyan-400"
+          className="h-auto p-0 text-xs text-brand-navy hover:text-brand-navy/70 dark:text-brand-lime dark:hover:text-brand-lime/80"
         >
           <Link href="/customer/jobs">View all</Link>
         </Button>
@@ -42,7 +42,7 @@ export function NeedsAttentionSection({ jobs }: NeedsAttentionSectionProps) {
             </p>
             <Button
               asChild
-              className="mt-4 rounded-full bg-cyan-500 text-black hover:bg-cyan-400"
+              className="mt-4 rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
               size="sm"
             >
               <Link href="/customer/jobs/new">Request a service</Link>

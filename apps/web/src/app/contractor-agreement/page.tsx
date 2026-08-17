@@ -8,7 +8,7 @@ export default function ContractorAgreementPage() {
   return (
     <main className="max-w-3xl px-5 py-16 mx-auto">
       <p className="mb-6 text-sm">
-        <Link href="/" className="text-cyan-600 hover:underline">
+        <Link href="/" className="text-brand-navy hover:underline dark:text-brand-lime">
           ← Home
         </Link>
       </p>

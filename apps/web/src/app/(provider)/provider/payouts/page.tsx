@@ -141,7 +141,7 @@ export default function ProviderPayoutsPage() {
             <label className="flex items-start gap-2 text-sm text-foreground">
               <input
                 type="checkbox"
-                className="mt-1 accent-cyan-500"
+                className="mt-1 accent-brand-lime"
                 checked={agreed}
                 onChange={(e) => setAgreed(e.target.checked)}
               />
@@ -149,7 +149,7 @@ export default function ProviderPayoutsPage() {
                 I agree to the{' '}
                 <Link
                   href="/contractor-agreement"
-                  className="text-cyan-500 underline"
+                  className="text-brand-navy underline dark:text-brand-lime"
                 >
                   Independent Contractor Agreement
                 </Link>
@@ -159,7 +159,7 @@ export default function ProviderPayoutsPage() {
             <Button
               onClick={handleStart}
               disabled={starting || !email || !agreed}
-              className="rounded-full bg-cyan-500 font-semibold text-black hover:bg-cyan-400"
+              className="rounded-full bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
             >
               {starting ? 'Starting...' : 'Set up payouts'}
             </Button>

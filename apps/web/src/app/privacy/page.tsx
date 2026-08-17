@@ -6,7 +6,7 @@ export default function PrivacyPage() {
   return (
     <main className="max-w-3xl px-5 py-16 mx-auto">
       <p className="mb-6 text-sm">
-        <Link href="/" className="text-cyan-600 hover:underline">
+        <Link href="/" className="text-brand-navy hover:underline dark:text-brand-lime">
           ← Home
         </Link>
       </p>
@@ -44,7 +44,7 @@ export default function PrivacyPage() {
         <p>
           This policy is a launch draft and should be reviewed by counsel before
           production use. Contact{" "}
-          <a className="text-cyan-600 hover:underline" href="mailto:support@exteriorpro.app">
+          <a className="text-brand-navy hover:underline dark:text-brand-lime" href="mailto:support@exteriorpro.app">
             support@exteriorpro.app
           </a>
           .

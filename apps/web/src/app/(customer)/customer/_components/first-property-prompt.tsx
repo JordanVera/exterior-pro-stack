@@ -13,11 +13,11 @@ interface FirstPropertyPromptProps {
 
 export function FirstPropertyPrompt({ onAdded }: FirstPropertyPromptProps) {
   return (
-    <Card className="border-cyan-500/30 bg-background/80 shadow-none backdrop-blur-xl">
+    <Card className="border-brand-lime/30 bg-background/80 shadow-none backdrop-blur-xl">
       <CardContent className="p-6 sm:p-8">
         <div className="mb-5 flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-cyan-500/10">
-            <MapPin className="h-5 w-5 text-cyan-500" />
+          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand-lime/10">
+            <MapPin className="h-5 w-5 text-brand-lime" />
           </div>
           <div>
             <h2 className="text-lg font-semibold text-foreground">

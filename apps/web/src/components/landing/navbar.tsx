@@ -7,13 +7,12 @@ import { useRouter } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
-import { HoverBorderGradient } from '@/components/ui/hover-border-gradient';
+import { loginPath } from '@/lib/auth-intent';
 
 const NAV_LINKS = [
-  { href: '#plans', label: 'Plans' },
-  { href: '#services', label: 'Services' },
-  { href: '#how-it-works', label: 'How it works' },
+  { href: '#plans', label: 'For homeowners' },
   { href: '#providers', label: 'For providers' },
+  { href: '#how-it-works', label: 'How it works' },
 ];
 
 export function LandingNavbar() {
@@ -22,7 +21,7 @@ export function LandingNavbar() {
 
   return (
     <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-black/50">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-brand-navy/70">
         <Link href="/" className="flex gap-2 items-center pl-1">
           <Image
             src="/logos/logo-stacked.png"
@@ -49,19 +48,17 @@ export function LandingNavbar() {
           <ThemeToggle />
           <Button
             variant="ghost"
-            onClick={() => router.push('/login')}
+            onClick={() => router.push(loginPath())}
             className="hidden text-muted-foreground hover:text-foreground sm:inline-flex"
           >
             Sign in
           </Button>
-          <HoverBorderGradient
-            as="button"
-            containerClassName="hidden sm:flex rounded-full"
-            className="flex items-center px-4 py-1.5 text-sm font-medium dark:bg-black"
-            onClick={() => router.push('/login')}
+          <Button
+            onClick={() => router.push(loginPath())}
+            className="hidden h-9 rounded-full bg-brand-lime px-4 text-sm font-semibold text-brand-ink hover:bg-brand-lime/90 sm:inline-flex"
           >
             Get started
-          </HoverBorderGradient>
+          </Button>
           <Button
             variant="ghost"
             size="icon"
@@ -88,8 +85,8 @@ export function LandingNavbar() {
             </a>
           ))}
           <Button
-            className="mt-2 w-full text-black bg-cyan-500 hover:bg-cyan-400"
-            onClick={() => router.push('/login')}
+            className="mt-2 w-full rounded-full bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
+            onClick={() => router.push(loginPath())}
           >
             Get started
           </Button>

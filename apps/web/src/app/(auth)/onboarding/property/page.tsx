@@ -23,7 +23,7 @@ function AuthShell({ children }: { children: ReactNode }) {
       <BackgroundBeams className="opacity-40" delay={0} />
 
       <header className="relative z-20 px-4 pt-4">
-        <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-black/50">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-brand-navy/70">
           <Link href="/" className="flex items-center gap-2 pl-1">
             <Image
               src="/logos/logo-stacked.png"
@@ -74,7 +74,7 @@ export default function PropertyOnboardingPage() {
     return (
       <AuthShell>
         <div className="flex flex-col items-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-cyan-500/20 border-t-cyan-500" />
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-lime/20 border-t-brand-lime" />
           <p className="text-sm text-muted-foreground">Loading</p>
         </div>
       </AuthShell>
@@ -86,8 +86,8 @@ export default function PropertyOnboardingPage() {
       <div className="w-full max-w-md">
         <Card className="relative rounded-2xl border border-border bg-background/80 p-8 shadow-lg backdrop-blur-xl">
           <CardHeader className="mb-6 space-y-3 p-0 text-center">
-            <p className="inline-flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-cyan-600 dark:text-cyan-400">
-              <span className="h-px w-6 bg-cyan-500" />
+            <p className="inline-flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-brand-navy dark:text-brand-lime">
+              <span className="h-px w-6 bg-brand-lime" />
               Last step
             </p>
             <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">

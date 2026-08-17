@@ -97,8 +97,8 @@ function JobTimeline({ job }: { job: CustomerJob }) {
               <div
                 className={cn(
                   'flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-semibold',
-                  done && 'bg-cyan-500 text-white',
-                  current && 'bg-cyan-500/20 text-cyan-500',
+                  done && 'bg-brand-lime text-brand-ink',
+                  current && 'bg-brand-lime/20 text-brand-lime',
                   !active && 'bg-muted text-muted-foreground',
                 )}
               >
@@ -117,7 +117,7 @@ function JobTimeline({ job }: { job: CustomerJob }) {
               <div
                 className={cn(
                   'mx-1 mb-5 h-px flex-1',
-                  done ? 'bg-cyan-500/40' : 'bg-border',
+                  done ? 'bg-brand-lime/40' : 'bg-border',
                 )}
               />
             )}
@@ -332,7 +332,7 @@ export default function JobDetailPage() {
                                 {bid.provider.businessName}
                               </span>
                               {bid.provider.verified && (
-                                <BadgeCheck className="h-4 w-4 text-cyan-500" />
+                                <BadgeCheck className="h-4 w-4 text-brand-lime" />
                               )}
                             </div>
                             {bid.provider.description && (

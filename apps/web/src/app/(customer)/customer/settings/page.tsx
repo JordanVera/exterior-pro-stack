@@ -252,7 +252,7 @@ export default function SettingsPage() {
       <Card className="overflow-hidden shadow-none">
         <CardHeader className="flex flex-row gap-3 items-center p-5 pb-0">
           <Avatar className="w-10 h-10">
-            <AvatarFallback className="text-sm font-semibold text-white bg-gradient-to-br from-cyan-400 to-cyan-600">
+            <AvatarFallback className="text-sm font-semibold text-white bg-gradient-to-br from-brand-navy to-brand-lime">
               {initials}
             </AvatarFallback>
           </Avatar>
@@ -267,7 +267,7 @@ export default function SettingsPage() {
               variant="ghost"
               size="sm"
               onClick={startEditProfile}
-              className="px-2 h-7 text-xs text-cyan-500 hover:text-cyan-400"
+              className="px-2 h-7 text-xs text-brand-navy hover:text-brand-navy/70 dark:text-brand-lime dark:hover:text-brand-lime/80"
             >
               <Pencil className="w-3.5 h-3.5 mr-1" />
               Edit
@@ -313,7 +313,7 @@ export default function SettingsPage() {
                 <Button
                   onClick={saveProfile}
                   disabled={profileSaving}
-                  className="flex-1 bg-cyan-500 hover:bg-cyan-400"
+                  className="flex-1 bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
                 >
                   <Check className="w-3.5 h-3.5" />
                   {profileSaving ? "Saving..." : "Save"}
@@ -377,7 +377,7 @@ export default function SettingsPage() {
               variant="ghost"
               size="sm"
               onClick={() => setShowAdd(true)}
-              className="px-2 h-7 text-xs text-cyan-500 hover:text-cyan-400"
+              className="px-2 h-7 text-xs text-brand-navy hover:text-brand-navy/70 dark:text-brand-lime dark:hover:text-brand-lime/80"
             >
               <Plus className="w-3.5 h-3.5 mr-1" />
               Add
@@ -387,7 +387,7 @@ export default function SettingsPage() {
 
         {/* add form */}
         {showAdd && (
-          <Card className="mb-3 shadow-none animate-step-enter border-cyan-500/30">
+          <Card className="mb-3 shadow-none animate-step-enter border-brand-lime/30">
             <CardContent className="p-4">
               <div className="flex justify-between items-center mb-3">
                 <span className="text-sm font-medium text-neutral-900 dark:text-white">
@@ -461,7 +461,7 @@ export default function SettingsPage() {
                 <Button
                   type="submit"
                   disabled={addSaving}
-                  className="w-full bg-cyan-500 hover:bg-cyan-400"
+                  className="w-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
                 >
                   {addSaving ? "Adding..." : "Add Property"}
                 </Button>
@@ -482,7 +482,7 @@ export default function SettingsPage() {
                 <Button
                   variant="ghost"
                   onClick={() => setShowAdd(true)}
-                  className="text-sm text-cyan-500 hover:text-cyan-400"
+                  className="text-sm text-brand-navy hover:text-brand-navy/70 dark:text-brand-lime dark:hover:text-brand-lime/80"
                 >
                   <Plus className="mr-1 w-4 h-4" />
                   Add your first property
@@ -567,7 +567,7 @@ export default function SettingsPage() {
                         <Button
                           onClick={saveEdit}
                           disabled={editSaving}
-                          className="flex-1 bg-cyan-500 hover:bg-cyan-400"
+                          className="flex-1 bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
                         >
                           <Check className="w-3.5 h-3.5" />
                           {editSaving ? "Saving..." : "Save"}

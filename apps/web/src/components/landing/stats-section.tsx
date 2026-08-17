@@ -1,17 +1,15 @@
-import { STATS } from './data';
+import { TRUST_ITEMS } from './data';
 
-export function StatsSection() {
+export function TrustStrip() {
   return (
     <section className="py-16">
-      <div className="grid grid-cols-2 gap-8 px-6 mx-auto max-w-5xl text-center md:grid-cols-4">
-        {STATS.map((stat) => (
-          <div key={stat.label}>
-            <div className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-foreground to-foreground/60 sm:text-5xl">
-              {stat.value}
+      <div className="mx-auto grid max-w-5xl grid-cols-2 gap-8 px-6 text-center md:grid-cols-4">
+        {TRUST_ITEMS.map((item) => (
+          <div key={item.value}>
+            <div className="text-2xl font-bold tracking-tight text-brand-navy dark:text-brand-lime sm:text-3xl">
+              {item.value}
             </div>
-            <div className="mt-2 text-sm text-muted-foreground">
-              {stat.label}
-            </div>
+            <div className="mt-2 text-sm text-muted-foreground">{item.label}</div>
           </div>
         ))}
       </div>

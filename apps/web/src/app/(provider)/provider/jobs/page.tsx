@@ -132,7 +132,7 @@ export default function ProviderJobsPage() {
             className={cn(
               'cursor-pointer select-none rounded-full border-0 px-3.5 py-1.5 text-xs font-medium',
               filter === item.value
-                ? 'bg-cyan-500 text-white hover:bg-cyan-500'
+                ? 'bg-brand-lime text-brand-ink hover:bg-brand-lime'
                 : 'hover:text-foreground',
             )}
           >
@@ -239,7 +239,7 @@ export default function ProviderJobsPage() {
                           />
                           <Button
                             size="sm"
-                            className="h-8 text-black bg-cyan-500 rounded-full hover:bg-cyan-400"
+                            className="h-8 bg-brand-lime text-brand-ink rounded-full hover:bg-brand-lime/90"
                             onClick={() => handleSchedule(job.id)}
                           >
                             Confirm
@@ -256,7 +256,7 @@ export default function ProviderJobsPage() {
                       ) : (
                         <Button
                           size="sm"
-                          className="h-8 text-black bg-cyan-500 rounded-full hover:bg-cyan-400"
+                          className="h-8 bg-brand-lime text-brand-ink rounded-full hover:bg-brand-lime/90"
                           onClick={() => setSchedulingJobId(job.id)}
                         >
                           Schedule
@@ -284,7 +284,7 @@ export default function ProviderJobsPage() {
                           </Select>
                           <Button
                             size="sm"
-                            className="h-8 text-black bg-cyan-500 rounded-full hover:bg-cyan-400"
+                            className="h-8 bg-brand-lime text-brand-ink rounded-full hover:bg-brand-lime/90"
                             onClick={() => handleAssignCrew(job.id)}
                           >
                             Assign
@@ -325,7 +325,7 @@ export default function ProviderJobsPage() {
                     {job.status === 'IN_PROGRESS' && (
                       <Button
                         size="sm"
-                        className="h-8 text-black bg-cyan-500 rounded-full hover:bg-cyan-400"
+                        className="h-8 bg-brand-lime text-brand-ink rounded-full hover:bg-brand-lime/90"
                         onClick={() => handleStatusUpdate(job.id, 'COMPLETED')}
                       >
                         Complete job

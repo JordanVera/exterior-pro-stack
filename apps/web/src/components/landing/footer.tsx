@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -7,24 +8,23 @@ import { FOOTER_HOMEOWNER_LINKS, FOOTER_PROVIDER_LINKS } from './data';
 
 export function LandingFooter() {
   const router = useRouter();
-  const goLogin = () => router.push('/login');
 
   return (
     <footer className="py-12 border-t border-border">
       <div className="px-6 mx-auto max-w-7xl">
         <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           <div className="col-span-2 md:col-span-1">
-            <div className="flex gap-2 items-center mb-4">
-              <div className="flex justify-center items-center w-8 h-8 text-sm font-bold text-white bg-cyan-600 rounded-lg">
-                EP
-              </div>
-              <span className="text-lg font-bold text-foreground">
-                Exterior Pro
-              </span>
+            <div className="mb-4">
+              <Image
+                src="/logos/logo-stacked.png"
+                alt="Exterior Pro"
+                width={110}
+                height={42}
+              />
             </div>
             <p className="text-sm leading-relaxed text-muted-foreground">
-              The all-in-one platform for exterior property services. Book,
-              track, and manage everything from your phone.
+              The operating system for exterior property services. Plans, jobs,
+              crews, and tracking — in one place.
             </p>
           </div>
           <div>
@@ -32,14 +32,14 @@ export function LandingFooter() {
               For homeowners
             </h4>
             <ul className="space-y-2.5 text-sm text-muted-foreground">
-              {FOOTER_HOMEOWNER_LINKS.map((label) => (
-                <li key={label}>
+              {FOOTER_HOMEOWNER_LINKS.map((item) => (
+                <li key={item.label}>
                   <Button
                     variant="link"
-                    onClick={goLogin}
+                    onClick={() => router.push(item.href)}
                     className="p-0 h-auto text-muted-foreground hover:text-foreground"
                   >
-                    {label}
+                    {item.label}
                   </Button>
                 </li>
               ))}
@@ -50,14 +50,14 @@ export function LandingFooter() {
               For providers
             </h4>
             <ul className="space-y-2.5 text-sm text-muted-foreground">
-              {FOOTER_PROVIDER_LINKS.map((label) => (
-                <li key={label}>
+              {FOOTER_PROVIDER_LINKS.map((item) => (
+                <li key={item.label}>
                   <Button
                     variant="link"
-                    onClick={goLogin}
+                    onClick={() => router.push(item.href)}
                     className="p-0 h-auto text-muted-foreground hover:text-foreground"
                   >
-                    {label}
+                    {item.label}
                   </Button>
                 </li>
               ))}

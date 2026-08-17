@@ -57,7 +57,7 @@ export type CustomerJob = {
 };
 
 export const STATUS_DOT: Record<string, string> = {
-  OPEN: 'bg-cyan-500',
+  OPEN: 'bg-brand-lime',
   PENDING: 'bg-muted-foreground',
   SCHEDULED: 'bg-blue-500',
   IN_PROGRESS: 'bg-amber-500',
@@ -70,8 +70,8 @@ export const STATUS_BADGE: Record<
   { bg: string; text: string; label: string }
 > = {
   OPEN: {
-    bg: 'bg-cyan-500/10',
-    text: 'text-cyan-500',
+    bg: 'bg-brand-lime/10',
+    text: 'text-brand-navy dark:text-brand-lime',
     label: 'Open',
   },
   PENDING: {

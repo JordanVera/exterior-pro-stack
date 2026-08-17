@@ -30,11 +30,11 @@ export default function AdminDashboard() {
 
   const statCards = [
     { label: "Total Users", value: stats?.totalUsers ?? 0, color: "text-gray-900 dark:text-white" },
-    { label: "Customers", value: stats?.totalCustomers ?? 0, color: "text-cyan-600 dark:text-cyan-400" },
+    { label: "Customers", value: stats?.totalCustomers ?? 0, color: "text-brand-navy dark:text-brand-lime" },
     { label: "Providers", value: stats?.totalProviders ?? 0, color: "text-green-600 dark:text-green-400" },
     { label: "Verified Providers", value: stats?.verifiedProviders ?? 0, color: "text-green-700 dark:text-green-400" },
     { label: "Total Jobs", value: stats?.totalJobs ?? 0, color: "text-gray-900 dark:text-white" },
-    { label: "Open Jobs", value: stats?.openJobs ?? 0, color: "text-cyan-600 dark:text-cyan-400" },
+    { label: "Open Jobs", value: stats?.openJobs ?? 0, color: "text-brand-navy dark:text-brand-lime" },
     { label: "Active Jobs", value: stats?.activeJobs ?? 0, color: "text-blue-600 dark:text-blue-400" },
     { label: "Completed Jobs", value: stats?.completedJobs ?? 0, color: "text-green-600 dark:text-green-400" },
     { label: "Total Bids", value: stats?.totalBids ?? 0, color: "text-gray-900 dark:text-white" },
@@ -52,7 +52,7 @@ export default function AdminDashboard() {
         <button
           onClick={syncPlans}
           disabled={syncing}
-          className="mt-3 text-sm text-cyan-600 hover:underline disabled:opacity-50"
+          className="mt-3 text-sm text-brand-navy hover:underline disabled:opacity-50 dark:text-brand-lime"
         >
           {syncing ? "Syncing…" : "Sync plans to Stripe"}
         </button>

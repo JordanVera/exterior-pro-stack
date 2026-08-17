@@ -1,3 +1,5 @@
+import { loginPath } from '@/lib/auth-intent';
+
 export const PLANS = [
   {
     name: 'Basic Lawn Care',
@@ -48,63 +50,63 @@ export const SERVICES = [
     title: 'Lawn Maintenance',
     description:
       'Weekly or biweekly mowing, edging, trimming, fertilization, and weed control programs.',
-    link: '/login',
+    link: loginPath('customer'),
     tag: 'Weekly / Biweekly',
   },
   {
     title: 'Landscaping',
     description:
       'Full-service design, planting, mulching, hardscaping, and seasonal cleanup.',
-    link: '/login',
+    link: loginPath('customer'),
     tag: 'Weekly / Biweekly',
   },
   {
     title: 'Weed Control',
     description:
       'Targeted treatments, pre-emergent applications, and ongoing prevention programs.',
-    link: '/login',
+    link: loginPath('customer'),
     tag: 'Monthly / Quarterly',
   },
   {
     title: 'Gutter Cleaning',
     description:
       'Thorough gutter and downspout cleaning, guard installation, and debris removal.',
-    link: '/login',
+    link: loginPath('customer'),
     tag: 'Quarterly / Biannual',
   },
   {
     title: 'Pressure Washing',
     description:
       'Driveways, siding, decks, patios, and fences restored to like-new condition.',
-    link: '/login',
+    link: loginPath('customer'),
     tag: 'Most popular',
   },
   {
     title: 'Exterior Painting',
     description:
       'Professional prep and painting for siding, trim, fences, decks, and more.',
-    link: '/login',
+    link: loginPath('customer'),
     tag: 'One-time',
   },
   {
     title: 'Window Cleaning',
     description:
       'Streak-free interior and exterior cleaning for homes and commercial properties.',
-    link: '/login',
+    link: loginPath('customer'),
     tag: 'Biannual / One-time',
   },
   {
     title: 'Roof Care',
     description:
       'Gentle roof soft washing, moss removal, and preventive maintenance.',
-    link: '/login',
+    link: loginPath('customer'),
     tag: 'Biannual',
   },
   {
     title: 'Tree & Shrub Care',
     description:
       'Pruning, trimming, health assessments, and removal for all property types.',
-    link: '/login',
+    link: loginPath('customer'),
     tag: 'Seasonal / One-time',
   },
 ];
@@ -142,7 +144,7 @@ export const CAPABILITY_CARDS = [
   },
 ];
 
-export const HOW_IT_WORKS_STEPS = [
+export const HOW_IT_WORKS_CUSTOMER = [
   {
     title: '01',
     heading: 'Choose a plan or post a job',
@@ -165,6 +167,29 @@ export const HOW_IT_WORKS_STEPS = [
   },
 ] as const;
 
+export const HOW_IT_WORKS_PROVIDER = [
+  {
+    title: '01',
+    heading: 'Set up your business',
+    body: 'Create a profile, add the services you offer, and get verified. You are ready to work in minutes, not weeks.',
+  },
+  {
+    title: '02',
+    heading: 'Bid and win the right jobs',
+    body: 'See open requests in your area. Bid on one-time work, or get assigned to subscription customers who need a dedicated crew.',
+  },
+  {
+    title: '03',
+    heading: 'Dispatch from one calendar',
+    body: 'Assign crews, catch conflicts automatically, and keep every job on schedule — without a stack of group texts.',
+  },
+  {
+    title: '04',
+    heading: 'Keep the recurring book',
+    body: 'Sticky subscription customers stay with you. No re-bidding every visit — just scheduled work and predictable revenue.',
+  },
+] as const;
+
 export const PROVIDER_FEATURES = [
   {
     title: 'Crew management',
@@ -184,11 +209,23 @@ export const PROVIDER_FEATURES = [
   },
 ] as const;
 
-export const STATS = [
-  { value: '9+', label: 'Service categories' },
-  { value: '24/7', label: 'Booking available' },
-  { value: '100%', label: 'Verified providers' },
-  { value: '3', label: 'Subscription plans' },
+export const TRUST_ITEMS = [
+  {
+    value: 'Verified',
+    label: 'Every provider is vetted before they bid or take a plan',
+  },
+  {
+    value: 'No lock-in',
+    label: 'Pause or cancel a subscription anytime — no contracts',
+  },
+  {
+    value: 'Two ways to hire',
+    label: 'Recurring plans and on-demand jobs in one place',
+  },
+  {
+    value: 'Crew ops',
+    label: 'Scheduling, dispatch, and a book of recurring work',
+  },
 ] as const;
 
 export const FAQS = [
@@ -209,19 +246,23 @@ export const FAQS = [
     a: 'You post a job with property details. Local providers submit competitive bids with pricing and timing. Compare side by side and accept the best fit in one click.',
   },
   {
+    q: 'How do providers get work on Exterior Pro?',
+    a: 'Bid on open one-time jobs in your area, and get assigned to subscription customers as a sticky provider. Recurring plans stay with you — you do not re-bid every visit.',
+  },
+  {
     q: 'Is Exterior Pro only for homeowners?',
     a: 'No. Homeowners, property managers, and exterior service businesses all use the platform — customers for plans and jobs, providers for crews, scheduling, and recurring revenue.',
   },
 ] as const;
 
 export const FOOTER_HOMEOWNER_LINKS = [
-  'Browse plans',
-  'Request a job',
-  'My properties',
+  { label: 'Browse plans', href: loginPath('customer') },
+  { label: 'Request a job', href: loginPath('customer') },
+  { label: 'My properties', href: loginPath('customer') },
 ] as const;
 
 export const FOOTER_PROVIDER_LINKS = [
-  'Join as provider',
-  'Manage crews',
-  'Provider dashboard',
+  { label: 'Join as provider', href: loginPath('provider') },
+  { label: 'Manage crews', href: loginPath('provider') },
+  { label: 'Provider dashboard', href: loginPath('provider') },
 ] as const;

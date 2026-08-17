@@ -7,19 +7,16 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-outfit)', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+      },
       colors: {
-        cyan: {
-          50: '#e6fcfd',
-          100: '#b3f7fa',
-          200: '#80f1f7',
-          300: '#4debf4',
-          400: '#1ae4f2',
-          500: '#02ddf5',
-          600: '#02b8cc',
-          700: '#0293a3',
-          800: '#016e7a',
-          900: '#014952',
-          950: '#012429',
+        brand: {
+          lime: '#C8F542',
+          navy: '#0B1F33',
+          ink: '#0A1208',
+          night: '#070B12',
+          mist: '#F4F6F0',
         },
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',

@@ -170,7 +170,7 @@ export default function ProviderProfilePage() {
           <Button
             onClick={handleSaveProfile}
             disabled={saving}
-            className="rounded-full bg-cyan-500 font-semibold text-black hover:bg-cyan-400"
+            className="rounded-full bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
           >
             {saving ? 'Saving...' : 'Save profile'}
           </Button>
@@ -195,7 +195,7 @@ export default function ProviderProfilePage() {
                   className={cn(
                     'flex items-center gap-3 rounded-xl border p-3 transition-colors',
                     isSelected
-                      ? 'border-cyan-500/40 bg-cyan-500/5'
+                      ? 'border-brand-lime/40 bg-brand-lime/5'
                       : 'border-border',
                   )}
                 >
@@ -203,7 +203,7 @@ export default function ProviderProfilePage() {
                     type="checkbox"
                     checked={isSelected}
                     onChange={() => toggleService(service.id)}
-                    className="h-4 w-4 accent-cyan-500"
+                    className="h-4 w-4 accent-brand-lime"
                   />
                   <div className="min-w-0 flex-1">
                     <span className="text-sm font-medium text-foreground">
@@ -241,7 +241,7 @@ export default function ProviderProfilePage() {
           <Button
             onClick={handleSaveServices}
             disabled={saving}
-            className="rounded-full bg-cyan-500 font-semibold text-black hover:bg-cyan-400"
+            className="rounded-full bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
           >
             {saving ? 'Saving...' : 'Save services'}
           </Button>

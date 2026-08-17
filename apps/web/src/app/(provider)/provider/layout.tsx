@@ -72,7 +72,7 @@ export default function ProviderLayout({
   return (
     <>
       <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4">
-        <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-black/50">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-brand-navy/70">
           <div className="flex gap-4 items-center">
             <Link href="/provider" className="flex gap-2 items-center pl-1">
               <Image
@@ -97,7 +97,7 @@ export default function ProviderLayout({
                         className={cn(
                           'px-3 py-2 text-sm rounded-lg transition-colors',
                           active
-                            ? 'text-cyan-600 bg-cyan-500/10 dark:text-cyan-400'
+                            ? 'text-brand-navy bg-brand-lime/10 dark:text-brand-lime'
                             : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                         )}
                       >
@@ -120,7 +120,7 @@ export default function ProviderLayout({
                 <NotificationBell />
                 <Link href="/provider/profile">
                   <Avatar className="w-8 h-8">
-                    <AvatarFallback className="bg-gradient-to-br from-cyan-400 to-cyan-600 text-[11px] font-semibold text-white">
+                    <AvatarFallback className="bg-gradient-to-br from-brand-navy to-brand-lime text-[11px] font-semibold text-white">
                       {initials}
                     </AvatarFallback>
                   </Avatar>
@@ -151,7 +151,7 @@ export default function ProviderLayout({
                   className={cn(
                     'block rounded-lg px-3 py-2.5 text-sm',
                     active
-                      ? 'bg-cyan-500/10 text-cyan-600 dark:text-cyan-400'
+                      ? 'bg-brand-lime/10 text-brand-navy dark:text-brand-lime'
                       : 'text-muted-foreground hover:bg-muted hover:text-foreground',
                   )}
                 >

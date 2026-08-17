@@ -20,7 +20,7 @@ export function UpcomingSection({ jobs }: UpcomingSectionProps) {
           variant="link"
           size="sm"
           asChild
-          className="h-auto p-0 text-xs text-cyan-500 hover:text-cyan-400"
+          className="h-auto p-0 text-xs text-brand-navy hover:text-brand-navy/70 dark:text-brand-lime dark:hover:text-brand-lime/80"
         >
           <Link href="/customer/jobs">View all</Link>
         </Button>

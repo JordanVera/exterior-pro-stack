@@ -101,7 +101,7 @@ export function PropertyAddressForm({
       <Button
         type="submit"
         disabled={saving || !address || !city || !state || !zip}
-        className="w-full rounded-xl bg-cyan-500 font-semibold text-black hover:bg-cyan-400"
+        className="w-full rounded-xl bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
       >
         {saving ? 'Saving...' : submitLabel}
       </Button>

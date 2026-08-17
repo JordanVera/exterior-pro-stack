@@ -205,7 +205,7 @@ export default function AvailableJobsPage() {
                           <Button
                             onClick={() => handleSubmitBid(job.id)}
                             disabled={submitting}
-                            className="text-black bg-cyan-500 rounded-full hover:bg-cyan-400"
+                            className="bg-brand-lime text-brand-ink rounded-full hover:bg-brand-lime/90"
                             size="sm"
                           >
                             {submitting ? 'Submitting...' : 'Submit bid'}
@@ -227,7 +227,7 @@ export default function AvailableJobsPage() {
                     ) : (
                       <Button
                         onClick={() => setBiddingJobId(job.id)}
-                        className="text-black bg-cyan-500 rounded-full hover:bg-cyan-400"
+                        className="bg-brand-lime text-brand-ink rounded-full hover:bg-brand-lime/90"
                         size="sm"
                       >
                         Submit a bid

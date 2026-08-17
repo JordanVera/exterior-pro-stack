@@ -193,14 +193,14 @@ export default function PlansPage() {
               className={cn(
                 'relative overflow-hidden shadow-none transition-all duration-200 cursor-pointer',
                 isSelected
-                  ? 'border-cyan-500 ring-2 ring-cyan-500/20'
+                  ? 'border-brand-lime ring-2 ring-brand-lime/20'
                   : 'hover:border-neutral-300 dark:hover:border-neutral-700',
-                isMiddle && !isSelected && 'border-cyan-500/30',
+                isMiddle && !isSelected && 'border-brand-lime/30',
               )}
               onClick={() => setSelectedPlan(plan.id)}
             >
               {isMiddle && (
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-cyan-400 to-cyan-600" />
+                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-navy to-brand-lime" />
               )}
               <CardContent className="p-5">
                 <div className="flex items-center gap-3 mb-3">
@@ -208,8 +208,8 @@ export default function PlansPage() {
                     className={cn(
                       'w-10 h-10 rounded-lg flex items-center justify-center',
                       isSelected
-                        ? 'bg-cyan-500 text-white'
-                        : 'bg-cyan-500/10 text-cyan-500',
+                        ? 'bg-brand-lime text-brand-ink'
+                        : 'bg-brand-lime/10 text-brand-lime',
                     )}
                   >
                     <Icon className="w-5 h-5" />
@@ -219,7 +219,7 @@ export default function PlansPage() {
                       {plan.name}
                     </h3>
                     {isMiddle && (
-                      <Badge className="text-[9px] bg-cyan-500/10 text-cyan-500 border-0 mt-0.5">
+                      <Badge className="text-[9px] bg-brand-lime/10 text-brand-lime border-0 mt-0.5">
                         Most popular
                       </Badge>
                     )}
@@ -249,7 +249,7 @@ export default function PlansPage() {
                   </div>
                   {plan.services?.map((ps: any) => (
                     <div key={ps.id} className="flex items-center gap-2">
-                      <Check className="flex-shrink-0 w-3.5 h-3.5 text-cyan-500" />
+                      <Check className="flex-shrink-0 w-3.5 h-3.5 text-brand-lime" />
                       <span className="text-xs text-neutral-700 dark:text-neutral-300">
                         {ps.service.name}
                       </span>
@@ -262,8 +262,8 @@ export default function PlansPage() {
 
                 {isSelected && (
                   <div className="mt-4">
-                    <div className="flex items-center justify-center w-6 h-6 mx-auto rounded-full bg-cyan-500">
-                      <Check className="w-4 h-4 text-white" />
+                    <div className="flex items-center justify-center w-6 h-6 mx-auto rounded-full bg-brand-lime">
+                      <Check className="w-4 h-4 text-brand-ink" />
                     </div>
                   </div>
                 )}
@@ -310,7 +310,7 @@ export default function PlansPage() {
             <Button
               onClick={handleSubscribe}
               disabled={subscribing || !selectedProperty}
-              className="w-full rounded-xl bg-cyan-500 hover:bg-cyan-400"
+              className="w-full rounded-xl bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
             >
               {subscribing ? (
                 <>
@@ -370,7 +370,7 @@ export default function PlansPage() {
               variant="link"
               size="sm"
               onClick={() => router.push('/customer/subscriptions')}
-              className="text-xs text-cyan-500 hover:text-cyan-400"
+              className="text-xs text-brand-navy hover:text-brand-navy/70 dark:text-brand-lime dark:hover:text-brand-lime/80"
             >
               Manage subscriptions
             </Button>

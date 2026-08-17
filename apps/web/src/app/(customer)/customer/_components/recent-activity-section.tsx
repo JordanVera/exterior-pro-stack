@@ -66,7 +66,7 @@ export function RecentActivitySection({ items }: RecentActivitySectionProps) {
                         }),
                       );
                     }}
-                    className="h-6 px-2 text-[11px] text-cyan-500 hover:bg-cyan-500/10 hover:text-cyan-400"
+                    className="h-6 px-2 text-[11px] text-brand-navy hover:bg-brand-lime/10 dark:text-brand-lime"
                   >
                     <RotateCcw className="mr-1 w-3 h-3" />
                     Book again

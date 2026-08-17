@@ -47,19 +47,18 @@ export default function AdminLayout({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-white dark:bg-black">
-        <div className="text-gray-500 dark:text-neutral-400">Loading...</div>
+      <div className="flex min-h-screen items-center justify-center bg-brand-mist dark:bg-brand-night">
+        <div className="text-muted-foreground">Loading...</div>
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-50 dark:bg-black">
-      {/* Sidebar — always dark for admin */}
-      <aside className="flex flex-col w-64 min-h-screen text-white bg-gray-900 border-r border-transparent dark:bg-neutral-950 dark:border-neutral-800">
+    <div className="flex min-h-screen bg-brand-mist dark:bg-brand-night">
+      <aside className="flex min-h-screen w-64 flex-col border-r border-white/10 bg-brand-navy text-white">
         <div className="p-6">
           <h1 className="text-xl font-bold">Exterior Pro</h1>
-          <p className="mt-1 text-sm text-gray-400">Admin Dashboard</p>
+          <p className="mt-1 text-sm text-white/50">Admin Dashboard</p>
         </div>
         <nav className="flex-1 px-3 space-y-1">
           {navItems.map((item) => {
@@ -72,8 +71,8 @@ export default function AdminLayout({
                 onClick={() => router.push(item.href)}
                 className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm rounded-lg transition-colors ${
                   isActive
-                    ? 'bg-gray-700 dark:bg-neutral-800 text-white'
-                    : 'text-gray-400 hover:text-white hover:bg-gray-800 dark:hover:bg-neutral-900'
+                    ? 'bg-brand-lime/15 text-brand-lime'
+                    : 'text-white/60 hover:bg-white/5 hover:text-white'
                 }`}
               >
                 <span>{item.icon}</span>
@@ -85,7 +84,7 @@ export default function AdminLayout({
         <div className="flex items-center justify-between p-3">
           <button
             onClick={handleLogout}
-            className="flex-1 px-4 py-2 text-sm text-gray-400 transition-colors rounded-lg hover:text-white hover:bg-gray-800 dark:hover:bg-neutral-900"
+            className="flex-1 rounded-lg px-4 py-2 text-sm text-white/60 transition-colors hover:bg-white/5 hover:text-white"
           >
             Sign Out
           </button>

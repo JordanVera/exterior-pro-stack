@@ -33,7 +33,7 @@ export function JobCard({
 
   return (
     <Link href={href} className="block group">
-      <Card className="shadow-none border-border bg-background/80 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20">
+      <Card className="shadow-none border-border bg-background/80 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-lime/50 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20">
         <CardContent className="flex items-center gap-3 p-4">
           <div className={cn('h-2 w-2 flex-shrink-0 rounded-full', dot)} />
           <div className="min-w-0 flex-1">
@@ -66,11 +66,11 @@ export function JobCard({
             </p>
           </div>
           {showCta && (
-            <span className="hidden text-xs font-medium text-cyan-500 sm:inline">
+            <span className="hidden text-xs font-medium text-brand-lime sm:inline">
               {actionLabel}
             </span>
           )}
-          <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground/50 transition-colors group-hover:text-cyan-500" />
+          <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground/50 transition-colors group-hover:text-brand-lime" />
         </CardContent>
       </Card>
     </Link>

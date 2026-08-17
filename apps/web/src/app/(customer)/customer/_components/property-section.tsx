@@ -28,7 +28,7 @@ export function PropertySection({ summaries }: PropertySectionProps) {
             </p>
             <Button
               onClick={() => router.push('/customer/settings')}
-              className="rounded-full bg-cyan-500 text-black hover:bg-cyan-400"
+              className="rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
             >
               <Plus className="mr-1 h-4 w-4" />
               Add Property
@@ -47,7 +47,7 @@ export function PropertySection({ summaries }: PropertySectionProps) {
           variant="link"
           size="sm"
           onClick={() => router.push('/customer/settings')}
-          className="h-auto p-0 text-xs text-cyan-500 hover:text-cyan-400"
+          className="h-auto p-0 text-xs text-brand-navy hover:text-brand-navy/70 dark:text-brand-lime dark:hover:text-brand-lime/80"
         >
           Manage
         </Button>
@@ -68,13 +68,13 @@ export function PropertySection({ summaries }: PropertySectionProps) {
               key={property.id}
               className={cn(
                 'overflow-hidden border-border bg-background/80 shadow-none backdrop-blur-xl transition-all duration-200',
-                'hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20',
+                'hover:-translate-y-0.5 hover:border-brand-lime/50 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20',
               )}
             >
               <CardContent className="flex min-h-[140px] flex-col p-4">
                 <div className="flex flex-1 items-start gap-3">
-                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-cyan-500/10">
-                    <MapPin className="h-4 w-4 text-cyan-500" />
+                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-brand-lime/10">
+                    <MapPin className="h-4 w-4 text-brand-lime" />
                   </div>
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium text-foreground">
@@ -89,7 +89,7 @@ export function PropertySection({ summaries }: PropertySectionProps) {
                 {hasActivity && (
                   <div className="mt-3 flex flex-wrap gap-1.5 text-[11px]">
                     {activeJobsCount > 0 && (
-                      <span className="rounded-full bg-cyan-500/10 px-2 py-0.5 font-medium text-cyan-600 dark:text-cyan-400">
+                      <span className="rounded-full bg-brand-lime/10 px-2 py-0.5 font-medium text-brand-navy dark:text-brand-lime">
                         {activeJobsCount} active
                       </span>
                     )}
@@ -137,7 +137,7 @@ export function PropertySection({ summaries }: PropertySectionProps) {
                           }),
                         )
                       }
-                      className="h-7 w-full rounded-full text-xs text-cyan-500 hover:bg-cyan-500/10 hover:text-cyan-400"
+                      className="h-7 w-full rounded-full text-xs text-brand-navy hover:bg-brand-lime/10 dark:text-brand-lime"
                     >
                       <RotateCcw className="mr-1 h-3 w-3" />
                       Book again

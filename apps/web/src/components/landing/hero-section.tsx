@@ -3,36 +3,19 @@
 import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import {
+  ArrowRight,
   CalendarCheck,
-  Check,
-  Repeat,
+  Home,
   Shield,
-  Sparkles,
   Star,
+  Wrench,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { FlipWords } from '@/components/ui/flip-words';
-import { TextGenerateEffect } from '@/components/ui/text-generate-effect';
-import { HoverBorderGradient } from '@/components/ui/hover-border-gradient';
 import { Button } from '@/components/ui/button';
 import { Spotlight } from '@/components/ui/spotlight';
 import { GlowingEffect } from '@/components/ui/glowing-effect';
 import { cn } from '@/lib/utils';
-
-const METEORS = [
-  { left: '8%', delay: '0.1s', duration: '5s' },
-  { left: '18%', delay: '0.8s', duration: '6s' },
-  { left: '28%', delay: '0.3s', duration: '4.5s' },
-  { left: '41%', delay: '1.4s', duration: '7s' },
-  { left: '53%', delay: '0.6s', duration: '5.5s' },
-  { left: '64%', delay: '1.9s', duration: '4s' },
-  { left: '76%', delay: '0.4s', duration: '6.5s' },
-  { left: '88%', delay: '1.1s', duration: '5s' },
-  { left: '12%', delay: '2.2s', duration: '8s' },
-  { left: '47%', delay: '2.6s', duration: '4.8s' },
-  { left: '71%', delay: '1.7s', duration: '7.2s' },
-  { left: '93%', delay: '0.9s', duration: '5.8s' },
-];
+import { loginPath } from '@/lib/auth-intent';
 
 const BIDS = [
   { name: 'Summit Lawn Co.', amount: '$118', rating: '4.9', highlight: true },
@@ -42,96 +25,90 @@ const BIDS = [
 
 export function HeroSection() {
   const router = useRouter();
-  const goLogin = () => router.push('/login');
 
   return (
     <section className="relative min-h-[100vh] overflow-hidden pt-24">
       <Spotlight
         className="left-0 -top-40 md:-top-20 md:left-60"
-        fill="#02ddf5"
-      />
-      <Spotlight
-        className="-top-10 left-full h-[80%] w-[50%] opacity-40"
-        fill="#02ddf5"
+        fill="#C8F542"
       />
 
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(2,221,245,0.16),transparent_55%)]" />
-      <div className="pointer-events-none absolute -left-24 top-32 h-72 w-72 rounded-full bg-cyan-500/20 blur-[110px]" />
-      <div className="pointer-events-none absolute -right-16 bottom-24 h-80 w-80 rounded-full bg-cyan-400/10 blur-[120px]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(200,245,66,0.12),transparent_55%)]" />
+      <div className="pointer-events-none absolute -left-24 top-32 h-72 w-72 rounded-full bg-brand-lime/15 blur-[110px]" />
+      <div className="pointer-events-none absolute -right-16 bottom-24 h-80 w-80 rounded-full bg-brand-navy/40 blur-[120px]" />
       <div className="bg-grid-fade pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
-
-      <div className="overflow-hidden absolute inset-0 pointer-events-none">
-        {METEORS.map((meteor, index) => (
-          <span
-            key={index}
-            className="absolute top-0 h-0.5 w-0.5 rotate-[215deg] animate-meteor rounded-full bg-cyan-400 shadow-[0_0_0_1px_#ffffff10]"
-            style={{
-              left: meteor.left,
-              animationDelay: meteor.delay,
-              animationDuration: meteor.duration,
-            }}
-          >
-            <span className="absolute top-1/2 -z-10 h-px w-[50px] -translate-y-1/2 bg-gradient-to-r from-cyan-400 to-transparent" />
-          </span>
-        ))}
-      </div>
 
       <div className="relative mx-auto grid max-w-6xl items-center gap-12 px-6 pb-20 pt-16 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:pt-24">
         <div className="text-center lg:text-left">
-          <Badge className="gap-2 mb-6 text-cyan-700 border border-cyan-500/20 bg-cyan-500/10 hover:bg-cyan-500/10 dark:text-cyan-300">
-            <Sparkles className="h-3.5 w-3.5" />
-            Subscriptions and on-demand services
+          <Badge className="mb-6 gap-2 border border-brand-lime/25 bg-brand-lime/10 text-brand-navy hover:bg-brand-lime/10 dark:text-brand-lime">
+            Built for homeowners and crews
           </Badge>
 
           <h1 className="text-4xl font-bold leading-[1.08] tracking-tight text-foreground sm:text-6xl lg:text-[4.25rem]">
-            Your property&apos;s exterior
+            The operating system
             <br />
-            <span className="relative inline-block min-h-[1.15em]">
-              <FlipWords
-                words={['on autopilot.', 'on schedule.', 'handled.']}
-                className="px-0 text-cyan-500 dark:text-cyan-400"
-              />
+            <span className="text-brand-navy dark:text-brand-lime">
+              for exterior work.
             </span>
           </h1>
 
-          <TextGenerateEffect
-            words="Subscribe to recurring lawn care, landscaping, gutter cleaning, and more. Need a one-time job? Post a request and let verified local pros compete with their best bids."
-            className="mx-auto mt-6 max-w-xl text-base font-normal sm:text-lg lg:mx-0"
-            duration={0.35}
-          />
+          <p className="mx-auto mt-6 max-w-xl text-base font-normal text-muted-foreground sm:text-lg lg:mx-0">
+            Homeowners get recurring plans and competitive bids. Providers get
+            jobs, crew tools, and a book of recurring work — built only for
+            exterior services.
+          </p>
 
-          <div className="flex flex-col gap-4 items-center mt-10 sm:flex-row lg:justify-start">
-            <HoverBorderGradient
-              as="button"
-              containerClassName="rounded-full"
-              className="flex items-center px-7 py-3 text-sm font-semibold dark:bg-black"
-              onClick={goLogin}
+          <div className="mt-10 grid gap-3 sm:grid-cols-2">
+            <button
+              type="button"
+              onClick={() => router.push(loginPath('customer'))}
+              className="group rounded-2xl border border-brand-lime/40 bg-brand-lime p-5 text-left text-brand-ink shadow-lg shadow-brand-lime/10 transition hover:bg-brand-lime/90"
             >
-              Browse plans
-            </HoverBorderGradient>
-            <Button
-              size="lg"
-              variant="outline"
-              className="px-8 h-12 rounded-full"
-              onClick={goLogin}
+              <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em]">
+                <Home className="h-3.5 w-3.5" />
+                For homeowners
+              </span>
+              <p className="mt-2 text-lg font-semibold leading-snug">
+                Get my property handled
+              </p>
+              <p className="mt-1 text-sm text-brand-ink/70">
+                Subscribe or post a job. Verified pros compete for the work.
+              </p>
+              <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold">
+                Start as a homeowner
+                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+              </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => router.push(loginPath('provider'))}
+              className="group rounded-2xl border border-brand-lime/30 bg-brand-navy p-5 text-left text-white shadow-lg transition hover:border-brand-lime/60"
             >
-              Join as a provider
-            </Button>
+              <span className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-brand-lime">
+                <Wrench className="h-3.5 w-3.5" />
+                For providers
+              </span>
+              <p className="mt-2 text-lg font-semibold leading-snug">
+                Grow my crew&apos;s book of work
+              </p>
+              <p className="mt-1 text-sm text-white/70">
+                Win jobs, dispatch crews, and keep recurring customers.
+              </p>
+              <span className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand-lime">
+                Join as a provider
+                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" />
+              </span>
+            </button>
           </div>
 
-          <div className="flex flex-wrap gap-y-3 gap-x-6 justify-center items-center mt-10 text-sm text-muted-foreground lg:justify-start">
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 text-sm text-muted-foreground lg:justify-start">
             <span className="inline-flex items-center gap-1.5">
-              <Repeat className="w-4 h-4 text-cyan-500" /> Recurring plans
+              <Shield className="h-4 w-4 text-brand-lime" /> Verified providers
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <Shield className="w-4 h-4 text-emerald-500" /> Verified providers
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <CalendarCheck className="w-4 h-4 text-emerald-500" /> Real-time
-              tracking
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Check className="w-4 h-4 text-emerald-500" /> Competitive bidding
+              <CalendarCheck className="h-4 w-4 text-brand-lime" /> Recurring +
+              on-demand
             </span>
           </div>
         </div>
@@ -143,6 +120,8 @@ export function HeroSection() {
 }
 
 function HeroPreview() {
+  const router = useRouter();
+
   return (
     <div className="relative mx-auto w-full max-w-lg lg:mx-0 lg:max-w-none">
       <motion.div
@@ -150,8 +129,8 @@ function HeroPreview() {
         animate={{ y: [0, -8, 0] }}
         transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
       >
-        <div className="px-4 py-3 rounded-2xl border shadow-xl backdrop-blur-xl border-cyan-500/30 bg-background/90 shadow-cyan-500/10">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-cyan-600 dark:text-cyan-400">
+        <div className="rounded-2xl border border-brand-lime/30 bg-background/90 px-4 py-3 shadow-xl shadow-brand-lime/10 backdrop-blur-xl">
+          <p className="text-[11px] font-medium uppercase tracking-wider text-brand-navy dark:text-brand-lime">
             New bid
           </p>
           <p className="mt-0.5 text-sm font-semibold text-foreground">
@@ -165,7 +144,7 @@ function HeroPreview() {
         animate={{ y: [0, 10, 0] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
       >
-        <div className="overflow-hidden relative p-5 rounded-3xl border shadow-2xl backdrop-blur-xl border-white/10 bg-background/70 shadow-black/20 dark:bg-black/50">
+        <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-background/70 p-5 shadow-2xl shadow-black/20 backdrop-blur-xl dark:bg-brand-navy/80">
           <GlowingEffect
             disabled={false}
             glow
@@ -174,22 +153,22 @@ function HeroPreview() {
             borderWidth={2}
           />
 
-          <div className="flex relative justify-between items-center mb-5">
+          <div className="relative mb-5 flex items-center justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-cyan-600 dark:text-cyan-400">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-navy dark:text-brand-lime">
                 Live marketplace
               </p>
               <p className="mt-1 text-lg font-semibold text-foreground">
                 Gutter cleaning
               </p>
             </div>
-            <Badge className="text-emerald-600 border-0 bg-emerald-500/15 hover:bg-emerald-500/15 dark:text-emerald-400">
+            <Badge className="border-0 bg-brand-lime/15 text-brand-navy hover:bg-brand-lime/15 dark:text-brand-lime">
               3 bids
             </Badge>
           </div>
 
-          <div className="relative p-4 mb-4 rounded-2xl border border-cyan-500/20 bg-cyan-500/5">
-            <div className="flex gap-3 justify-between items-center">
+          <div className="relative mb-4 rounded-2xl border border-brand-lime/20 bg-brand-lime/5 p-4">
+            <div className="flex items-center justify-between gap-3">
               <div>
                 <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
                   Active plan
@@ -198,7 +177,9 @@ function HeroPreview() {
                   Standard Exterior
                 </p>
               </div>
-              <p className="text-lg font-bold text-cyan-500">$179</p>
+              <p className="text-lg font-bold text-brand-navy dark:text-brand-lime">
+                $179
+              </p>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
               Next visit Tuesday · Lawn, weeds, gutters
@@ -212,23 +193,25 @@ function HeroPreview() {
                 className={cn(
                   'flex items-center justify-between rounded-xl border px-3.5 py-3',
                   bid.highlight
-                    ? 'border-cyan-500/40 bg-cyan-500/10'
+                    ? 'border-brand-lime/40 bg-brand-lime/10'
                     : 'border-border bg-background/60',
                 )}
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-medium truncate text-foreground">
+                  <p className="truncate text-sm font-medium text-foreground">
                     {bid.name}
                   </p>
                   <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-muted-foreground">
-                    <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
+                    <Star className="h-3 w-3 fill-brand-lime text-brand-lime" />
                     {bid.rating} · verified
                   </p>
                 </div>
                 <p
                   className={cn(
                     'text-sm font-semibold',
-                    bid.highlight ? 'text-cyan-500' : 'text-foreground',
+                    bid.highlight
+                      ? 'text-brand-navy dark:text-brand-lime'
+                      : 'text-foreground',
                   )}
                 >
                   {bid.amount}
@@ -236,6 +219,13 @@ function HeroPreview() {
               </div>
             ))}
           </div>
+
+          <Button
+            onClick={() => router.push(loginPath('customer'))}
+            className="relative mt-4 w-full rounded-xl bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
+          >
+            See it on your property
+          </Button>
         </div>
       </motion.div>
     </div>

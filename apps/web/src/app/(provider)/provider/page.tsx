@@ -125,7 +125,7 @@ export default function ProviderDashboard() {
             <Button
               asChild
               size="sm"
-              className="text-black bg-cyan-500 rounded-full hover:bg-cyan-400"
+              className="bg-brand-lime text-brand-ink rounded-full hover:bg-brand-lime/90"
             >
               <Link href="/provider/payouts">Set up payouts</Link>
             </Button>
@@ -148,7 +148,7 @@ export default function ProviderDashboard() {
               variant="link"
               size="sm"
               asChild
-              className="p-0 h-auto text-xs text-cyan-500 hover:text-cyan-400"
+              className="p-0 h-auto text-xs text-brand-navy hover:text-brand-navy/70 dark:text-brand-lime dark:hover:text-brand-lime/80"
             >
               <Link href="/provider/jobs">View all</Link>
             </Button>
@@ -169,7 +169,7 @@ export default function ProviderDashboard() {
             <div className="space-y-2">
               {pendingJobs.slice(0, 4).map((job) => (
                 <Link key={job.id} href="/provider/jobs" className="block">
-                  <Card className="border-border bg-background/80 shadow-none backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-cyan-500/50">
+                  <Card className="border-border bg-background/80 shadow-none backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-brand-lime/50">
                     <CardContent className="flex gap-3 justify-between items-center p-4">
                       <div className="min-w-0">
                         <div className="text-sm font-medium truncate text-foreground">
@@ -212,7 +212,7 @@ export default function ProviderDashboard() {
               variant="link"
               size="sm"
               asChild
-              className="p-0 h-auto text-xs text-cyan-500 hover:text-cyan-400"
+              className="p-0 h-auto text-xs text-brand-navy hover:text-brand-navy/70 dark:text-brand-lime dark:hover:text-brand-lime/80"
             >
               <Link href="/provider/jobs">View all</Link>
             </Button>
@@ -233,7 +233,7 @@ export default function ProviderDashboard() {
             <div className="space-y-2">
               {upcoming.map((job) => (
                 <Link key={job.id} href="/provider/jobs" className="block">
-                  <Card className="border-border bg-background/80 shadow-none backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-cyan-500/50">
+                  <Card className="border-border bg-background/80 shadow-none backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-brand-lime/50">
                     <CardContent className="flex gap-3 justify-between items-center p-4">
                       <div className="min-w-0">
                         <div className="text-sm font-medium truncate text-foreground">

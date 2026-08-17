@@ -42,8 +42,8 @@ export const STATUS_BADGE: Record<
   { bg: string; text: string; label: string }
 > = {
   OPEN: {
-    bg: 'bg-cyan-500/10',
-    text: 'text-cyan-500',
+    bg: 'bg-brand-lime/10',
+    text: 'text-brand-navy dark:text-brand-lime',
     label: 'Open',
   },
   PENDING: {

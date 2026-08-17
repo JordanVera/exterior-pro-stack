@@ -169,7 +169,7 @@ export function RequestJobForm({
             </Button>
             <Button
               onClick={() => router.push(`/customer/jobs/${successJobId}`)}
-              className="text-black bg-cyan-500 rounded-full hover:bg-cyan-400"
+              className="bg-brand-lime text-brand-ink rounded-full hover:bg-brand-lime/90"
             >
               View this job
             </Button>
@@ -203,10 +203,10 @@ export function RequestJobForm({
         </div>
 
         <div className="flex gap-3 items-start">
-          <div className="flex flex-shrink-0 justify-center items-center w-8 h-8 rounded-lg bg-cyan-500/10">
+          <div className="flex flex-shrink-0 justify-center items-center w-8 h-8 rounded-lg bg-brand-lime/10">
             {(() => {
               const Icon = getCategoryIcon(selectedService.categoryName);
-              return <Icon className="w-4 h-4 text-cyan-400" />;
+              return <Icon className="w-4 h-4 text-brand-lime" />;
             })()}
           </div>
           <div className="min-w-0">
@@ -239,7 +239,7 @@ export function RequestJobForm({
             </p>
             <Button
               onClick={() => router.push('/customer/settings')}
-              className="text-black bg-cyan-500 rounded-full hover:bg-cyan-400"
+              className="bg-brand-lime text-brand-ink rounded-full hover:bg-brand-lime/90"
               size="sm"
             >
               <Plus className="mr-1 w-4 h-4" />
@@ -278,8 +278,8 @@ export function RequestJobForm({
                     className={cn(
                       'px-3 py-3 text-left rounded-xl border transition-all',
                       isSelected
-                        ? 'border-cyan-500 ring-1 bg-cyan-500/5 ring-cyan-500/20'
-                        : 'border-border hover:border-cyan-500/50',
+                        ? 'border-brand-lime ring-1 bg-brand-lime/5 ring-brand-lime/20'
+                        : 'border-border hover:border-brand-lime/50',
                     )}
                   >
                     <div className="text-sm font-medium text-foreground">
@@ -317,7 +317,7 @@ export function RequestJobForm({
         <Button
           onClick={handleSubmit}
           disabled={submitting || !selectedProperty}
-          className="w-full font-semibold text-black bg-cyan-500 rounded-xl hover:bg-cyan-400"
+          className="w-full font-semibold bg-brand-lime text-brand-ink rounded-xl hover:bg-brand-lime/90"
         >
           {submitting ? (
             <>
@@ -360,7 +360,7 @@ export function RequestJobForm({
             className={cn(
               'cursor-pointer select-none rounded-full border-0 px-3.5 py-1.5 text-xs font-medium',
               categoryId === null
-                ? 'bg-cyan-500 text-white hover:bg-cyan-500'
+                ? 'bg-brand-lime text-brand-ink hover:bg-brand-lime'
                 : 'hover:text-foreground',
             )}
           >
@@ -376,7 +376,7 @@ export function RequestJobForm({
               className={cn(
                 'cursor-pointer select-none rounded-full border-0 px-3.5 py-1.5 text-xs font-medium',
                 categoryId === cat.id
-                  ? 'bg-cyan-500 text-white hover:bg-cyan-500'
+                  ? 'bg-brand-lime text-brand-ink hover:bg-brand-lime'
                   : 'hover:text-foreground',
               )}
             >
@@ -400,15 +400,15 @@ export function RequestJobForm({
                 <Card
                   key={svc.id}
                   className={cn(
-                    'cursor-pointer border-border bg-background/80 shadow-none backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-cyan-500/50 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20',
-                    isSelected && 'border-cyan-500 ring-1 ring-cyan-500/20',
+                    'cursor-pointer border-border bg-background/80 shadow-none backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-lime/50 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20',
+                    isSelected && 'border-brand-lime ring-1 ring-brand-lime/20',
                   )}
                   onClick={() => setSelectedService(svc)}
                 >
                   <CardContent className="flex gap-3 justify-between items-start p-4">
                     <div className="min-w-0">
-                      <div className="flex justify-center items-center mb-2 w-8 h-8 rounded-lg bg-cyan-500/10">
-                        <Icon className="w-4 h-4 text-cyan-400" />
+                      <div className="flex justify-center items-center mb-2 w-8 h-8 rounded-lg bg-brand-lime/10">
+                        <Icon className="w-4 h-4 text-brand-lime" />
                       </div>
                       <div className="text-sm font-medium text-foreground">
                         {svc.name}

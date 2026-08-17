@@ -98,7 +98,7 @@ export default function JobsPage() {
         </div>
         <Button
           asChild
-          className="font-semibold text-black bg-cyan-500 rounded-full hover:bg-cyan-400"
+          className="font-semibold bg-brand-lime text-brand-ink rounded-full hover:bg-brand-lime/90"
         >
           <Link href="/customer/jobs/new">
             <Plus className="w-4 h-4" />
@@ -116,7 +116,7 @@ export default function JobsPage() {
             className={cn(
               'cursor-pointer select-none rounded-full border-0 px-3.5 py-1.5 text-xs font-medium transition-all',
               filter === item.value
-                ? 'bg-cyan-500 text-white hover:bg-cyan-500'
+                ? 'bg-brand-lime text-brand-ink hover:bg-brand-lime'
                 : 'hover:text-foreground',
             )}
           >
@@ -151,7 +151,7 @@ export default function JobsPage() {
           {filter === 'all' && (
             <Button
               asChild
-              className="text-black bg-cyan-500 rounded-full hover:bg-cyan-400"
+              className="bg-brand-lime text-brand-ink rounded-full hover:bg-brand-lime/90"
             >
               <Link href="/customer/jobs/new">
                 <Plus className="w-4 h-4" />

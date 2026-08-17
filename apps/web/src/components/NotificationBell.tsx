@@ -80,7 +80,7 @@ export function NotificationBell() {
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-neutral-800">
             <h3 className="font-semibold text-gray-900 dark:text-white text-sm">Notifications</h3>
             {unreadCount > 0 && (
-              <button onClick={handleMarkAllRead} className="text-xs text-cyan-600 dark:text-cyan-400 hover:text-cyan-700 dark:hover:text-cyan-300 font-medium">
+              <button onClick={handleMarkAllRead} className="text-xs text-brand-navy dark:text-brand-lime hover:text-brand-navy dark:hover:text-brand-lime font-medium">
                 Mark all read
               </button>
             )}
@@ -94,11 +94,11 @@ export function NotificationBell() {
                 key={n.id}
                 onClick={() => { if (!n.read) handleMarkRead(n.id); }}
                 className={`w-full text-left px-4 py-3 border-b border-gray-50 dark:border-neutral-800 hover:bg-gray-50 dark:hover:bg-neutral-800 transition-colors ${
-                  !n.read ? "bg-cyan-50/50 dark:bg-cyan-950/30" : ""
+                  !n.read ? "bg-brand-lime/10 dark:bg-brand-lime/10" : ""
                 }`}
               >
                 <div className="flex items-start gap-2">
-                  {!n.read && <span className="w-2 h-2 bg-cyan-500 rounded-full mt-1.5 flex-shrink-0" />}
+                  {!n.read && <span className="w-2 h-2 bg-brand-lime rounded-full mt-1.5 flex-shrink-0" />}
                   <div className={!n.read ? "" : "pl-4"}>
                     <div className="text-sm font-medium text-gray-900 dark:text-white">{n.title}</div>
                     <div className="text-xs text-gray-500 dark:text-neutral-400 mt-0.5">{n.body}</div>

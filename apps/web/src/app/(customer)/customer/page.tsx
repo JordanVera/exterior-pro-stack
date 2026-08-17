@@ -89,7 +89,7 @@ export default function CustomerHomePage() {
           id: `j-open-${j.id}`,
           jobId: j.id,
           icon: Briefcase,
-          color: 'text-cyan-400',
+          color: 'text-brand-navy dark:text-brand-lime',
           title: `Job requested: ${j.service.name}`,
           sub:
             bidCount > 0
@@ -181,7 +181,7 @@ export default function CustomerHomePage() {
         <GreetingSection firstName={firstName} />
         <Button
           asChild
-          className="font-semibold text-black bg-cyan-500 rounded-full hover:bg-cyan-400"
+          className="font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
         >
           <Link href="/customer/jobs/new">
             <Plus className="w-4 h-4" />
