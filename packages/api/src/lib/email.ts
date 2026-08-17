@@ -5,7 +5,9 @@ const resend = process.env.RESEND_API_KEY
   : null;
 
 const fromAddress =
-  process.env.RESEND_FROM || "Exterior Pro <noreply@exteriorpro.app>";
+  process.env.RESEND_FROM ||
+  process.env.RESEND_FROM_EMAIL ||
+  "Exterior Pro <noreply@exteriorpro.app>";
 
 export async function sendEmail(opts: {
   to: string;
