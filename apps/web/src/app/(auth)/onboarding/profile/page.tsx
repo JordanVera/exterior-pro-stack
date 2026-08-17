@@ -26,7 +26,7 @@ function AuthShell({ children }: { children: ReactNode }) {
       <BackgroundBeams className="opacity-40" delay={0} />
 
       <header className="relative z-20 px-4 pt-4">
-        <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-brand-navy/70">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-black/70">
           <Link href="/" className="flex gap-2 items-center pl-1">
             <Image
               src="/logos/logo-stacked.png"
@@ -184,7 +184,7 @@ export default function ProfileOnboardingPage() {
                   type="submit"
                   disabled={loading || !firstName || !lastName}
                   size="lg"
-                  className="mt-2 w-full font-semibold bg-brand-lime text-brand-ink rounded-xl hover:bg-brand-lime/90"
+                  className="mt-2 w-full font-semibold rounded-xl bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
                 >
                   {loading ? 'Saving...' : 'Continue'}
                 </Button>
@@ -241,7 +241,7 @@ export default function ProfileOnboardingPage() {
                   type="submit"
                   disabled={loading || !businessName}
                   size="lg"
-                  className="mt-2 w-full font-semibold bg-brand-lime text-brand-ink rounded-xl hover:bg-brand-lime/90"
+                  className="mt-2 w-full font-semibold rounded-xl bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
                 >
                   {loading ? 'Saving...' : 'Continue'}
                 </Button>

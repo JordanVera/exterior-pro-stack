@@ -111,13 +111,13 @@ function LoginContent() {
   };
 
   return (
-    <div className="relative flex min-h-screen flex-col overflow-hidden bg-background text-foreground">
+    <div className="flex overflow-hidden relative flex-col min-h-screen bg-background text-foreground">
       <div className="bg-grid-fade pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
       <BackgroundBeams className="opacity-40" delay={0} />
 
       <header className="relative z-20 px-4 pt-4">
-        <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-brand-navy/70">
-          <Link href="/" className="flex items-center gap-2 pl-1">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-black/70">
+          <Link href="/" className="flex gap-2 items-center pl-1">
             <Image
               src="/logos/logo-stacked.png"
               alt="Exterior Pro"
@@ -126,7 +126,7 @@ function LoginContent() {
               priority
             />
           </Link>
-          <div className="flex items-center gap-2">
+          <div className="flex gap-2 items-center">
             <ThemeToggle />
             <Button
               type="button"
@@ -135,17 +135,17 @@ function LoginContent() {
               onClick={() => router.push('/')}
               className="gap-1.5 text-muted-foreground hover:text-foreground"
             >
-              <ArrowLeft className="h-4 w-4" />
+              <ArrowLeft className="w-4 h-4" />
               Back to home
             </Button>
           </div>
         </nav>
       </header>
 
-      <main className="relative z-10 flex flex-1 items-center justify-center px-4 py-12">
+      <main className="flex relative z-10 flex-1 justify-center items-center px-4 py-12">
         <div className="w-full max-w-md">
-          <Card className="relative rounded-2xl border border-border bg-background/80 p-8 shadow-lg backdrop-blur-xl">
-            <CardHeader className="mb-6 space-y-3 p-0 text-center">
+          <Card className="relative p-8 rounded-2xl border shadow-lg backdrop-blur-xl border-border bg-background/80">
+            <CardHeader className="p-0 mb-6 space-y-3 text-center">
               <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
                 {step === 'phone' ? 'Welcome back' : 'Check your messages'}
               </h1>
@@ -166,7 +166,7 @@ function LoginContent() {
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone number</Label>
                     <div className="flex">
-                      <span className="inline-flex h-9 items-center rounded-l-md border border-r-0 border-input bg-muted/50 px-4 text-sm text-muted-foreground">
+                      <span className="inline-flex items-center px-4 h-9 text-sm rounded-l-md border border-r-0 border-input bg-muted/50 text-muted-foreground">
                         +1
                       </span>
                       <Input
@@ -189,7 +189,7 @@ function LoginContent() {
                     type="submit"
                     disabled={loading || phone.length !== 10}
                     size="lg"
-                    className="w-full rounded-xl bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
+                    className="w-full font-semibold rounded-xl bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
                   >
                     {loading ? 'Sending...' : 'Send verification code'}
                   </Button>
@@ -201,7 +201,7 @@ function LoginContent() {
                   onSubmit={handleVerifyCode}
                   className="justify-center space-y-6"
                 >
-                  <div className="flex flex-col items-center justify-center space-y-2">
+                  <div className="flex flex-col justify-center items-center space-y-2">
                     <Label>Verification Code</Label>
                     <InputOTP
                       maxLength={6}
@@ -237,7 +237,7 @@ function LoginContent() {
                     type="submit"
                     disabled={loading || code.length !== 6}
                     size="lg"
-                    className="w-full rounded-xl bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
+                    className="w-full font-semibold rounded-xl bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
                   >
                     {loading ? 'Verifying...' : 'Verify code'}
                   </Button>
@@ -263,7 +263,7 @@ function LoginContent() {
             </CardContent>
           </Card>
 
-          <p className="mt-6 text-center text-xs text-muted-foreground">
+          <p className="mt-6 text-xs text-center text-muted-foreground">
             By continuing, you agree to our{' '}
             <Link
               href="/terms"

@@ -47,7 +47,7 @@ export default function AdminLayout({
 
   if (loading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-brand-mist dark:bg-brand-night">
+      <div className="flex justify-center items-center min-h-screen bg-brand-mist dark:bg-brand-night">
         <div className="text-muted-foreground">Loading...</div>
       </div>
     );
@@ -55,7 +55,7 @@ export default function AdminLayout({
 
   return (
     <div className="flex min-h-screen bg-brand-mist dark:bg-brand-night">
-      <aside className="flex min-h-screen w-64 flex-col border-r border-white/10 bg-brand-navy text-white">
+      <aside className="flex flex-col w-64 min-h-screen text-white border-r border-white/10 bg-brand-navy">
         <div className="p-6">
           <h1 className="text-xl font-bold">Exterior Pro</h1>
           <p className="mt-1 text-sm text-white/50">Admin Dashboard</p>
@@ -81,10 +81,10 @@ export default function AdminLayout({
             );
           })}
         </nav>
-        <div className="flex items-center justify-between p-3">
+        <div className="flex justify-between items-center p-3">
           <button
             onClick={handleLogout}
-            className="flex-1 rounded-lg px-4 py-2 text-sm text-white/60 transition-colors hover:bg-white/5 hover:text-white"
+            className="flex-1 px-4 py-2 text-sm rounded-lg transition-colors text-white/60 hover:bg-white/5 hover:text-white"
           >
             Sign Out
           </button>
