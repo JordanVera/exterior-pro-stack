@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { router, customerProcedure, providerProcedure } from '../trpc';
+import type { Prisma } from '@repo/db';
+import { router, customerProcedure, providerProcedure, fieldProcedure } from '../trpc';
 import {
   createJobInput,
   scheduleJobInput,
@@ -8,6 +9,8 @@ import {
   updateJobStatusInput,
   createRecurringScheduleInput,
   cancelJobInput,
+  listMineInput,
+  getJobByIdInput,
 } from '@repo/validators';
 import {
   notifyNewJobAvailable,
@@ -16,6 +19,13 @@ import {
   notifyJobCompleted,
   notifyJobCancelled,
 } from '../lib/notifications';
+import {
+  fieldJobInclude,
+  getFieldAccess,
+  jobWhereForAccess,
+  todayRange,
+  assertJobAccess,
+} from '../lib/field-access';
 
 export const jobRouter = router({
   /** Customer: create a new job request (broadcasts to local providers) */
@@ -470,18 +480,18 @@ export const jobRouter = router({
     }),
 
   /** Provider: update job status */
-  updateStatus: providerProcedure
+  updateStatus: fieldProcedure
     .input(updateJobStatusInput)
     .mutation(async ({ ctx, input }) => {
-      const profile = await ctx.db.providerProfile.findUnique({
-        where: { userId: ctx.user.userId },
-      });
+      const { access } = await assertJobAccess(ctx, input.jobId);
 
-      if (!profile) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profile not found',
-        });
+      if (access.kind === 'crew') {
+        if (input.status !== 'IN_PROGRESS' && input.status !== 'COMPLETED') {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Crews can only start or complete assigned jobs',
+          });
+        }
       }
 
       const job = await ctx.db.job.findUnique({
@@ -489,11 +499,7 @@ export const jobRouter = router({
         include: { acceptedBid: true },
       });
 
-      if (
-        !job ||
-        !job.acceptedBid ||
-        job.acceptedBid.providerId !== profile.id
-      ) {
+      if (!job) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
       }
 
@@ -595,5 +601,49 @@ export const jobRouter = router({
       },
       orderBy: [{ scheduledDate: 'asc' }],
     });
+  }),
+
+  /** Provider or crew: jobs visible to the signed-in field user */
+  listMine: fieldProcedure.input(listMineInput).query(async ({ ctx, input }) => {
+    const access = await getFieldAccess(ctx);
+    const { start, end } = todayRange();
+    const view = input?.view ?? 'active';
+
+    const extra: Prisma.JobWhereInput = input?.status
+      ? { status: input.status }
+      : view === 'today'
+        ? {
+            OR: [
+              { status: 'IN_PROGRESS' },
+              { status: 'SCHEDULED', scheduledDate: { gte: start, lte: end } },
+            ],
+          }
+        : view === 'active'
+          ? { status: { in: ['PENDING', 'SCHEDULED', 'IN_PROGRESS'] } }
+          : {};
+
+    return ctx.db.job.findMany({
+      where: {
+        ...jobWhereForAccess(access),
+        ...extra,
+      },
+      include: fieldJobInclude,
+      orderBy: [{ scheduledDate: 'asc' }, { createdAt: 'desc' }],
+    });
+  }),
+
+  /** Provider or crew: single job they can access */
+  getById: fieldProcedure.input(getJobByIdInput).query(async ({ ctx, input }) => {
+    const access = await getFieldAccess(ctx);
+    const job = await ctx.db.job.findFirst({
+      where: { id: input.jobId, ...jobWhereForAccess(access) },
+      include: fieldJobInclude,
+    });
+
+    if (!job) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
+    }
+
+    return job;
   }),
 });

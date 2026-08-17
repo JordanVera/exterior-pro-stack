@@ -78,6 +78,12 @@ export default function LoginPage() {
         phone: fullPhone,
         code,
       });
+      if (result.user.role === 'CREW') {
+        setError(
+          'Crew members should use the Exterior Pro mobile app to view assigned jobs.',
+        );
+        return;
+      }
       await setToken(result.token);
       if (result.user.role === 'ADMIN') router.push('/admin');
       else if (result.user.isNewUser || !result.user.role)

@@ -1,33 +1,17 @@
-import { StyleSheet, Text, View } from "react-native";
-import { StatusBar } from "expo-status-bar";
-import { Button } from "@repo/ui";
+import { Redirect } from "expo-router";
+import { useAuth } from "@/lib/auth";
+import { LoadingScreen } from "@/components/Screen";
 
-export default function Native() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.header}>Native</Text>
-      <Button
-        onClick={() => {
-          console.log("Pressed!");
-          alert("Pressed!");
-        }}
-        text="Boop"
-      />
-      <StatusBar style="auto" />
-    </View>
-  );
+export default function Index() {
+  const { isReady, isFieldUser } = useAuth();
+
+  if (!isReady) {
+    return <LoadingScreen />;
+  }
+
+  if (!isFieldUser) {
+    return <Redirect href="/login" />;
+  }
+
+  return <Redirect href="/(field)" />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#fff",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  header: {
-    fontWeight: "bold",
-    marginBottom: 20,
-    fontSize: 36,
-  },
-});

@@ -52,11 +52,16 @@ export default function CrewsPage() {
 
   const handleAddMember = async (crewId: string) => {
     if (!memberName) return;
+    const digits = memberPhone.replace(/\D/g, '').slice(-10);
+    if (digits.length !== 10) {
+      alert('Enter a 10-digit phone number so they can log in on the app');
+      return;
+    }
     try {
       await trpc.crew.addMember.mutate({
         crewId,
         name: memberName,
-        phone: memberPhone || undefined,
+        phone: `+1${digits}`,
         role: memberRole || undefined,
       });
       setAddingMemberCrewId(null);
@@ -204,10 +209,12 @@ export default function CrewsPage() {
                 />
                 <div className="flex gap-2">
                   <input
-                    type="text"
+                    type="tel"
                     value={memberPhone}
-                    onChange={(e) => setMemberPhone(e.target.value)}
-                    placeholder="Phone"
+                    onChange={(e) =>
+                      setMemberPhone(e.target.value.replace(/\D/g, '').slice(0, 10))
+                    }
+                    placeholder="Phone * (they log in with this)"
                     className={`flex-1 ${inputClass}`}
                   />
                   <input

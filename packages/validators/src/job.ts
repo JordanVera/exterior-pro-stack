@@ -33,9 +33,31 @@ export const cancelJobInput = z.object({
   jobId: z.string().cuid(),
 });
 
+export const listMineInput = z
+  .object({
+    view: z.enum(["today", "active", "all"]).optional(),
+    status: z
+      .enum([
+        "OPEN",
+        "PENDING",
+        "SCHEDULED",
+        "IN_PROGRESS",
+        "COMPLETED",
+        "CANCELLED",
+      ])
+      .optional(),
+  })
+  .optional();
+
+export const getJobByIdInput = z.object({
+  jobId: z.string().cuid(),
+});
+
 export type CreateJobInput = z.infer<typeof createJobInput>;
 export type ScheduleJobInput = z.infer<typeof scheduleJobInput>;
 export type AssignCrewInput = z.infer<typeof assignCrewInput>;
 export type UpdateJobStatusInput = z.infer<typeof updateJobStatusInput>;
 export type CreateRecurringScheduleInput = z.infer<typeof createRecurringScheduleInput>;
 export type CancelJobInput = z.infer<typeof cancelJobInput>;
+export type ListMineInput = z.infer<typeof listMineInput>;
+export type GetJobByIdInput = z.infer<typeof getJobByIdInput>;

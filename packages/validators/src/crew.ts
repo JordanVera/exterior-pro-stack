@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { phoneSchema } from "./auth";
 
 export const createCrewInput = z.object({
   name: z.string().min(1, "Crew name is required").max(100),
@@ -12,14 +13,14 @@ export const updateCrewInput = z.object({
 export const addCrewMemberInput = z.object({
   crewId: z.string().cuid(),
   name: z.string().min(1, "Name is required").max(100),
-  phone: z.string().max(20).optional(),
+  phone: phoneSchema,
   role: z.string().max(50).optional(),
 });
 
 export const updateCrewMemberInput = z.object({
   id: z.string().cuid(),
   name: z.string().min(1).max(100).optional(),
-  phone: z.string().max(20).optional(),
+  phone: phoneSchema.optional(),
   role: z.string().max(50).optional(),
 });
 

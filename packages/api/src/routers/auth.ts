@@ -96,6 +96,24 @@ export const authRouter = router({
         });
       }
 
+      const crewMember = await ctx.db.crewMember.findFirst({
+        where: { phone: input.phone },
+      });
+
+      if (crewMember && (user.role == null || user.role === 'CREW')) {
+        user = await ctx.db.user.update({
+          where: { id: user.id },
+          data: { role: 'CREW' },
+          include: { customerProfile: true, providerProfile: true },
+        });
+        if (crewMember.userId !== user.id) {
+          await ctx.db.crewMember.update({
+            where: { id: crewMember.id },
+            data: { userId: user.id },
+          });
+        }
+      }
+
       const token = await signToken({
         userId: user.id,
         role: user.role ?? 'CUSTOMER',
@@ -121,12 +139,23 @@ export const authRouter = router({
       include: {
         customerProfile: true,
         providerProfile: true,
+        crewMemberships: {
+          include: {
+            crew: {
+              include: {
+                provider: { select: { businessName: true } },
+              },
+            },
+          },
+        },
       },
     });
 
     if (!user) {
       throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
     }
+
+    const crewMember = user.crewMemberships[0] ?? null;
 
     return {
       id: user.id,
@@ -137,6 +166,18 @@ export const authRouter = router({
       hasProfile: !!(user.customerProfile || user.providerProfile),
       customerProfile: user.customerProfile,
       providerProfile: user.providerProfile,
+      crewMember: crewMember
+        ? {
+            id: crewMember.id,
+            name: crewMember.name,
+            role: crewMember.role,
+            crew: {
+              id: crewMember.crew.id,
+              name: crewMember.crew.name,
+              businessName: crewMember.crew.provider.businessName,
+            },
+          }
+        : null,
     };
   }),
 

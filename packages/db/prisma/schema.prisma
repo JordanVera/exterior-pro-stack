@@ -13,6 +13,7 @@ enum UserRole {
   CUSTOMER
   PROVIDER
   ADMIN
+  CREW
 }
 
 enum BidStatus {
@@ -123,6 +124,7 @@ model User {
 
   customerProfile CustomerProfile?
   providerProfile ProviderProfile?
+  crewMemberships CrewMember[]
   notifications   Notification[]
   pushTokens      PushToken[]
 }
@@ -346,13 +348,15 @@ model Crew {
 model CrewMember {
   id        String   @id @default(cuid())
   crewId    String
+  userId    String?  @unique
   name      String
   phone     String?
   role      String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  crew Crew @relation(fields: [crewId], references: [id], onDelete: Cascade)
+  crew Crew  @relation(fields: [crewId], references: [id], onDelete: Cascade)
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 }
 
 // ─── Scheduling ─────────────────────────────────────────────────────────────

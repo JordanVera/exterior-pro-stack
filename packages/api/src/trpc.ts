@@ -86,4 +86,8 @@ function hasRole(...roles: UserRole[]) {
 
 export const customerProcedure = t.procedure.use(isAuthed).use(hasRole("CUSTOMER"));
 export const providerProcedure = t.procedure.use(isAuthed).use(hasRole("PROVIDER"));
+export const crewProcedure = t.procedure.use(isAuthed).use(hasRole("CREW"));
+export const fieldProcedure = t.procedure
+  .use(isAuthed)
+  .use(hasRole("PROVIDER", "CREW"));
 export const adminProcedure = t.procedure.use(isAuthed).use(hasRole("ADMIN"));

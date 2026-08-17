@@ -1058,12 +1058,27 @@ async function main() {
       });
 
       for (const member of crewData.members) {
+        let userId: string | undefined;
+        if (member.phone) {
+          const crewUser = await prisma.user.upsert({
+            where: { phone: member.phone },
+            update: { role: 'CREW', verified: true },
+            create: {
+              phone: member.phone,
+              role: 'CREW',
+              verified: true,
+            },
+          });
+          userId = crewUser.id;
+        }
+
         await prisma.crewMember.create({
           data: {
             crewId: crew.id,
             name: member.name,
             phone: member.phone || null,
             role: member.role || null,
+            userId,
           },
         });
       }
@@ -1945,7 +1960,7 @@ async function main() {
   divider();
   console.log();
 
-  const totalUsers = await prisma.user.count();
+  const totalCrewUsers = await prisma.user.count({ where: { role: 'CREW' } });
   const totalProperties = await prisma.property.count();
   const totalServices = await prisma.service.count();
   const totalCrews = await prisma.crew.count();
@@ -1967,6 +1982,7 @@ async function main() {
 
   console.log(chalk.bold('  Database totals:'));
   console.log(`    Users ............. ${chalk.cyan(totalUsers)}`);
+  console.log(`    Crew users ........ ${chalk.cyan(totalCrewUsers)}`);
   console.log(`    Properties ........ ${chalk.cyan(totalProperties)}`);
   console.log(`    Service Categories  ${chalk.cyan(categories.length)}`);
   console.log(`    Services .......... ${chalk.cyan(totalServices)}`);
@@ -1991,6 +2007,7 @@ async function main() {
   console.log(chalk.dim('    Admin:    +10000000000'));
   console.log(chalk.dim('    Customer: +15551001001 through +15551005005'));
   console.log(chalk.dim('    Provider: +15552001001 through +15552010010'));
+  console.log(chalk.dim('    Crew:     +15559001001 (Carlos Rivera, DFW Alpha Team)'));
   console.log(
     chalk.dim(
       '    Payout-ready: DFW Power Wash, GreenScape, Texas Painters, Crystal Clear, Metroplex Lights',

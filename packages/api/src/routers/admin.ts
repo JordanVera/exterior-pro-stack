@@ -7,7 +7,7 @@ export const adminRouter = router({
   listUsers: adminProcedure
     .input(
       z.object({
-        role: z.enum(["CUSTOMER", "PROVIDER", "ADMIN"]).optional(),
+        role: z.enum(["CUSTOMER", "PROVIDER", "ADMIN", "CREW"]).optional(),
         search: z.string().optional(),
         limit: z.number().min(1).max(100).default(20),
         cursor: z.string().cuid().optional(),
