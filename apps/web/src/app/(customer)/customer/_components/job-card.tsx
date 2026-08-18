@@ -3,8 +3,8 @@
 import Link from 'next/link';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { GlowingEffect } from '@/components/ui/glowing-effect';
 import {
   STATUS_BADGE,
   STATUS_DOT,
@@ -32,47 +32,57 @@ export function JobCard({
   const actionLabel = cta ?? getJobCta(job);
 
   return (
-    <Link href={href} className="block group">
-      <Card className="shadow-none border-border bg-background/80 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-lime/50 hover:shadow-lg hover:shadow-black/5 dark:hover:shadow-black/20">
-        <CardContent className="flex items-center gap-3 p-4">
-          <div className={cn('h-2 w-2 flex-shrink-0 rounded-full', dot)} />
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <span className="truncate text-sm font-medium text-foreground">
-                {job.service.name}
-              </span>
+    <Link href={href} className="group block">
+      <div className="relative flex items-center gap-3 overflow-hidden rounded-2xl border border-border bg-background/70 p-4 backdrop-blur-xl transition-all duration-200 hover:-translate-y-0.5 hover:border-brand-lime/50">
+        <GlowingEffect
+          disabled={false}
+          glow
+          proximity={64}
+          spread={26}
+          borderWidth={2}
+        />
+
+        <span
+          className={cn('relative h-2 w-2 flex-shrink-0 rounded-full', dot)}
+        />
+
+        <div className="relative min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="truncate text-sm font-medium text-foreground">
+              {job.service.name}
+            </span>
+            <Badge
+              variant="secondary"
+              className={cn(
+                'rounded-full border-0 text-[10px] uppercase tracking-wide',
+                badge.bg,
+                badge.text,
+              )}
+            >
+              {badge.label}
+            </Badge>
+            {job.type === 'SUBSCRIPTION' && (
               <Badge
                 variant="secondary"
-                className={cn(
-                  'rounded-full border-0 text-[10px] uppercase tracking-wide',
-                  badge.bg,
-                  badge.text,
-                )}
+                className="rounded-full border-0 bg-purple-500/10 text-[10px] text-purple-500"
               >
-                {badge.label}
+                Sub
               </Badge>
-              {job.type === 'SUBSCRIPTION' && (
-                <Badge
-                  variant="secondary"
-                  className="rounded-full border-0 bg-purple-500/10 text-[10px] text-purple-500"
-                >
-                  Sub
-                </Badge>
-              )}
-            </div>
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">
-              {job.property.address}, {job.property.city}
-              {nextAction ? ` · ${nextAction}` : ''}
-            </p>
+            )}
           </div>
-          {showCta && (
-            <span className="hidden text-xs font-medium text-brand-lime sm:inline">
-              {actionLabel}
-            </span>
-          )}
-          <ChevronRight className="h-4 w-4 flex-shrink-0 text-muted-foreground/50 transition-colors group-hover:text-brand-lime" />
-        </CardContent>
-      </Card>
+          <p className="mt-0.5 truncate text-xs text-muted-foreground">
+            {job.property.address}, {job.property.city}
+            {nextAction ? ` · ${nextAction}` : ''}
+          </p>
+        </div>
+
+        {showCta && (
+          <span className="relative hidden text-xs font-semibold text-brand-navy sm:inline dark:text-brand-lime">
+            {actionLabel}
+          </span>
+        )}
+        <ChevronRight className="relative h-4 w-4 flex-shrink-0 text-muted-foreground/50 transition-all group-hover:translate-x-0.5 group-hover:text-brand-lime" />
+      </div>
     </Link>
   );
 }

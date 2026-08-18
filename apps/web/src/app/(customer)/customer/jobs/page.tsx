@@ -4,11 +4,12 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { toast } from 'sonner';
 import { trpc } from '../../../../lib/trpc';
-import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ClipboardList, Plus } from 'lucide-react';
+import { DashboardHero } from '@/components/dashboard/dashboard-hero';
+import { EmptyState } from '@/components/dashboard/empty-state';
+import { FilterPills } from '@/components/dashboard/filter-pills';
 import { JobCard } from '../_components/job-card';
 import { getPendingBids, type CustomerJob } from '../_components/job-status';
 
@@ -70,15 +71,12 @@ export default function JobsPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="flex justify-between items-end">
-          <Skeleton className="w-32 h-8" />
-          <Skeleton className="w-40 h-10 rounded-full" />
-        </div>
-        <Skeleton className="w-full h-10 rounded-full" />
-        <div className="space-y-3">
-          {[...Array(3)].map((_, i) => (
-            <Skeleton key={i} className="h-20 rounded-xl" />
+      <div className="space-y-8">
+        <Skeleton className="h-40 rounded-3xl" />
+        <Skeleton className="w-full max-w-lg h-9 rounded-full" />
+        <div className="space-y-2">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-2xl" />
           ))}
         </div>
       </div>
@@ -86,82 +84,62 @@ export default function JobsPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-foreground">
-            Jobs
-          </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Track requests, review bids, and follow scheduled work.
-          </p>
-        </div>
-        <Button
-          asChild
-          className="font-semibold bg-brand-lime text-brand-ink rounded-full hover:bg-brand-lime/90"
-        >
-          <Link href="/customer/jobs/new">
-            <Plus className="w-4 h-4" />
-            Request a service
-          </Link>
-        </Button>
-      </div>
-
-      <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
-        {FILTERS.map((item) => (
-          <Badge
-            key={item.value}
-            variant="secondary"
-            onClick={() => setFilter(item.value)}
-            className={cn(
-              'cursor-pointer select-none rounded-full border-0 px-3.5 py-1.5 text-xs font-medium transition-all',
-              filter === item.value
-                ? 'bg-brand-lime text-brand-ink hover:bg-brand-lime'
-                : 'hover:text-foreground',
-            )}
+    <div className="space-y-8">
+      <DashboardHero
+        eyebrow="Jobs"
+        size="md"
+        title="Your jobs"
+        subtitle="Track requests, review bids, and follow scheduled work."
+        action={
+          <Button
+            asChild
+            className="font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
           >
-            {item.label}
-            <span
-              className={cn(
-                'ml-1.5 tabular-nums',
-                filter === item.value
-                  ? 'text-white/80'
-                  : 'text-muted-foreground',
-              )}
-            >
-              {counts[item.value]}
-            </span>
-          </Badge>
-        ))}
-      </div>
+            <Link href="/customer/jobs/new">
+              <Plus className="w-4 h-4" />
+              Request a service
+            </Link>
+          </Button>
+        }
+      />
+
+      <FilterPills
+        options={FILTERS.map((item) => ({
+          ...item,
+          count: counts[item.value],
+        }))}
+        value={filter}
+        onChange={setFilter}
+      />
 
       {filteredJobs.length === 0 ? (
-        <div className="py-16 text-center">
-          <div className="flex justify-center items-center mx-auto mb-4 w-14 h-14 rounded-full bg-muted">
-            <ClipboardList className="w-7 h-7 text-muted-foreground" />
-          </div>
-          <h3 className="mb-1 text-base font-semibold text-foreground">
-            {filter === 'all' ? 'No jobs yet' : 'No matching jobs'}
-          </h3>
-          <p className="mb-4 text-sm text-muted-foreground">
-            {filter === 'all'
-              ? 'Request a service to get bids from local providers.'
-              : 'Try a different filter.'}
-          </p>
-          {filter === 'all' && (
-            <Button
-              asChild
-              className="bg-brand-lime text-brand-ink rounded-full hover:bg-brand-lime/90"
-            >
-              <Link href="/customer/jobs/new">
-                <Plus className="w-4 h-4" />
-                Request a service
-              </Link>
-            </Button>
-          )}
+        <div className="rounded-2xl border backdrop-blur-xl border-border bg-background/70">
+          <EmptyState
+            icon={ClipboardList}
+            title={filter === 'all' ? 'No jobs yet' : 'No matching jobs'}
+            description={
+              filter === 'all'
+                ? 'Request a service to get bids from local providers.'
+                : 'Try a different filter to see more of your history.'
+            }
+            className="py-16"
+            action={
+              filter === 'all' ? (
+                <Button
+                  asChild
+                  className="font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
+                >
+                  <Link href="/customer/jobs/new">
+                    <Plus className="w-4 h-4" />
+                    Request a service
+                  </Link>
+                </Button>
+              ) : null
+            }
+          />
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-2">
           {filteredJobs.map((job) => (
             <JobCard key={job.id} job={job} />
           ))}

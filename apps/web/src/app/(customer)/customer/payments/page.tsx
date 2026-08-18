@@ -1,86 +1,271 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { trpc } from '../../../../lib/trpc';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ExternalLink, Receipt } from 'lucide-react';
+import { GlowingEffect } from '@/components/ui/glowing-effect';
+import { DashboardHero } from '@/components/dashboard/dashboard-hero';
+import { EmptyState } from '@/components/dashboard/empty-state';
+import { FilterPills } from '@/components/dashboard/filter-pills';
+import { StatTiles, type StatTile } from '@/components/dashboard/stat-tiles';
+import { cn } from '@/lib/utils';
+import {
+  Briefcase,
+  CalendarDays,
+  ExternalLink,
+  Receipt,
+  Repeat,
+  Wallet,
+} from 'lucide-react';
+
+type Payment = {
+  id: string;
+  kind: string;
+  status: string;
+  amountCents: number;
+  receiptUrl?: string | null;
+  createdAt: string | Date;
+  job?: { service?: { name: string } | null } | null;
+  subscription?: { plan?: { name: string } | null } | null;
+};
+
+type FilterValue = 'all' | 'JOB' | 'SUBSCRIPTION';
+
+const STATUS_STYLES: Record<string, string> = {
+  SUCCEEDED: 'bg-green-500/10 text-green-500',
+  PENDING: 'bg-amber-500/10 text-amber-500',
+  FAILED: 'bg-red-500/10 text-red-400',
+  REFUNDED: 'bg-blue-500/10 text-blue-500',
+  CANCELED: 'bg-muted text-muted-foreground',
+};
 
 function dollars(cents: number) {
   return `$${(cents / 100).toFixed(2)}`;
 }
 
+function paymentLabel(payment: Payment) {
+  return (
+    payment.job?.service?.name ||
+    payment.subscription?.plan?.name ||
+    (payment.kind === 'SUBSCRIPTION' ? 'Subscription' : 'Job')
+  );
+}
+
 export default function PaymentsPage() {
-  const [payments, setPayments] = useState<any[]>([]);
+  const [payments, setPayments] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<FilterValue>('all');
 
   useEffect(() => {
     trpc.payment.listForCustomer
       .query()
-      .then(setPayments)
+      .then((result) => setPayments(result as unknown as Payment[]))
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
+  const succeeded = useMemo(
+    () => payments.filter((p) => p.status === 'SUCCEEDED'),
+    [payments],
+  );
+
+  const totalSpent = useMemo(
+    () => succeeded.reduce((total, p) => total + p.amountCents, 0) / 100,
+    [succeeded],
+  );
+
+  const thisYearSpent = useMemo(() => {
+    const year = new Date().getFullYear();
+    return (
+      succeeded
+        .filter((p) => new Date(p.createdAt).getFullYear() === year)
+        .reduce((total, p) => total + p.amountCents, 0) / 100
+    );
+  }, [succeeded]);
+
+  const counts = useMemo(
+    () => ({
+      all: payments.length,
+      JOB: payments.filter((p) => p.kind !== 'SUBSCRIPTION').length,
+      SUBSCRIPTION: payments.filter((p) => p.kind === 'SUBSCRIPTION').length,
+    }),
+    [payments],
+  );
+
+  const filtered = useMemo(() => {
+    if (filter === 'all') return payments;
+    if (filter === 'SUBSCRIPTION') {
+      return payments.filter((p) => p.kind === 'SUBSCRIPTION');
+    }
+    return payments.filter((p) => p.kind !== 'SUBSCRIPTION');
+  }, [payments, filter]);
+
   if (loading) {
     return (
-      <div className="space-y-4">
-        <Skeleton className="w-40 h-8" />
-        <Skeleton className="h-24 rounded-xl" />
+      <div className="space-y-8">
+        <Skeleton className="h-40 rounded-3xl" />
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-32 rounded-2xl" />
+          ))}
+        </div>
+        <div className="space-y-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-2xl" />
+          ))}
+        </div>
       </div>
     );
   }
 
+  const tiles: StatTile[] = [
+    {
+      id: 'total',
+      label: 'Total paid',
+      value: totalSpent,
+      prefix: '$',
+      caption: `${succeeded.length} successful payment${succeeded.length === 1 ? '' : 's'}`,
+      icon: Wallet,
+      tone: 'lime',
+    },
+    {
+      id: 'year',
+      label: `Spent in ${new Date().getFullYear()}`,
+      value: thisYearSpent,
+      prefix: '$',
+      caption: 'Across jobs and plans',
+      icon: CalendarDays,
+      tone: 'blue',
+    },
+    {
+      id: 'jobs',
+      label: 'Job payments',
+      value: counts.JOB,
+      caption: 'One-time work',
+      icon: Briefcase,
+      tone: 'amber',
+    },
+    {
+      id: 'subs',
+      label: 'Plan payments',
+      value: counts.SUBSCRIPTION,
+      caption: 'Recurring billing',
+      icon: Repeat,
+      tone: 'green',
+    },
+  ];
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Payments</h1>
-        <p className="text-sm text-neutral-500">Receipts for jobs and plans</p>
-      </div>
+    <div className="space-y-8">
+      <DashboardHero
+        eyebrow="Billing"
+        size="md"
+        title="Payments"
+        subtitle="Every receipt for your jobs and subscription plans, in one place."
+      />
+
+      {payments.length > 0 ? (
+        <StatTiles tiles={tiles} className="lg:grid-cols-4" />
+      ) : null}
 
       {payments.length === 0 ? (
-        <Card className="border-dashed shadow-none">
-          <CardContent className="py-12 text-center">
-            <Receipt className="mx-auto mb-3 w-10 h-10 text-neutral-400" />
-            <p className="text-sm text-neutral-500">No payments yet.</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl border border-dashed backdrop-blur-xl border-border bg-background/50">
+          <EmptyState
+            icon={Receipt}
+            title="No payments yet"
+            description="Once you accept a bid or start a plan, your receipts will show up here."
+            className="py-16"
+          />
+        </div>
       ) : (
-        <div className="space-y-3">
-          {payments.map((p) => (
-            <Card key={p.id} className="shadow-none">
-              <CardContent className="flex justify-between items-center p-4">
-                <div>
-                  <div className="text-sm font-medium">
-                    {p.job?.service?.name ||
-                      p.subscription?.plan?.name ||
-                      (p.kind === 'SUBSCRIPTION' ? 'Subscription' : 'Job')}
-                  </div>
-                  <div className="text-xs text-neutral-500">
-                    {new Date(p.createdAt).toLocaleDateString()} · {p.kind}
-                  </div>
+        <>
+          <FilterPills
+            options={[
+              { value: 'all', label: 'All', count: counts.all },
+              { value: 'JOB', label: 'Jobs', count: counts.JOB },
+              {
+                value: 'SUBSCRIPTION',
+                label: 'Plans',
+                count: counts.SUBSCRIPTION,
+              },
+            ]}
+            value={filter}
+            onChange={setFilter}
+          />
+
+          <div className="space-y-2">
+            {filtered.map((payment) => (
+              <div
+                key={payment.id}
+                className="flex overflow-hidden relative gap-3 items-center p-4 rounded-2xl border backdrop-blur-xl transition-colors border-border bg-background/70 hover:border-brand-lime/50"
+              >
+                <GlowingEffect
+                  disabled={false}
+                  glow
+                  proximity={64}
+                  spread={26}
+                  borderWidth={2}
+                />
+
+                <span className="flex relative justify-center items-center w-9 h-9 rounded-lg border shrink-0 border-brand-lime/25 bg-brand-lime/10">
+                  {payment.kind === 'SUBSCRIPTION' ? (
+                    <Repeat className="w-4 h-4 text-brand-lime" />
+                  ) : (
+                    <Briefcase className="w-4 h-4 text-brand-lime" />
+                  )}
+                </span>
+
+                <div className="relative flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate text-foreground">
+                    {paymentLabel(payment)}
+                  </p>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {new Date(payment.createdAt).toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    })}
+                    {' · '}
+                    {payment.kind === 'SUBSCRIPTION' ? 'Plan' : 'Job'}
+                  </p>
                 </div>
-                <div className="flex gap-3 items-center">
-                  <div className="text-sm font-semibold">
-                    {dollars(p.amountCents)}
-                  </div>
-                  <Badge variant="secondary" className="text-[10px] uppercase">
-                    {p.status}
-                  </Badge>
-                  {p.receiptUrl && (
-                    <Button variant="ghost" size="sm" asChild>
-                      <a href={p.receiptUrl} target="_blank" rel="noreferrer">
+
+                <div className="flex relative gap-3 items-center shrink-0">
+                  <span className="text-sm font-semibold tabular-nums text-foreground">
+                    {dollars(payment.amountCents)}
+                  </span>
+                  <span
+                    className={cn(
+                      'hidden rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide sm:inline',
+                      STATUS_STYLES[payment.status] ??
+                        'bg-muted text-muted-foreground',
+                    )}
+                  >
+                    {payment.status}
+                  </span>
+                  {payment.receiptUrl ? (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      asChild
+                      className="p-0 w-8 h-8 rounded-full text-muted-foreground hover:text-brand-lime"
+                    >
+                      <a
+                        href={payment.receiptUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        aria-label="View receipt"
+                      >
                         <ExternalLink className="w-4 h-4" />
                       </a>
                     </Button>
-                  )}
+                  ) : null}
                 </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

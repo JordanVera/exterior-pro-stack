@@ -11,9 +11,10 @@ if (process.env.NODE_ENV !== "production") {
 }
 
 export { PrismaClient } from "@prisma/client";
-export type { Prisma } from "@prisma/client";
+export type { Prisma, Property } from "@prisma/client";
 export {
   UserRole,
+  PropertyImageSource,
   BidStatus,
   JobStatus,
   JobType,

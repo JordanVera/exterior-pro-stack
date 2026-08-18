@@ -1,51 +1,83 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Search, Calendar, AlertTriangle, Clock } from 'lucide-react';
+import {
+  AlertTriangle,
+  CalendarCheck,
+  CalendarClock,
+  Gavel,
+  Search,
+  UserPlus,
+  Wallet,
+} from 'lucide-react';
 import { trpc } from '../../../lib/trpc';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { HoverBorderGradient } from '@/components/ui/hover-border-gradient';
-import { HoverEffect } from '@/components/ui/card-hover-effect';
-import { SectionEyebrow } from '@/components/landing/section-eyebrow';
-import { cn } from '@/lib/utils';
 import {
-  getGreeting,
-  getDateString,
-  formatJobDateTime,
-  STATUS_BADGE,
-} from './_components/utils';
+  DashboardHero,
+  type HeroChip,
+} from '@/components/dashboard/dashboard-hero';
+import { StatTiles, type StatTile } from '@/components/dashboard/stat-tiles';
+import { SectionPanel } from '@/components/dashboard/section-panel';
+import { QuickActions } from '@/components/dashboard/quick-actions';
+import { getGreeting, getDateString, formatJobDate } from './_components/utils';
+import { ProviderJobFeed } from './_components/job-feed';
+import { PayoutSummary, type ProviderTransfer } from './_components/payout-summary';
+import { CrewSummary, type ProviderCrew } from './_components/crew-summary';
+import { OpenJobsCarousel, type OpenJob } from './_components/open-jobs-carousel';
 
-const SHORTCUTS = [
+type ProviderBid = {
+  id: string;
+  price: unknown;
+  status: string;
+  createdAt: string | Date;
+  job: {
+    id: string;
+    service: { name: string };
+    property: { address: string; city: string };
+  };
+};
+
+const QUICK_ACTIONS = [
   {
-    title: 'Available jobs',
-    description: 'Browse open requests in your area and submit bids.',
-    link: '/provider/quotes',
-    tag: 'Bid',
+    id: 'quotes',
+    label: 'Find work',
+    description: 'Open jobs in your service area',
+    href: '/provider/quotes',
+    icon: Search,
   },
   {
-    title: 'My jobs',
-    description: 'Schedule work, assign crews, and mark jobs complete.',
-    link: '/provider/jobs',
-    tag: 'Dispatch',
+    id: 'jobs',
+    label: 'Dispatch jobs',
+    description: 'Schedule crews and close out work',
+    href: '/provider/jobs',
+    icon: CalendarCheck,
   },
   {
-    title: 'Crews',
-    description: 'Add crews and team members for field work.',
-    link: '/provider/crews',
-    tag: 'Team',
+    id: 'crews',
+    label: 'Add a crew member',
+    description: 'Give your team field access',
+    href: '/provider/crews',
+    icon: UserPlus,
+  },
+  {
+    id: 'payouts',
+    label: 'Payouts',
+    description: 'Transfers and Stripe account',
+    href: '/provider/payouts',
+    icon: Wallet,
   },
 ];
 
 export default function ProviderDashboard() {
-  const router = useRouter();
   const [businessName, setBusinessName] = useState('there');
   const [pendingJobs, setPendingJobs] = useState<any[]>([]);
   const [upcoming, setUpcoming] = useState<any[]>([]);
+  const [openJobs, setOpenJobs] = useState<OpenJob[]>([]);
+  const [bids, setBids] = useState<ProviderBid[]>([]);
+  const [crews, setCrews] = useState<ProviderCrew[]>([]);
+  const [transfers, setTransfers] = useState<ProviderTransfer[]>([]);
   const [payoutsEnabled, setPayoutsEnabled] = useState(true);
   const [loading, setLoading] = useState(true);
 
@@ -54,219 +86,237 @@ export default function ProviderDashboard() {
       trpc.auth.me.query(),
       trpc.job.listForProvider.query({ status: 'PENDING' }),
       trpc.job.getUpcoming.query(),
+      // Everything below only drives stats and side panels, so a failure should
+      // degrade one card rather than blank the dashboard.
+      trpc.job.listOpen.query().catch(() => []),
+      trpc.job.listMyBids.query().catch(() => []),
+      trpc.crew.list.query().catch(() => []),
+      trpc.payment.listForProvider.query().catch(() => []),
       trpc.connect.getStatus.query().catch(() => null),
     ])
-      .then(([user, pending, next, connect]) => {
+      .then(([user, pending, next, open, myBids, crewList, payouts, connect]) => {
         setBusinessName(user.providerProfile?.businessName || 'there');
         setPendingJobs(pending);
         setUpcoming(next);
+        setOpenJobs(open as unknown as OpenJob[]);
+        setBids(myBids as unknown as ProviderBid[]);
+        setCrews(crewList as unknown as ProviderCrew[]);
+        setTransfers(payouts as unknown as ProviderTransfer[]);
         if (connect) setPayoutsEnabled(connect.payoutsEnabled);
       })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) {
-    return (
-      <div className="space-y-8">
-        <div className="flex justify-between items-end">
-          <div className="space-y-2">
-            <Skeleton className="w-56 h-8" />
-            <Skeleton className="w-32 h-4" />
-          </div>
-          <Skeleton className="w-36 h-10 rounded-full" />
-        </div>
-        <div className="grid gap-6 lg:grid-cols-2">
-          <Skeleton className="h-48 rounded-xl" />
-          <Skeleton className="h-48 rounded-xl" />
-        </div>
-      </div>
-    );
+  const pendingBids = useMemo(
+    () => bids.filter((bid) => bid.status === 'PENDING'),
+    [bids],
+  );
+
+  const wonBids = useMemo(
+    () => bids.filter((bid) => bid.status === 'ACCEPTED').length,
+    [bids],
+  );
+
+  const lifetimePaidCents = useMemo(
+    () =>
+      transfers
+        .filter((t) => t.status === 'PAID')
+        .reduce((total, t) => total + t.amountCents, 0),
+    [transfers],
+  );
+
+  const crewMemberCount = useMemo(
+    () => crews.reduce((total, crew) => total + crew.members.length, 0),
+    [crews],
+  );
+
+  const nextJob = useMemo(
+    () => upcoming.find((job) => job.scheduledDate) ?? null,
+    [upcoming],
+  );
+
+  if (loading) return <ProviderDashboardSkeleton />;
+
+  const chips: HeroChip[] = [];
+  if (openJobs.length > 0) {
+    chips.push({
+      id: 'open',
+      label: `${openJobs.length} job${openJobs.length === 1 ? '' : 's'} to bid on`,
+      tone: 'lime',
+      pulse: true,
+    });
   }
+  if (pendingJobs.length > 0) {
+    chips.push({
+      id: 'schedule',
+      label: `${pendingJobs.length} need${pendingJobs.length === 1 ? 's' : ''} scheduling`,
+      tone: 'amber',
+    });
+  }
+  if (nextJob?.scheduledDate) {
+    chips.push({
+      id: 'next',
+      label: `Next job ${formatJobDate(nextJob.scheduledDate, { weekday: true })}`,
+      tone: 'blue',
+    });
+  }
+  if (chips.length === 0) {
+    chips.push({
+      id: 'idle',
+      label: 'No open work in your area right now',
+      tone: 'muted',
+    });
+  }
+
+  const tiles: StatTile[] = [
+    {
+      id: 'open',
+      label: 'Open jobs',
+      value: openJobs.length,
+      caption: 'Matching your services',
+      icon: Search,
+      tone: 'lime',
+      href: '/provider/quotes',
+    },
+    {
+      id: 'bids',
+      label: 'Bids out',
+      value: pendingBids.length,
+      caption: `${wonBids} won all time`,
+      icon: Gavel,
+      tone: 'amber',
+      href: '/provider/quotes',
+    },
+    {
+      id: 'schedule',
+      label: 'To schedule',
+      value: pendingJobs.length,
+      caption: 'Won jobs without a date',
+      icon: CalendarClock,
+      tone: 'blue',
+      href: '/provider/jobs',
+    },
+    {
+      id: 'booked',
+      label: 'Booked this week',
+      value: upcoming.length,
+      caption: 'Next 7 days',
+      icon: CalendarCheck,
+      tone: 'green',
+      href: '/provider/jobs',
+    },
+    {
+      id: 'paid',
+      label: 'Paid out',
+      value: lifetimePaidCents / 100,
+      prefix: '$',
+      decimals: 0,
+      caption: `${crews.length} crew${crews.length === 1 ? '' : 's'} · ${crewMemberCount} member${crewMemberCount === 1 ? '' : 's'}`,
+      icon: Wallet,
+      tone: 'muted',
+      href: '/provider/payouts',
+    },
+  ];
 
   return (
     <div className="space-y-10">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <section>
-          <SectionEyebrow>Dashboard</SectionEyebrow>
-          <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
-            {getGreeting()}, {businessName}
-          </h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            {getDateString()}
-          </p>
-        </section>
-        <HoverBorderGradient
-          as="button"
-          containerClassName="rounded-full"
-          className="flex items-center gap-2 px-4 py-1.5 text-sm font-semibold dark:bg-black"
-          onClick={() => router.push('/provider/quotes')}
-        >
-          <Search className="w-4 h-4" />
-          Browse jobs
-        </HoverBorderGradient>
-      </div>
+      <DashboardHero
+        eyebrow="Dashboard"
+        title={
+          <>
+            {getGreeting()},{' '}
+            <span className="text-brand-navy dark:text-brand-lime">
+              {businessName}
+            </span>
+          </>
+        }
+        subtitle={getDateString()}
+        chips={chips}
+        action={
+          <Button
+            asChild
+            size="lg"
+            className="rounded-full bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
+          >
+            <Link href="/provider/quotes">
+              <Search className="h-4 w-4" />
+              Browse open jobs
+            </Link>
+          </Button>
+        }
+      />
 
       {!payoutsEnabled && (
-        <Card className="shadow-none border-amber-500/30 bg-amber-500/5">
-          <CardContent className="flex flex-col gap-3 p-5 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex gap-3 items-start">
-              <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500" />
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  Finish payout setup
-                </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  Customers can&apos;t accept your bids until payouts are
-                  enabled.
-                </p>
-              </div>
+        <div className="flex flex-col gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500" />
+            <div>
+              <p className="text-sm font-medium text-foreground">
+                Finish payout setup
+              </p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Customers can&apos;t accept your bids until payouts are enabled.
+              </p>
             </div>
-            <Button
-              asChild
-              size="sm"
-              className="bg-brand-lime text-brand-ink rounded-full hover:bg-brand-lime/90"
-            >
-              <Link href="/provider/payouts">Set up payouts</Link>
-            </Button>
-          </CardContent>
-        </Card>
+          </div>
+          <Button
+            asChild
+            size="sm"
+            className="shrink-0 rounded-full bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
+          >
+            <Link href="/provider/payouts">Set up payouts</Link>
+          </Button>
+        </div>
       )}
 
-      <div className="grid gap-8 lg:grid-cols-2">
-        <section>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-foreground">
-              Needs attention
-              {pendingJobs.length > 0 && (
-                <span className="ml-2 text-sm font-normal text-muted-foreground">
-                  {pendingJobs.length}
-                </span>
-              )}
-            </h2>
-            <Button
-              variant="link"
-              size="sm"
-              asChild
-              className="p-0 h-auto text-xs text-brand-navy hover:text-brand-navy/70 dark:text-brand-lime dark:hover:text-brand-lime/80"
-            >
-              <Link href="/provider/jobs">View all</Link>
-            </Button>
-          </div>
-          {pendingJobs.length === 0 ? (
-            <Card className="shadow-none backdrop-blur-xl border-border bg-background/80">
-              <CardContent className="px-5 py-8 text-center">
-                <Clock className="mx-auto mb-2 w-6 h-6 text-muted-foreground" />
-                <p className="text-sm font-medium text-foreground">
-                  You&apos;re all caught up
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Won jobs that need scheduling will show up here.
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-2">
-              {pendingJobs.slice(0, 4).map((job) => (
-                <Link key={job.id} href="/provider/jobs" className="block">
-                  <Card className="border-border bg-background/80 shadow-none backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-brand-lime/50">
-                    <CardContent className="flex gap-3 justify-between items-center p-4">
-                      <div className="min-w-0">
-                        <div className="text-sm font-medium truncate text-foreground">
-                          {job.service.name}
-                        </div>
-                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                          {job.property.address}, {job.property.city} · Needs
-                          schedule
-                        </p>
-                      </div>
-                      <Badge
-                        variant="secondary"
-                        className={cn(
-                          'rounded-full border-0 text-[10px] uppercase tracking-wide',
-                          STATUS_BADGE.PENDING.bg,
-                          STATUS_BADGE.PENDING.text,
-                        )}
-                      >
-                        Schedule
-                      </Badge>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
+      <StatTiles tiles={tiles} />
 
-        <section>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-semibold text-foreground">
-              Upcoming
-              {upcoming.length > 0 && (
-                <span className="ml-2 text-sm font-normal text-muted-foreground">
-                  {upcoming.length}
-                </span>
-              )}
-            </h2>
-            <Button
-              variant="link"
-              size="sm"
-              asChild
-              className="p-0 h-auto text-xs text-brand-navy hover:text-brand-navy/70 dark:text-brand-lime dark:hover:text-brand-lime/80"
-            >
-              <Link href="/provider/jobs">View all</Link>
-            </Button>
-          </div>
-          {upcoming.length === 0 ? (
-            <Card className="shadow-none backdrop-blur-xl border-border bg-background/80">
-              <CardContent className="px-5 py-8 text-center">
-                <Calendar className="mx-auto mb-2 w-6 h-6 text-muted-foreground" />
-                <p className="text-sm font-medium text-foreground">
-                  No upcoming work
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Scheduled jobs in the next 7 days will show up here.
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            <div className="space-y-2">
-              {upcoming.map((job) => (
-                <Link key={job.id} href="/provider/jobs" className="block">
-                  <Card className="border-border bg-background/80 shadow-none backdrop-blur-xl transition-all hover:-translate-y-0.5 hover:border-brand-lime/50">
-                    <CardContent className="flex gap-3 justify-between items-center p-4">
-                      <div className="min-w-0">
-                        <div className="text-sm font-medium truncate text-foreground">
-                          {job.service.name}
-                        </div>
-                        <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                          {job.property.address}, {job.property.city}
-                          {job.assignments?.length > 0
-                            ? ` · ${job.assignments.map((a: any) => a.crew.name).join(', ')}`
-                            : ''}
-                        </p>
-                      </div>
-                      <div className="flex-shrink-0 text-xs text-right text-muted-foreground">
-                        {job.scheduledDate
-                          ? formatJobDateTime(
-                              job.scheduledDate,
-                              job.scheduledTime,
-                            )
-                          : 'Not scheduled'}
-                      </div>
-                    </CardContent>
-                  </Card>
-                </Link>
-              ))}
-            </div>
-          )}
-        </section>
+      <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr]">
+        <ProviderJobFeed
+          needsScheduling={pendingJobs}
+          upcoming={upcoming}
+          pendingBids={pendingBids}
+        />
+
+        <div className="space-y-8 lg:sticky lg:top-28 lg:self-start">
+          <PayoutSummary
+            transfers={transfers}
+            payoutsEnabled={payoutsEnabled}
+          />
+          <CrewSummary crews={crews} />
+          <SectionPanel title="Quick actions" bodyClassName="p-2">
+            <QuickActions actions={QUICK_ACTIONS} />
+          </SectionPanel>
+        </div>
       </div>
 
-      <section>
-        <h2 className="text-lg font-semibold text-foreground">Shortcuts</h2>
-        <HoverEffect items={SHORTCUTS} className="py-2" />
-      </section>
+      <OpenJobsCarousel jobs={openJobs} />
+    </div>
+  );
+}
+
+function ProviderDashboardSkeleton() {
+  return (
+    <div className="space-y-10">
+      <Skeleton className="h-56 rounded-3xl" />
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <Skeleton key={i} className="h-32 rounded-2xl" />
+        ))}
+      </div>
+      <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr]">
+        <div className="space-y-2">
+          <Skeleton className="mb-4 h-8 w-64 rounded-full" />
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-20 rounded-2xl" />
+          ))}
+        </div>
+        <div className="space-y-8">
+          <Skeleton className="h-64 rounded-2xl" />
+          <Skeleton className="h-48 rounded-2xl" />
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,28 +1,51 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { Menu, X } from 'lucide-react';
+import { ArrowRight, Menu, X } from 'lucide-react';
+import { AnimatePresence, motion } from 'motion/react';
 import { ThemeToggle } from '@/components/ThemeToggle';
-import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { loginPath } from '@/lib/auth-intent';
 
 const NAV_LINKS = [
-  { href: '#plans', label: 'For homeowners' },
-  { href: '#providers', label: 'For providers' },
   { href: '#how-it-works', label: 'How it works' },
+  { href: '#services', label: 'Services' },
+  { href: '#pricing', label: 'Pricing' },
+  { href: '#providers', label: 'For providers' },
+  { href: '#faq', label: 'FAQ' },
 ];
 
 export function LandingNavbar() {
-  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    document.body.style.overflow = open ? 'hidden' : '';
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [open]);
 
   return (
-    <header className="fixed inset-x-0 top-0 z-50 px-4 pt-4">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-black/70">
-        <Link href="/" className="flex gap-2 items-center pl-1">
+    <header className="fixed inset-x-0 top-0 z-50 px-4 pt-3 sm:pt-4">
+      <nav
+        className={cn(
+          'mx-auto flex items-center justify-between rounded-full border px-3 py-2 transition-all duration-300 sm:px-4',
+          scrolled
+            ? 'max-w-5xl border-white/10 bg-background/80 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-black/70'
+            : 'max-w-6xl border-transparent bg-transparent',
+        )}
+      >
+        <Link href="/" className="flex shrink-0 items-center gap-2 pl-1">
           <Image
             src="/logos/logo-stacked-lime.png"
             alt="Exterior Pro"
@@ -32,66 +55,85 @@ export function LandingNavbar() {
           />
         </Link>
 
-        <div className="hidden gap-1 items-center md:flex">
+        <div className="hidden items-center gap-1 lg:flex">
           {NAV_LINKS.map((link) => (
             <a
               key={link.href}
               href={link.href}
-              className="px-3 py-2 text-sm rounded-lg transition-colors text-muted-foreground hover:bg-muted hover:text-foreground"
+              className="group relative rounded-full px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
             >
               {link.label}
+              <span className="absolute inset-x-3.5 -bottom-0.5 h-px scale-x-0 bg-brand-lime transition-transform duration-300 group-hover:scale-x-100" />
             </a>
           ))}
         </div>
 
-        <div className="flex gap-2 items-center">
+        <div className="flex items-center gap-1.5">
           <ThemeToggle />
-          <Button
-            variant="ghost"
-            onClick={() => router.push(loginPath())}
-            className="hidden text-muted-foreground hover:text-foreground sm:inline-flex"
+          <Link
+            href={loginPath()}
+            className="hidden rounded-full px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:block"
           >
             Sign in
-          </Button>
-          <Button
-            onClick={() => router.push(loginPath())}
-            className="hidden px-4 h-9 text-sm font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90 sm:inline-flex"
+          </Link>
+          <Link
+            href={loginPath('customer')}
+            className="group hidden items-center gap-1.5 rounded-full bg-brand-lime px-4 py-2 text-sm font-semibold text-brand-ink transition hover:bg-brand-lime/90 sm:inline-flex"
           >
             Get started
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setOpen((value) => !value)}
+            <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />
+          </Link>
+          <button
+            type="button"
             aria-label={open ? 'Close menu' : 'Open menu'}
-            aria-expanded={open}
+            onClick={() => setOpen((value) => !value)}
+            className="flex h-9 w-9 items-center justify-center rounded-full text-foreground lg:hidden"
           >
-            {open ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-          </Button>
+            {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
         </div>
       </nav>
 
-      {open ? (
-        <div className="p-3 mx-auto mt-2 max-w-6xl rounded-2xl border shadow-xl backdrop-blur-xl border-border bg-background/95 md:hidden">
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              onClick={() => setOpen(false)}
-              className="block rounded-lg px-3 py-2.5 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
-            >
-              {link.label}
-            </a>
-          ))}
-          <Button
-            className="mt-2 w-full font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
-            onClick={() => router.push(loginPath())}
+      <AnimatePresence>
+        {open ? (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.18 }}
+            className="mx-auto mt-2 max-w-6xl overflow-hidden rounded-3xl border border-white/10 bg-background/95 p-4 shadow-xl backdrop-blur-xl lg:hidden dark:bg-black/90"
           >
-            Get started
-          </Button>
-        </div>
-      ) : null}
+            <div className="flex flex-col">
+              {NAV_LINKS.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={() => setOpen(false)}
+                  className="rounded-xl px-3 py-3 text-base font-medium text-foreground transition hover:bg-brand-lime/10"
+                >
+                  {link.label}
+                </a>
+              ))}
+            </div>
+            <div className="mt-3 grid gap-2 border-t border-border pt-3">
+              <Link
+                href={loginPath('customer')}
+                onClick={() => setOpen(false)}
+                className="rounded-xl bg-brand-lime px-4 py-3 text-center text-sm font-semibold text-brand-ink"
+              >
+                Get my property handled
+              </Link>
+              <Link
+                href={loginPath('provider')}
+                onClick={() => setOpen(false)}
+                className="rounded-xl border border-brand-lime/30 px-4 py-3 text-center text-sm font-semibold text-foreground"
+              >
+                Join as a provider
+              </Link>
+            </div>
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </header>
   );
 }

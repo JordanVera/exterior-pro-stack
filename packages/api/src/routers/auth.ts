@@ -1,4 +1,3 @@
-import chalk from 'chalk';
 import { TRPCError } from '@trpc/server';
 import {
   router,
@@ -17,13 +16,69 @@ import {
 import { signToken } from '../lib/jwt';
 import { sendSMS, generateVerificationCode } from '../lib/sms';
 
+const CODE_TTL_MINUTES = 10;
+/** Minimum gap between two codes for the same number. */
+const RESEND_COOLDOWN_SECONDS = 30;
+const SENDS_PER_PHONE_PER_HOUR = 5;
+const SENDS_PER_IP_PER_HOUR = 15;
+/** Wrong guesses allowed against a single code before it is burned. */
+const MAX_VERIFY_ATTEMPTS = 5;
+
 export const authRouter = router({
   /** Send a 6-digit verification code via SMS */
   sendCode: publicProcedure
     .input(sendCodeInput)
     .mutation(async ({ ctx, input }) => {
+      const now = Date.now();
+      const oneHourAgo = new Date(now - 60 * 60 * 1000);
+
+      // Throttle by phone. Each SMS costs money and lands on someone's device,
+      // so an unthrottled endpoint is both a spam vector and a billing risk.
+      const [recent, sendsThisHour] = await Promise.all([
+        ctx.db.verificationCode.findFirst({
+          where: { phone: input.phone },
+          orderBy: { createdAt: 'desc' },
+          select: { createdAt: true },
+        }),
+        ctx.db.verificationCode.count({
+          where: { phone: input.phone, createdAt: { gt: oneHourAgo } },
+        }),
+      ]);
+
+      if (recent) {
+        const elapsedSeconds = (now - recent.createdAt.getTime()) / 1000;
+        if (elapsedSeconds < RESEND_COOLDOWN_SECONDS) {
+          throw new TRPCError({
+            code: 'TOO_MANY_REQUESTS',
+            message: `Please wait ${Math.ceil(
+              RESEND_COOLDOWN_SECONDS - elapsedSeconds,
+            )} seconds before requesting another code.`,
+          });
+        }
+      }
+
+      if (sendsThisHour >= SENDS_PER_PHONE_PER_HOUR) {
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message:
+            'Too many verification codes requested for this number. Try again in an hour.',
+        });
+      }
+
+      if (ctx.ip) {
+        const sendsFromIp = await ctx.db.verificationCode.count({
+          where: { ip: ctx.ip, createdAt: { gt: oneHourAgo } },
+        });
+        if (sendsFromIp >= SENDS_PER_IP_PER_HOUR) {
+          throw new TRPCError({
+            code: 'TOO_MANY_REQUESTS',
+            message: 'Too many verification codes requested. Try again later.',
+          });
+        }
+      }
+
       const code = generateVerificationCode();
-      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+      const expiresAt = new Date(now + CODE_TTL_MINUTES * 60 * 1000);
 
       // Invalidate previous unused codes for this phone
       await ctx.db.verificationCode.updateMany({
@@ -36,21 +91,13 @@ export const authRouter = router({
           phone: input.phone,
           code,
           expiresAt,
+          ip: ctx.ip,
         },
       });
 
       await sendSMS(
         input.phone,
-        chalk.cyanBright.bold(
-          `Your Exterior Pro verification code is: ${chalk.yellowBright.bold(code)} - User Type: ${chalk.yellowBright.bold(
-            (
-              await ctx.db.user.findUnique({
-                where: { phone: input.phone },
-                select: { role: true },
-              })
-            )?.role ?? 'unknown',
-          )}`,
-        ),
+        `${code} is your Exterior Pro verification code. It expires in ${CODE_TTL_MINUTES} minutes.`,
       );
 
       return { success: true };
@@ -60,10 +107,12 @@ export const authRouter = router({
   verifyCode: publicProcedure
     .input(verifyCodeInput)
     .mutation(async ({ ctx, input }) => {
+      // Look the code up by phone rather than by phone + code, so a wrong guess
+      // still resolves to a row we can count attempts against. sendCode
+      // invalidates prior codes, so at most one unused code exists per number.
       const verification = await ctx.db.verificationCode.findFirst({
         where: {
           phone: input.phone,
-          code: input.code,
           used: false,
           expiresAt: { gt: new Date() },
         },
@@ -71,6 +120,28 @@ export const authRouter = router({
       });
 
       if (!verification) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Invalid or expired verification code',
+        });
+      }
+
+      if (verification.attempts >= MAX_VERIFY_ATTEMPTS) {
+        await ctx.db.verificationCode.update({
+          where: { id: verification.id },
+          data: { used: true },
+        });
+        throw new TRPCError({
+          code: 'TOO_MANY_REQUESTS',
+          message: 'Too many incorrect attempts. Request a new code.',
+        });
+      }
+
+      if (verification.code !== input.code) {
+        await ctx.db.verificationCode.update({
+          where: { id: verification.id },
+          data: { attempts: { increment: 1 } },
+        });
         throw new TRPCError({
           code: 'BAD_REQUEST',
           message: 'Invalid or expired verification code',

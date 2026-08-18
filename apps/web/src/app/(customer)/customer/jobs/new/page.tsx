@@ -1,11 +1,9 @@
 'use client';
 
 import { Suspense, useEffect, useState } from 'react';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 import { trpc } from '../../../../../lib/trpc';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
+import { DashboardHero } from '@/components/dashboard/dashboard-hero';
 import { RequestJobForm } from '../../_components/request-job-form';
 
 function RequestJobPageInner() {
@@ -29,10 +27,10 @@ function RequestJobPageInner() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <Skeleton className="w-full h-10 rounded-xl" />
+        <Skeleton className="w-full h-10 rounded-full" />
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
           {[...Array(6)].map((_, i) => (
-            <Skeleton key={i} className="h-28 rounded-xl" />
+            <Skeleton key={i} className="h-28 rounded-2xl" />
           ))}
         </div>
       </div>
@@ -44,32 +42,23 @@ function RequestJobPageInner() {
 
 export default function RequestJobPage() {
   return (
-    <div className="space-y-6">
-      <div>
-        <Button
-          variant="ghost"
-          size="sm"
-          asChild
-          className="px-2 mb-2 h-7 text-xs text-muted-foreground hover:text-foreground"
-        >
-          <Link href="/customer/jobs">
-            <ArrowLeft className="mr-1 w-3 h-3" />
-            Back to jobs
-          </Link>
-        </Button>
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          Request a service
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Pick a service, confirm your property, and local providers will send
-          bids.
-        </p>
-      </div>
+    <div className="space-y-8">
+      <DashboardHero
+        eyebrow="New request"
+        size="md"
+        title="Request a service"
+        subtitle="Pick a service, confirm your property, and local providers will send competing bids."
+        backHref={{ href: '/customer/jobs', label: 'Back to jobs' }}
+        chips={[
+          { id: 'free', label: 'Free to post', tone: 'lime' },
+          { id: 'verified', label: 'Verified providers only', tone: 'muted' },
+        ]}
+      />
       <Suspense
         fallback={
           <div className="space-y-4">
-            <Skeleton className="w-full h-10 rounded-xl" />
-            <Skeleton className="h-48 rounded-xl" />
+            <Skeleton className="w-full h-10 rounded-full" />
+            <Skeleton className="h-48 rounded-2xl" />
           </div>
         }
       >

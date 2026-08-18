@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { TRPCError } from "@trpc/server";
 import { getHTTPStatusCodeFromError } from "@trpc/server/http";
-import { assertJobAccess, createContext, uploadJobPhoto } from "@repo/api";
+import {
+  assertJobPhotoUploadAccess,
+  createContext,
+  uploadJobPhoto,
+} from "@repo/api";
 import type { JobPhotoKind } from "@repo/db";
 
 export const runtime = "nodejs";
@@ -28,15 +32,6 @@ export async function POST(
   if (!ctx.user) {
     return jsonError("Not authenticated", 401);
   }
-  if (ctx.user.role !== "PROVIDER" && ctx.user.role !== "CREW") {
-    return jsonError("Insufficient permissions", 403);
-  }
-
-  try {
-    await assertJobAccess({ db: ctx.db, user: ctx.user }, jobId);
-  } catch (error) {
-    return asHttp(error);
-  }
 
   const form = await req.formData().catch(() => null);
   if (!form) {
@@ -46,6 +41,16 @@ export async function POST(
   const kindRaw = String(form.get("kind") ?? "");
   if (kindRaw !== "BEFORE" && kindRaw !== "AFTER") {
     return jsonError("kind must be BEFORE or AFTER", 400);
+  }
+
+  try {
+    await assertJobPhotoUploadAccess(
+      { db: ctx.db, user: ctx.user },
+      jobId,
+      kindRaw as JobPhotoKind,
+    );
+  } catch (error) {
+    return asHttp(error);
   }
 
   const file = form.get("file");

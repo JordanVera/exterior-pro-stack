@@ -29,6 +29,16 @@ export function formatJobDateTime(date: string | Date, time?: string | null) {
   return time ? `${formatted} at ${time}` : formatted;
 }
 
+/** Stripe amounts are stored in cents; payout figures read better without them. */
+export function formatCurrencyFromCents(cents: number, opts?: { compact?: boolean }) {
+  return (cents / 100).toLocaleString('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: opts?.compact ? 0 : 2,
+    maximumFractionDigits: opts?.compact ? 0 : 2,
+  });
+}
+
 export function formatPrice(price: number | string, unit?: string) {
   const num = Number(price);
   const str = `$${Number.isFinite(num) ? num.toFixed(2) : '0.00'}`;

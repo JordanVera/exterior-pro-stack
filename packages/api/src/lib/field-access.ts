@@ -1,4 +1,4 @@
-import type { Prisma } from "@repo/db";
+import type { JobPhotoKind, Prisma } from "@repo/db";
 import { TRPCError } from "@trpc/server";
 import type { Context } from "../trpc";
 
@@ -92,6 +92,51 @@ export async function assertJobAccess(
     throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
   }
   return { access, job };
+}
+
+export async function assertJobPhotoUploadAccess(
+  ctx: AuthedCtx,
+  jobId: string,
+  kind: JobPhotoKind,
+) {
+  if (ctx.user.role === "CUSTOMER") {
+    if (kind !== "BEFORE") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Customers can only upload reference photos",
+      });
+    }
+
+    const profile = await ctx.db.customerProfile.findUnique({
+      where: { userId: ctx.user.userId },
+    });
+    if (!profile) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
+    }
+
+    const job = await ctx.db.job.findFirst({
+      where: {
+        id: jobId,
+        status: { in: ["OPEN", "PENDING"] },
+        property: { customerId: profile.id },
+      },
+      select: { id: true },
+    });
+    if (!job) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
+    }
+    return;
+  }
+
+  if (ctx.user.role === "PROVIDER" || ctx.user.role === "CREW") {
+    await assertJobAccess(ctx, jobId);
+    return;
+  }
+
+  throw new TRPCError({
+    code: "FORBIDDEN",
+    message: "Insufficient permissions",
+  });
 }
 
 export async function assertCompletePhotos(

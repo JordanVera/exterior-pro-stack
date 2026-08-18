@@ -1,7 +1,6 @@
 'use client';
 
 import { MapPin } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 import {
   PropertyAddressForm,
   type CreatedProperty,
@@ -11,25 +10,24 @@ interface FirstPropertyPromptProps {
   onAdded: (property: CreatedProperty) => void;
 }
 
+/** Rendered inside the dashboard hero band, so it brings no backdrop of its own. */
 export function FirstPropertyPrompt({ onAdded }: FirstPropertyPromptProps) {
   return (
-    <Card className="border-brand-lime/30 bg-background/80 shadow-none backdrop-blur-xl">
-      <CardContent className="p-6 sm:p-8">
-        <div className="mb-5 flex items-start gap-3">
-          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-brand-lime/10">
-            <MapPin className="h-5 w-5 text-brand-lime" />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-foreground">
-              Add your first property
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              You need a home address before you can request a service.
-            </p>
-          </div>
+    <div className="p-5 rounded-2xl border backdrop-blur-xl border-brand-lime/25 bg-background/60 sm:p-7">
+      <div className="flex gap-3 items-start mb-5">
+        <span className="flex flex-shrink-0 justify-center items-center w-10 h-10 rounded-xl border border-brand-lime/25 bg-brand-lime/10">
+          <MapPin className="w-5 h-5 text-brand-lime" />
+        </span>
+        <div>
+          <h2 className="text-lg font-semibold text-foreground">
+            Add your first property
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            We need a home address before you can request a service.
+          </p>
         </div>
-        <PropertyAddressForm submitLabel="Save property" onSuccess={onAdded} />
-      </CardContent>
-    </Card>
+      </div>
+      <PropertyAddressForm submitLabel="Save property" onSuccess={onAdded} />
+    </div>
   );
 }

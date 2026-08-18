@@ -189,9 +189,22 @@ model Property {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  // Cached exterior photo, fetched once from Google and mirrored to Blob so the
+  // card render never hits the maps API. imageCheckedAt is set even when no
+  // imagery exists, so addresses without coverage aren't retried on every view.
+  imageUrl       String?              @db.VarChar(2048)
+  imagePathname  String?              @db.VarChar(1024)
+  imageSource    PropertyImageSource?
+  imageCheckedAt DateTime?
+
   customer      CustomerProfile        @relation(fields: [customerId], references: [id], onDelete: Cascade)
   jobs          Job[]
   subscriptions CustomerSubscription[]
+}
+
+enum PropertyImageSource {
+  STREET_VIEW
+  SATELLITE
 }
 
 // ─── Service Catalog ────────────────────────────────────────────────────────
@@ -431,9 +444,15 @@ model VerificationCode {
   code      String
   expiresAt DateTime
   used      Boolean  @default(false)
+  /// Failed verification attempts against this code. Guards against brute force.
+  attempts  Int      @default(0)
+  /// Request IP, used to throttle code sends from a single source.
+  ip        String?
   createdAt DateTime @default(now())
 
   @@index([phone, code])
+  @@index([phone, createdAt])
+  @@index([ip, createdAt])
 }
 
 // ─── Push Tokens ────────────────────────────────────────────────────────────
