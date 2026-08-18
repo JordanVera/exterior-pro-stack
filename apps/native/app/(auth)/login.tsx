@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -10,8 +11,10 @@ import {
 import { Redirect, useRouter } from 'expo-router';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/lib/auth';
+import { colors } from '@/lib/theme';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { LoadingScreen, Screen } from '@/components/Screen';
+import { ScreenHeader } from '@/components/ui';
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -79,27 +82,29 @@ export default function LoginScreen() {
     <Screen>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        className="flex-1 px-5 pt-8"
+        className="flex-1 px-5 pt-10"
       >
-        <Text className="text-sm font-semibold tracking-widest text-brand-lime uppercase">
-          Exterior Pro
-        </Text>
-        <Text className="mt-2 text-3xl font-bold text-white">
-          {step === 'phone' ? 'Sign in' : 'Check your texts'}
-        </Text>
-        <Text className="mt-2 text-base leading-6 text-slate-400">
-          {step === 'phone'
-            ? 'Use the phone number on your crew or provider account.'
-            : `We sent a 6-digit code to +1 ${digits}.`}
-        </Text>
+        <View className="justify-center items-center mb-8 w-14 h-14 rounded-2xl bg-brand-lime">
+          <Ionicons name="hammer" size={26} color={colors.ink} />
+        </View>
+
+        <ScreenHeader
+          eyebrow="Exterior Pro"
+          title={step === 'phone' ? 'Sign in' : 'Check your texts'}
+          subtitle={
+            step === 'phone'
+              ? 'Use the phone number on your crew or provider account.'
+              : `We sent a 6-digit code to +1 ${digits}.`
+          }
+        />
 
         {step === 'phone' ? (
           <View className="mt-8">
             <Text className="mb-2 text-sm font-medium text-slate-300">
               Phone number
             </Text>
-            <View className="overflow-hidden flex-row rounded-2xl border border-white/15 bg-navy-800">
-              <View className="justify-center px-4 border-r border-white/10">
+            <View className="overflow-hidden flex-row rounded-2xl border border-line-strong bg-surface">
+              <View className="justify-center px-4 border-r border-line">
                 <Text className="text-lg text-slate-300">+1</Text>
               </View>
               <TextInput
@@ -108,16 +113,15 @@ export default function LoginScreen() {
                 keyboardType="phone-pad"
                 placeholder="5551234567"
                 placeholderTextColor="#64748b"
-                className="flex-1 px-4 h-14 text-lg text-white"
+                className="flex-1 px-4 h-16 font-sans text-lg text-white"
                 autoFocus
               />
             </View>
-            {error ? (
-              <Text className="mt-3 text-base text-red-400">{error}</Text>
-            ) : null}
+            {error ? <ErrorLine message={error} /> : null}
             <View className="mt-6">
               <PrimaryButton
                 label="Send code"
+                icon="arrow-forward"
                 onPress={sendCode}
                 loading={loading}
               />
@@ -136,15 +140,14 @@ export default function LoginScreen() {
               keyboardType="number-pad"
               placeholder="000000"
               placeholderTextColor="#64748b"
-              className="h-14 rounded-2xl border border-white/15 bg-navy-800 px-4 text-center text-2xl tracking-[8px] text-white"
+              className="h-16 rounded-2xl border border-line-strong bg-surface px-4 text-center font-semibold text-2xl tracking-[8px] text-white"
               autoFocus
             />
-            {error ? (
-              <Text className="mt-3 text-base text-red-400">{error}</Text>
-            ) : null}
+            {error ? <ErrorLine message={error} /> : null}
             <View className="mt-6">
               <PrimaryButton
                 label="Verify"
+                icon="checkmark"
                 onPress={verifyCode}
                 loading={loading}
               />
@@ -155,9 +158,9 @@ export default function LoginScreen() {
                 setCode('');
                 setError('');
               }}
-              className="items-center py-3 mt-4"
+              className="items-center py-3 mt-4 active:opacity-70"
             >
-              <Text className="text-base text-brand-lime">
+              <Text className="text-base font-semibold text-brand-lime">
                 Use a different number
               </Text>
             </Pressable>
@@ -165,5 +168,16 @@ export default function LoginScreen() {
         )}
       </KeyboardAvoidingView>
     </Screen>
+  );
+}
+
+function ErrorLine({ message }: { message: string }) {
+  return (
+    <View className="flex-row gap-2 items-start px-4 py-3 mt-3 rounded-2xl border border-red-500/30 bg-red-500/10">
+      <Ionicons name="alert-circle" size={18} color="#f87171" />
+      <Text className="flex-1 text-[15px] leading-6 text-red-300">
+        {message}
+      </Text>
+    </View>
   );
 }

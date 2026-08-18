@@ -1,11 +1,17 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import type { Prisma } from '@repo/db';
-import { router, customerProcedure, providerProcedure, fieldProcedure } from '../trpc';
+import {
+  router,
+  customerProcedure,
+  providerProcedure,
+  fieldProcedure,
+} from '../trpc';
 import {
   createJobInput,
   scheduleJobInput,
   assignCrewInput,
+  unassignCrewInput,
   updateJobStatusInput,
   createRecurringScheduleInput,
   cancelJobInput,
@@ -475,6 +481,17 @@ export const jobRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Crew not found' });
       }
 
+      // Idempotent: re-assigning the crew that is already on the job used to
+      // surface a raw unique-constraint error from Prisma to the caller.
+      const existing = await ctx.db.jobAssignment.findUnique({
+        where: {
+          jobId_crewId: { jobId: input.jobId, crewId: input.crewId },
+        },
+        include: { crew: { include: { members: true } } },
+      });
+
+      if (existing) return existing;
+
       return ctx.db.jobAssignment.create({
         data: {
           jobId: input.jobId,
@@ -482,6 +499,41 @@ export const jobRouter = router({
         },
         include: { crew: { include: { members: true } } },
       });
+    }),
+
+  /** Provider: take a crew off a job, so a different one can be assigned */
+  unassignCrew: providerProcedure
+    .input(unassignCrewInput)
+    .mutation(async ({ ctx, input }) => {
+      const profile = await ctx.db.providerProfile.findUnique({
+        where: { userId: ctx.user.userId },
+      });
+
+      if (!profile) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
+      }
+
+      const job = await ctx.db.job.findUnique({
+        where: { id: input.jobId },
+        include: { acceptedBid: true },
+      });
+
+      if (
+        !job ||
+        !job.acceptedBid ||
+        job.acceptedBid.providerId !== profile.id
+      ) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
+      }
+
+      await ctx.db.jobAssignment.deleteMany({
+        where: { jobId: input.jobId, crewId: input.crewId },
+      });
+
+      return { ok: true as const };
     }),
 
   /** Provider: update job status */
@@ -613,48 +665,55 @@ export const jobRouter = router({
   }),
 
   /** Provider or crew: jobs visible to the signed-in field user */
-  listMine: fieldProcedure.input(listMineInput).query(async ({ ctx, input }) => {
-    const access = await getFieldAccess(ctx);
-    const { start, end } = todayRange();
-    const view = input?.view ?? 'active';
+  listMine: fieldProcedure
+    .input(listMineInput)
+    .query(async ({ ctx, input }) => {
+      const access = await getFieldAccess(ctx);
+      const { start, end } = todayRange();
+      const view = input?.view ?? 'active';
 
-    const extra: Prisma.JobWhereInput = input?.status
-      ? { status: input.status }
-      : view === 'today'
-        ? {
-            OR: [
-              { status: 'IN_PROGRESS' },
-              { status: 'SCHEDULED', scheduledDate: { gte: start, lte: end } },
-            ],
-          }
-        : view === 'active'
-          ? { status: { in: ['PENDING', 'SCHEDULED', 'IN_PROGRESS'] } }
-          : {};
+      const extra: Prisma.JobWhereInput = input?.status
+        ? { status: input.status }
+        : view === 'today'
+          ? {
+              OR: [
+                { status: 'IN_PROGRESS' },
+                {
+                  status: 'SCHEDULED',
+                  scheduledDate: { gte: start, lte: end },
+                },
+              ],
+            }
+          : view === 'active'
+            ? { status: { in: ['PENDING', 'SCHEDULED', 'IN_PROGRESS'] } }
+            : {};
 
-    return ctx.db.job.findMany({
-      where: {
-        ...jobWhereForAccess(access),
-        ...extra,
-      },
-      include: fieldJobInclude,
-      orderBy: [{ scheduledDate: 'asc' }, { createdAt: 'desc' }],
-    });
-  }),
+      return ctx.db.job.findMany({
+        where: {
+          ...jobWhereForAccess(access),
+          ...extra,
+        },
+        include: fieldJobInclude,
+        orderBy: [{ scheduledDate: 'asc' }, { createdAt: 'desc' }],
+      });
+    }),
 
   /** Provider or crew: single job they can access */
-  getById: fieldProcedure.input(getJobByIdInput).query(async ({ ctx, input }) => {
-    const access = await getFieldAccess(ctx);
-    const job = await ctx.db.job.findFirst({
-      where: { id: input.jobId, ...jobWhereForAccess(access) },
-      include: fieldJobInclude,
-    });
+  getById: fieldProcedure
+    .input(getJobByIdInput)
+    .query(async ({ ctx, input }) => {
+      const access = await getFieldAccess(ctx);
+      const job = await ctx.db.job.findFirst({
+        where: { id: input.jobId, ...jobWhereForAccess(access) },
+        include: fieldJobInclude,
+      });
 
-    if (!job) {
-      throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
-    }
+      if (!job) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
+      }
 
-    return job;
-  }),
+      return job;
+    }),
 
   /** Provider or crew: remove a photo from a job they can access */
   deletePhoto: fieldProcedure

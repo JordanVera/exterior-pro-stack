@@ -38,21 +38,44 @@ export function formatAddress(property: {
   return `${property.address}, ${property.city}, ${property.state} ${property.zip}`;
 }
 
+/**
+ * YYYY-MM-DD in the device's timezone. `toISOString` would shift the day for
+ * anyone west of UTC in the evening, scheduling jobs a day late.
+ */
+export function toLocalIsoDate(date: Date) {
+  const month = `${date.getMonth() + 1}`.padStart(2, "0");
+  const day = `${date.getDate()}`.padStart(2, "0");
+  return `${date.getFullYear()}-${month}-${day}`;
+}
+
 export function nextDays(count = 7) {
   return Array.from({ length: count }, (_, i) => {
     const d = new Date();
     d.setDate(d.getDate() + i);
-    const iso = d.toISOString().slice(0, 10);
-    const label = d.toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    });
-    return { iso, label };
+    return {
+      iso: toLocalIsoDate(d),
+      label: d.toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      }),
+    };
   });
 }
 
 export const TIME_PRESETS = ["08:00", "09:00", "10:00", "13:00", "15:00"];
+
+/** Turns "14:00" into "2 PM" for chip labels. */
+export function formatTimeLabel(time: string) {
+  const [hourPart, minutePart] = time.split(":");
+  const hour = Number(hourPart);
+  if (Number.isNaN(hour)) return time;
+  const suffix = hour >= 12 ? "PM" : "AM";
+  const display = hour % 12 === 0 ? 12 : hour % 12;
+  return minutePart && minutePart !== "00"
+    ? `${display}:${minutePart} ${suffix}`
+    : `${display} ${suffix}`;
+}
 
 /**
  * Badge styling per status. Tints are heavier and text is a lighter shade than

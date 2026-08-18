@@ -13,25 +13,25 @@ todos:
     status: completed
   - id: today
     content: 'Rebuild Today: ScreenHeader, role-aware StatTiles band, Up next hero card, remaining jobs, pull-to-refresh'
-    status: in_progress
+    status: completed
   - id: jobs-list
     content: "Rebuild Jobs list: ScreenHeader, FilterPills over view:'all' including completed history, pull-to-refresh"
-    status: pending
+    status: completed
   - id: job-detail
     content: Restructure job detail into sections, paired Navigate/Call icon buttons, StickyActionBar for the primary action
-    status: pending
+    status: completed
   - id: unassign-api
     content: Add job.unassignCrew provider procedure and wire Change/Remove crew in the job detail bottom sheet
-    status: pending
+    status: completed
   - id: reschedule
     content: Allow rescheduling for SCHEDULED jobs (not just PENDING), pre-selecting the current date and time
-    status: pending
+    status: completed
   - id: account-login
     content: Rebuild Account with profile card and crew roster, restyle login, refine tab bar chrome
-    status: pending
+    status: completed
   - id: verify
     content: Type check and capture simulator screenshots of all four screens in both provider and crew roles
-    status: pending
+    status: in_progress
 isProject: false
 ---
 
