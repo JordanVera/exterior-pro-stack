@@ -13,20 +13,35 @@ export type QuickAction = {
 
 export function QuickActions({
   actions,
+  orientation = 'list',
   className,
 }: {
   actions: QuickAction[];
+  /** "row" spreads the actions across the full width as standalone cards. */
+  orientation?: 'list' | 'row';
   className?: string;
 }) {
+  const isRow = orientation === 'row';
+
   return (
-    <div className={cn('space-y-1', className)}>
+    <div
+      className={cn(
+        isRow ? 'grid gap-2 sm:grid-cols-2 lg:grid-cols-4' : 'space-y-1',
+        className,
+      )}
+    >
       {actions.map((action) => {
         const Icon = action.icon;
         return (
           <Link
             key={action.id}
             href={action.href}
-            className="group flex items-center gap-3 rounded-xl border border-transparent p-2.5 transition-all hover:border-brand-lime/40 hover:bg-brand-lime/5"
+            className={cn(
+              'group flex items-center gap-3 rounded-xl border p-2.5 transition-all hover:border-brand-lime/40 hover:bg-brand-lime/5',
+              isRow
+                ? 'border-border bg-background/70 p-4 backdrop-blur-xl'
+                : 'border-transparent',
+            )}
           >
             <span className="flex justify-center items-center w-9 h-9 rounded-lg border shrink-0 border-brand-lime/25 bg-brand-lime/10">
               <Icon className="w-4 h-4 text-brand-lime" />

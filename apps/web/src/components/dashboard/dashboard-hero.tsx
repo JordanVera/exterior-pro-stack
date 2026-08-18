@@ -1,14 +1,16 @@
 'use client';
 
 import type { ReactNode } from 'react';
+import Link from 'next/link';
 import { motion } from 'motion/react';
+import { ArrowLeft } from 'lucide-react';
 import { SectionEyebrow } from '@/components/landing/section-eyebrow';
 import { cn } from '@/lib/utils';
 
 export type HeroChip = {
   id: string;
   label: string;
-  tone?: 'lime' | 'amber' | 'blue' | 'muted';
+  tone?: 'lime' | 'amber' | 'blue' | 'green' | 'red' | 'muted';
   /** Adds the pinging dot used on the landing hero badge. */
   pulse?: boolean;
 };
@@ -18,6 +20,9 @@ const CHIP_TONES: Record<NonNullable<HeroChip['tone']>, string> = {
   amber:
     'border-amber-500/25 bg-amber-500/10 text-amber-600 dark:text-amber-400',
   blue: 'border-blue-500/25 bg-blue-500/10 text-blue-600 dark:text-blue-400',
+  green:
+    'border-green-500/25 bg-green-500/10 text-green-600 dark:text-green-400',
+  red: 'border-red-500/25 bg-red-500/10 text-red-600 dark:text-red-400',
   muted: 'border-border bg-muted/60 text-muted-foreground',
 };
 
@@ -25,6 +30,8 @@ const CHIP_DOTS: Record<NonNullable<HeroChip['tone']>, string> = {
   lime: 'bg-brand-lime',
   amber: 'bg-amber-500',
   blue: 'bg-blue-500',
+  green: 'bg-green-500',
+  red: 'bg-red-500',
   muted: 'bg-muted-foreground',
 };
 
@@ -39,6 +46,8 @@ export function DashboardHero({
   subtitle,
   chips,
   action,
+  backHref,
+  size = 'lg',
   children,
   className,
 }: {
@@ -47,6 +56,10 @@ export function DashboardHero({
   subtitle?: string;
   chips?: HeroChip[];
   action?: ReactNode;
+  /** Adds a back link above the eyebrow, for pages nested under a list. */
+  backHref?: { href: string; label: string };
+  /** "md" is the lighter band used on sub-pages. */
+  size?: 'lg' | 'md';
   /** Rendered below the header row, inside the same band. */
   children?: ReactNode;
   className?: string;
@@ -57,7 +70,8 @@ export function DashboardHero({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
       className={cn(
-        'overflow-hidden relative p-6 rounded-3xl border backdrop-blur-xl border-border bg-background/70 sm:p-9',
+        'overflow-hidden relative rounded-3xl border backdrop-blur-xl border-border bg-background/70',
+        size === 'lg' ? 'p-6 sm:p-9' : 'p-5 sm:p-7',
         className,
       )}
     >
@@ -66,10 +80,25 @@ export function DashboardHero({
       <div className="bg-grid-fade pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(ellipse_at_top_left,black,transparent_70%)]" />
 
       <div className="relative">
+        {backHref ? (
+          <Link
+            href={backHref.href}
+            className="mb-3 inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            {backHref.label}
+          </Link>
+        ) : null}
+
         <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
           <div className="min-w-0">
             <SectionEyebrow>{eyebrow}</SectionEyebrow>
-            <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+            <h1
+              className={cn(
+                'font-bold tracking-tight text-foreground',
+                size === 'lg' ? 'text-3xl sm:text-4xl' : 'text-2xl sm:text-3xl',
+              )}
+            >
               {title}
             </h1>
             {subtitle ? (

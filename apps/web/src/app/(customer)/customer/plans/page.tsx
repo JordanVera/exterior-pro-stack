@@ -1,15 +1,15 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { motion } from 'motion/react';
 import { trpc } from '../../../../lib/trpc';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Separator } from '@/components/ui/separator';
+import { GlowingEffect } from '@/components/ui/glowing-effect';
+import { SegmentedTabs } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -17,7 +17,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Check, Crown, Zap, Leaf, MapPin } from 'lucide-react';
+import { DashboardHero } from '@/components/dashboard/dashboard-hero';
+import { SectionPanel } from '@/components/dashboard/section-panel';
+import { EmptyState } from '@/components/dashboard/empty-state';
+import { Check, Crown, Leaf, MapPin, Sparkles, Zap } from 'lucide-react';
+
+type Billing = 'MONTHLY' | 'QUARTERLY' | 'ANNUALLY';
 
 const FREQUENCY_LABELS: Record<string, string> = {
   WEEKLY: 'Weekly',
@@ -27,7 +32,20 @@ const FREQUENCY_LABELS: Record<string, string> = {
   BIANNUALLY: 'Bi-annually',
 };
 
+const PERIOD_LABELS: Record<Billing, string> = {
+  MONTHLY: '/month',
+  QUARTERLY: '/quarter',
+  ANNUALLY: '/year',
+};
+
 const PLAN_ICONS = [Leaf, Zap, Crown];
+
+const STATUS_STYLES: Record<string, string> = {
+  ACTIVE: 'bg-green-500/10 text-green-600 dark:text-green-400',
+  PAUSED: 'bg-amber-500/10 text-amber-600 dark:text-amber-400',
+  PAST_DUE: 'bg-red-500/10 text-red-600 dark:text-red-400',
+  CANCELLED: 'bg-muted text-muted-foreground',
+};
 
 export default function PlansPage() {
   const router = useRouter();
@@ -37,7 +55,7 @@ export default function PlansPage() {
   const [loading, setLoading] = useState(true);
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [selectedProperty, setSelectedProperty] = useState<string>('');
-  const [billingFrequency, setBillingFrequency] = useState<string>('MONTHLY');
+  const [billingFrequency, setBillingFrequency] = useState<Billing>('MONTHLY');
   const [subscribing, setSubscribing] = useState(false);
 
   useEffect(() => {
@@ -70,16 +88,13 @@ export default function PlansPage() {
     }
   };
 
-  const getPeriodLabel = () => {
-    switch (billingFrequency) {
-      case 'QUARTERLY':
-        return '/quarter';
-      case 'ANNUALLY':
-        return '/year';
-      default:
-        return '/month';
-    }
-  };
+  const activeSubs = useMemo(
+    () =>
+      subscriptions.filter(
+        (s) => s.status === 'ACTIVE' || s.status === 'PAUSED',
+      ),
+    [subscriptions],
+  );
 
   const handleSubscribe = async () => {
     if (!selectedPlan || !selectedProperty) {
@@ -87,11 +102,8 @@ export default function PlansPage() {
       return;
     }
 
-    // Check if property already has a subscription
-    const existingSub = subscriptions.find(
-      (s) =>
-        s.propertyId === selectedProperty &&
-        (s.status === 'ACTIVE' || s.status === 'PAUSED'),
+    const existingSub = activeSubs.find(
+      (s) => s.propertyId === selectedProperty,
     );
     if (existingSub) {
       toast.error('This property already has an active subscription');
@@ -103,10 +115,7 @@ export default function PlansPage() {
       const result = await trpc.subscription.subscribe.mutate({
         planId: selectedPlan,
         propertyId: selectedProperty,
-        billingFrequency: billingFrequency as
-          | 'MONTHLY'
-          | 'QUARTERLY'
-          | 'ANNUALLY',
+        billingFrequency,
       });
       if (result.checkoutUrl) {
         window.location.href = result.checkoutUrl;
@@ -124,13 +133,11 @@ export default function PlansPage() {
   if (loading) {
     return (
       <div className="space-y-8">
-        <div className="space-y-2">
-          <Skeleton className="w-48 h-8" />
-          <Skeleton className="w-64 h-4" />
-        </div>
+        <Skeleton className="h-40 rounded-3xl" />
+        <Skeleton className="mx-auto w-80 h-11 rounded-full" />
         <div className="grid gap-4 md:grid-cols-3">
           {[...Array(3)].map((_, i) => (
-            <Skeleton key={i} className="h-80 rounded-xl" />
+            <Skeleton key={i} className="h-96 rounded-2xl" />
           ))}
         </div>
       </div>
@@ -139,243 +146,270 @@ export default function PlansPage() {
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
-          Subscription Plans
-        </h1>
-        <p className="mt-1 text-sm text-neutral-500">
-          Save with recurring service plans. Choose a plan and we&apos;ll match
-          you with a local provider.
+      <DashboardHero
+        eyebrow="Plans"
+        size="md"
+        title="Put your property on autopilot"
+        subtitle="Pick a plan and the same verified crew keeps showing up on schedule. Pause or cancel anytime."
+        action={
+          activeSubs.length > 0 ? (
+            <Button
+              variant="outline"
+              onClick={() => router.push('/customer/subscriptions')}
+              className="rounded-full"
+            >
+              Manage subscriptions
+            </Button>
+          ) : null
+        }
+      />
+
+      <div className="flex flex-col gap-3 items-center">
+        <SegmentedTabs
+          size="sm"
+          layoutId="plans-billing"
+          value={billingFrequency}
+          onChange={(value) => setBillingFrequency(value as Billing)}
+          options={[
+            { value: 'MONTHLY', label: 'Monthly' },
+            { value: 'QUARTERLY', label: 'Quarterly' },
+            { value: 'ANNUALLY', label: 'Annually' },
+          ]}
+        />
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          {billingFrequency === 'ANNUALLY' ? (
+            <>
+              <Sparkles className="h-3.5 w-3.5 text-brand-lime" />
+              Paying yearly saves about 17%.
+            </>
+          ) : (
+            'Switch to annual billing to save about 17%.'
+          )}
         </p>
       </div>
 
-      {/* Billing frequency toggle */}
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-neutral-500">Billing:</span>
-        <div className="inline-flex p-0.5 rounded-full bg-neutral-100 dark:bg-neutral-800">
-          {['MONTHLY', 'QUARTERLY', 'ANNUALLY'].map((freq) => (
-            <button
-              key={freq}
-              onClick={() => setBillingFrequency(freq)}
-              className={cn(
-                'px-3 py-1 text-xs font-medium rounded-full transition-all',
-                billingFrequency === freq
-                  ? 'bg-white dark:bg-neutral-700 text-neutral-900 dark:text-white shadow-sm'
-                  : 'text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300',
-              )}
-            >
-              {freq === 'MONTHLY'
-                ? 'Monthly'
-                : freq === 'QUARTERLY'
-                  ? 'Quarterly'
-                  : 'Annually'}
-            </button>
-          ))}
+      {plans.length === 0 ? (
+        <div className="rounded-2xl border border-dashed backdrop-blur-xl border-border bg-background/50">
+          <EmptyState
+            icon={Leaf}
+            title="No plans available yet"
+            description="Recurring plans are not published for your area right now. You can still request one-time jobs."
+            className="py-16"
+            action={
+              <Button
+                onClick={() => router.push('/customer/jobs/new')}
+                className="font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
+              >
+                Request a service
+              </Button>
+            }
+          />
         </div>
-        {billingFrequency === 'ANNUALLY' && (
-          <Badge className="text-[10px] bg-green-500/10 text-green-600 dark:text-green-400 border-0">
-            Save ~17%
-          </Badge>
-        )}
-      </div>
+      ) : (
+        <div className="grid gap-4 md:grid-cols-3">
+          {plans.map((plan, i) => {
+            const Icon = PLAN_ICONS[i % PLAN_ICONS.length];
+            const price = getPrice(plan);
+            const isSelected = selectedPlan === plan.id;
+            const isFeatured = i === 1;
 
-      {/* Plans grid */}
-      <div className="grid gap-4 md:grid-cols-3">
-        {plans.map((plan, i) => {
-          const Icon = PLAN_ICONS[i % PLAN_ICONS.length];
-          const price = getPrice(plan);
-          const isSelected = selectedPlan === plan.id;
-          const isMiddle = i === 1;
-
-          return (
-            <Card
-              key={plan.id}
-              className={cn(
-                'relative overflow-hidden shadow-none transition-all duration-200 cursor-pointer',
-                isSelected
-                  ? 'border-brand-lime ring-2 ring-brand-lime/20'
-                  : 'hover:border-neutral-300 dark:hover:border-neutral-700',
-                isMiddle && !isSelected && 'border-brand-lime/30',
-              )}
-              onClick={() => setSelectedPlan(plan.id)}
-            >
-              {isMiddle && (
-                <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-brand-navy to-brand-lime" />
-              )}
-              <CardContent className="p-5">
-                <div className="flex items-center gap-3 mb-3">
-                  <div
-                    className={cn(
-                      'w-10 h-10 rounded-lg flex items-center justify-center',
-                      isSelected
-                        ? 'bg-brand-lime text-brand-ink'
-                        : 'bg-brand-lime/10 text-brand-lime',
-                    )}
-                  >
-                    <Icon className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-sm font-semibold text-neutral-900 dark:text-white">
-                      {plan.name}
-                    </h3>
-                    {isMiddle && (
-                      <Badge className="text-[9px] bg-brand-lime/10 text-brand-lime border-0 mt-0.5">
-                        Most popular
-                      </Badge>
-                    )}
-                  </div>
-                </div>
-
-                {price && (
-                  <div className="mb-3">
-                    <span className="text-3xl font-bold text-neutral-900 dark:text-white">
-                      {price}
-                    </span>
-                    <span className="text-sm text-neutral-500">
-                      {getPeriodLabel()}
-                    </span>
-                  </div>
+            return (
+              <motion.button
+                key={plan.id}
+                type="button"
+                onClick={() => setSelectedPlan(plan.id)}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.35, delay: i * 0.06 }}
+                aria-pressed={isSelected}
+                className={cn(
+                  'flex overflow-hidden relative flex-col p-5 h-full text-left rounded-2xl border backdrop-blur-xl transition-all bg-background/70',
+                  isSelected
+                    ? 'ring-2 border-brand-lime ring-brand-lime/25'
+                    : 'border-border hover:border-brand-lime/50',
                 )}
+              >
+                <GlowingEffect
+                  disabled={false}
+                  glow
+                  proximity={80}
+                  spread={30}
+                  borderWidth={2}
+                />
 
-                <p className="mb-4 text-xs text-neutral-500 line-clamp-2">
-                  {plan.description}
-                </p>
+                {isFeatured ? (
+                  <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-brand-navy to-brand-lime" />
+                ) : null}
 
-                <Separator className="mb-4" />
-
-                <div className="space-y-2">
-                  <div className="text-[10px] font-medium text-neutral-500 uppercase tracking-wider">
-                    Included services
-                  </div>
-                  {plan.services?.map((ps: any) => (
-                    <div key={ps.id} className="flex items-center gap-2">
-                      <Check className="flex-shrink-0 w-3.5 h-3.5 text-brand-lime" />
-                      <span className="text-xs text-neutral-700 dark:text-neutral-300">
-                        {ps.service.name}
-                      </span>
-                      <span className="text-[10px] text-neutral-400 ml-auto">
-                        {FREQUENCY_LABELS[ps.frequency] || ps.frequency}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-
-                {isSelected && (
-                  <div className="mt-4">
-                    <div className="flex items-center justify-center w-6 h-6 mx-auto rounded-full bg-brand-lime">
-                      <Check className="w-4 h-4 text-brand-ink" />
+                <div className="flex relative flex-col flex-1">
+                  <div className="flex gap-3 items-center">
+                    <span
+                      className={cn(
+                        'flex justify-center items-center w-10 h-10 rounded-xl border transition-colors shrink-0',
+                        isSelected
+                          ? 'border-brand-lime bg-brand-lime text-brand-ink'
+                          : 'border-brand-lime/25 bg-brand-lime/10 text-brand-lime',
+                      )}
+                    >
+                      <Icon className="w-5 h-5" />
+                    </span>
+                    <div className="min-w-0">
+                      <h3 className="text-sm font-semibold truncate text-foreground">
+                        {plan.name}
+                      </h3>
+                      {isFeatured ? (
+                        <span className="mt-0.5 inline-block rounded-full bg-brand-lime/10 px-2 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-brand-navy dark:text-brand-lime">
+                          Most popular
+                        </span>
+                      ) : null}
                     </div>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
 
-      {/* Subscribe section */}
+                  {price ? (
+                    <p className="mt-4">
+                      <span className="text-3xl font-bold tracking-tight text-foreground">
+                        {price}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        {PERIOD_LABELS[billingFrequency]}
+                      </span>
+                    </p>
+                  ) : (
+                    <p className="mt-4 text-sm text-muted-foreground">
+                      Not offered on this billing cycle.
+                    </p>
+                  )}
+
+                  <p className="mt-3 text-xs leading-relaxed line-clamp-2 text-muted-foreground">
+                    {plan.description}
+                  </p>
+
+                  <div className="pt-4 mt-4 border-t border-border">
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                      Included services
+                    </p>
+                    <ul className="mt-2 space-y-2">
+                      {plan.services?.map((ps: any) => (
+                        <li key={ps.id} className="flex gap-2 items-center">
+                          <Check className="h-3.5 w-3.5 shrink-0 text-brand-lime" />
+                          <span className="text-xs truncate text-foreground">
+                            {ps.service.name}
+                          </span>
+                          <span className="ml-auto shrink-0 text-[10px] text-muted-foreground">
+                            {FREQUENCY_LABELS[ps.frequency] || ps.frequency}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  <div className="flex justify-center items-center pt-5 mt-auto">
+                    <span
+                      className={cn(
+                        'px-4 py-2 w-full text-xs font-semibold text-center rounded-full transition-colors',
+                        isSelected
+                          ? 'bg-brand-lime text-brand-ink'
+                          : 'border border-border text-muted-foreground',
+                      )}
+                    >
+                      {isSelected ? 'Selected' : 'Choose this plan'}
+                    </span>
+                  </div>
+                </div>
+              </motion.button>
+            );
+          })}
+        </div>
+      )}
+
       {selectedPlan && (
-        <Card className="shadow-none animate-step-enter">
-          <CardContent className="p-5 space-y-4">
-            <h3 className="text-base font-semibold text-neutral-900 dark:text-white">
-              Complete your subscription
-            </h3>
-
-            <div className="space-y-3">
-              <div>
-                <label className="text-[10px] font-medium text-neutral-500 uppercase tracking-wider">
-                  Select property
-                </label>
+        <SectionPanel title="Complete your subscription" bodyClassName="p-5">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+            <div className="flex-1">
+              <label className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                Property
+              </label>
+              {properties.length === 0 ? (
+                <p className="p-3 mt-2 text-xs rounded-xl border border-dashed border-border text-muted-foreground">
+                  Add a property in settings before subscribing.
+                </p>
+              ) : (
                 <Select
                   value={selectedProperty}
                   onValueChange={setSelectedProperty}
                 >
-                  <SelectTrigger className="mt-1">
+                  <SelectTrigger className="mt-1.5 rounded-xl">
                     <SelectValue placeholder="Choose a property..." />
                   </SelectTrigger>
                   <SelectContent>
                     {properties.map((p) => (
                       <SelectItem key={p.id} value={p.id}>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="w-3 h-3 text-neutral-400" />
+                        <span className="flex gap-2 items-center">
+                          <MapPin className="w-3 h-3 text-muted-foreground" />
                           {p.address}, {p.city}
-                        </div>
+                        </span>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
+              )}
             </div>
 
             <Button
               onClick={handleSubscribe}
               disabled={subscribing || !selectedProperty}
-              className="w-full rounded-xl bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
+              className="font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90 sm:w-auto"
             >
               {subscribing ? (
                 <>
-                  <div className="w-4 h-4 border-2 rounded-full border-white/30 border-t-white animate-spin" />
-                  Processing...
+                  <span className="w-4 h-4 rounded-full border-2 animate-spin border-brand-ink/30 border-t-brand-ink" />
+                  Processing…
                 </>
               ) : (
-                'Subscribe Now — Pay securely'
+                'Subscribe securely'
               )}
             </Button>
-          </CardContent>
-        </Card>
+          </div>
+        </SectionPanel>
       )}
 
-      {/* Active subscriptions */}
       {subscriptions.length > 0 && (
-        <div>
-          <h2 className="mb-4 text-lg font-semibold text-neutral-900 dark:text-white">
-            Your Subscriptions
-          </h2>
-          <div className="space-y-3">
+        <SectionPanel
+          title="Your subscriptions"
+          count={subscriptions.length}
+          viewAll={{ href: '/customer/subscriptions', label: 'Manage' }}
+          bare
+        >
+          <div className="space-y-2">
             {subscriptions.map((sub) => (
-              <Card key={sub.id} className="shadow-none">
-                <CardContent className="p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-sm font-medium text-neutral-900 dark:text-white">
-                        {sub.plan.name}
-                      </div>
-                      <div className="text-xs text-neutral-500 mt-0.5">
-                        {sub.property.address}, {sub.property.city}
-                      </div>
-                      {sub.provider && (
-                        <div className="text-xs text-neutral-400 mt-0.5">
-                          Provider: {sub.provider.businessName}
-                        </div>
-                      )}
-                    </div>
-                    <Badge
-                      variant="secondary"
-                      className={cn(
-                        'rounded-full border-0 text-[10px] uppercase',
-                        sub.status === 'ACTIVE'
-                          ? 'bg-green-500/10 text-green-600 dark:text-green-400'
-                          : sub.status === 'PAUSED'
-                            ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-                            : 'bg-neutral-200 text-neutral-500',
-                      )}
-                    >
-                      {sub.status}
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
+              <div
+                key={sub.id}
+                className="flex gap-3 justify-between items-center p-4 rounded-2xl border backdrop-blur-xl border-border bg-background/70"
+              >
+                <div className="min-w-0">
+                  <p className="text-sm font-medium truncate text-foreground">
+                    {sub.plan.name}
+                  </p>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {sub.property.address}, {sub.property.city}
+                    {sub.provider
+                      ? ` · ${sub.provider.businessName}`
+                      : ' · Provider being assigned'}
+                  </p>
+                </div>
+                <span
+                  className={cn(
+                    'shrink-0 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide',
+                    STATUS_STYLES[sub.status] ??
+                      'bg-muted text-muted-foreground',
+                  )}
+                >
+                  {sub.status}
+                </span>
+              </div>
             ))}
-            <Button
-              variant="link"
-              size="sm"
-              onClick={() => router.push('/customer/subscriptions')}
-              className="text-xs text-brand-navy hover:text-brand-navy/70 dark:text-brand-lime dark:hover:text-brand-lime/80"
-            >
-              Manage subscriptions
-            </Button>
           </div>
-        </div>
+        </SectionPanel>
       )}
     </div>
   );

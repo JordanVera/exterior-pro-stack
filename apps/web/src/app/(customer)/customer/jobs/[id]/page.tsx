@@ -7,17 +7,19 @@ import { toast } from 'sonner';
 import { trpc } from '../../../../../lib/trpc';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { GlowingEffect } from '@/components/ui/glowing-effect';
+import { DashboardHero, type HeroChip } from '@/components/dashboard/dashboard-hero';
+import { SectionPanel } from '@/components/dashboard/section-panel';
+import { EmptyState } from '@/components/dashboard/empty-state';
 import {
-  ArrowLeft,
   BadgeCheck,
   Building2,
   Calendar,
   Check,
   Clock,
+  FileQuestion,
   MapPin,
   Repeat,
   RotateCcw,
@@ -50,12 +52,24 @@ const TIMELINE = [
   { key: 'completed', label: 'Completed' },
 ] as const;
 
+const STATUS_TONE: Record<string, NonNullable<HeroChip['tone']>> = {
+  OPEN: 'lime',
+  PENDING: 'muted',
+  SCHEDULED: 'blue',
+  IN_PROGRESS: 'amber',
+  COMPLETED: 'green',
+  CANCELLED: 'red',
+};
+
 function timelineDone(job: CustomerJob, key: (typeof TIMELINE)[number]['key']) {
   const status = job.status;
   const hasBids = (job.bids?.length ?? 0) > 0;
-  const accepted = ['PENDING', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED'].includes(
-    status,
-  );
+  const accepted = [
+    'PENDING',
+    'SCHEDULED',
+    'IN_PROGRESS',
+    'COMPLETED',
+  ].includes(status);
 
   switch (key) {
     case 'requested':
@@ -76,55 +90,58 @@ function timelineDone(job: CustomerJob, key: (typeof TIMELINE)[number]['key']) {
 function JobTimeline({ job }: { job: CustomerJob }) {
   if (job.status === 'CANCELLED') {
     return (
-      <div className="rounded-xl border border-red-500/20 bg-red-500/5 px-4 py-3 text-sm text-red-400">
+      <div className="rounded-2xl border border-red-500/20 bg-red-500/5 px-5 py-4 text-sm text-red-500 dark:text-red-400">
         This job was cancelled.
       </div>
     );
   }
 
   return (
-    <div className="flex items-center gap-1 overflow-x-auto pb-1">
-      {TIMELINE.map((step, i) => {
-        const done = timelineDone(job, step.key);
-        const current =
-          !done &&
-          (i === 0 || timelineDone(job, TIMELINE[i - 1].key)) &&
-          !timelineDone(job, step.key);
-        const active = done || current;
+    <div className="relative overflow-hidden rounded-2xl border border-border bg-background/70 p-5 backdrop-blur-xl">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(200,245,66,0.1),transparent_60%)]" />
 
-        return (
-          <div key={step.key} className="flex min-w-0 flex-1 items-center">
-            <div className="flex min-w-0 flex-col items-center gap-1.5">
-              <div
-                className={cn(
-                  'flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-semibold',
-                  done && 'bg-brand-lime text-brand-ink',
-                  current && 'bg-brand-lime/20 text-brand-lime',
-                  !active && 'bg-muted text-muted-foreground',
-                )}
-              >
-                {done ? <Check className="h-3 w-3" /> : i + 1}
+      <div className="relative flex items-center gap-1 overflow-x-auto pb-1">
+        {TIMELINE.map((step, i) => {
+          const done = timelineDone(job, step.key);
+          const current =
+            !done && (i === 0 || timelineDone(job, TIMELINE[i - 1].key));
+          const active = done || current;
+
+          return (
+            <div key={step.key} className="flex min-w-0 flex-1 items-center">
+              <div className="flex min-w-0 flex-col items-center gap-1.5">
+                <div
+                  className={cn(
+                    'flex h-7 w-7 items-center justify-center rounded-full border text-[10px] font-semibold transition-colors',
+                    done && 'border-brand-lime bg-brand-lime text-brand-ink',
+                    current &&
+                      'border-brand-lime/40 bg-brand-lime/15 text-brand-lime',
+                    !active && 'border-border bg-muted text-muted-foreground',
+                  )}
+                >
+                  {done ? <Check className="h-3.5 w-3.5" /> : i + 1}
+                </div>
+                <span
+                  className={cn(
+                    'whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide',
+                    active ? 'text-foreground' : 'text-muted-foreground/50',
+                  )}
+                >
+                  {step.label}
+                </span>
               </div>
-              <span
-                className={cn(
-                  'text-[10px] font-medium',
-                  active ? 'text-foreground' : 'text-muted-foreground/50',
-                )}
-              >
-                {step.label}
-              </span>
+              {i < TIMELINE.length - 1 && (
+                <div
+                  className={cn(
+                    'mx-1 mb-5 h-px flex-1',
+                    done ? 'bg-brand-lime/40' : 'bg-border',
+                  )}
+                />
+              )}
             </div>
-            {i < TIMELINE.length - 1 && (
-              <div
-                className={cn(
-                  'mx-1 mb-5 h-px flex-1',
-                  done ? 'bg-brand-lime/40' : 'bg-border',
-                )}
-              />
-            )}
-          </div>
-        );
-      })}
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -201,26 +218,27 @@ export default function JobDetailPage() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-8 w-64" />
-        <Skeleton className="h-16 w-full rounded-xl" />
-        <Skeleton className="h-48 w-full rounded-xl" />
+        <Skeleton className="h-44 rounded-3xl" />
+        <Skeleton className="h-24 rounded-2xl" />
+        <Skeleton className="h-56 rounded-2xl" />
       </div>
     );
   }
 
   if (notFound || !job) {
     return (
-      <div className="py-16 text-center">
-        <h1 className="mb-2 text-lg font-semibold text-foreground">
-          Job not found
-        </h1>
-        <p className="mb-4 text-sm text-muted-foreground">
-          This job may have been removed or you don&apos;t have access.
-        </p>
-        <Button asChild variant="outline" className="rounded-full">
-          <Link href="/customer/jobs">Back to jobs</Link>
-        </Button>
+      <div className="rounded-2xl border border-border bg-background/70 backdrop-blur-xl">
+        <EmptyState
+          icon={FileQuestion}
+          title="Job not found"
+          description="This job may have been removed, or you don't have access to it."
+          className="py-20"
+          action={
+            <Button asChild variant="outline" className="rounded-full">
+              <Link href="/customer/jobs">Back to jobs</Link>
+            </Button>
+          }
+        />
       </div>
     );
   }
@@ -229,43 +247,36 @@ export default function JobDetailPage() {
   const pendingBids = getPendingBids(job);
   const payment = job.payments?.find((p) => p.status === 'SUCCEEDED');
 
+  const chips: HeroChip[] = [
+    {
+      id: 'status',
+      label: badge.label,
+      tone: STATUS_TONE[job.status] ?? 'muted',
+      pulse: job.status === 'OPEN' || job.status === 'IN_PROGRESS',
+    },
+  ];
+  if (job.type === 'SUBSCRIPTION') {
+    chips.push({ id: 'sub', label: 'Part of a plan', tone: 'muted' });
+  }
+  if (job.status === 'OPEN' && pendingBids.length > 0) {
+    chips.push({
+      id: 'bids',
+      label: `${pendingBids.length} bid${pendingBids.length === 1 ? '' : 's'} to review`,
+      tone: 'lime',
+    });
+  }
+
   return (
     <div className="space-y-6">
-      <div>
-        <Button
-          variant="ghost"
-          size="sm"
-          asChild
-          className="mb-2 h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
-        >
-          <Link href="/customer/jobs">
-            <ArrowLeft className="mr-1 h-3 w-3" />
-            Back to jobs
-          </Link>
-        </Button>
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <div className="flex flex-wrap items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight text-foreground">
-                {job.service.name}
-              </h1>
-              <Badge
-                variant="secondary"
-                className={cn(
-                  'rounded-full border-0 text-[10px] uppercase tracking-wide',
-                  badge.bg,
-                  badge.text,
-                )}
-              >
-                {badge.label}
-              </Badge>
-            </div>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {job.property.address}, {job.property.city}, {job.property.state}{' '}
-              {job.property.zip}
-            </p>
-          </div>
-          {job.status === 'OPEN' && (
+      <DashboardHero
+        eyebrow="Job"
+        size="md"
+        title={job.service.name}
+        subtitle={`${job.property.address}, ${job.property.city}, ${job.property.state} ${job.property.zip}`}
+        backHref={{ href: '/customer/jobs', label: 'Back to jobs' }}
+        chips={chips}
+        action={
+          job.status === 'OPEN' ? (
             <Button
               variant="outline"
               className="rounded-full text-red-500 hover:bg-red-500/10 hover:text-red-500"
@@ -273,11 +284,9 @@ export default function JobDetailPage() {
             >
               Cancel request
             </Button>
-          )}
-          {job.status === 'COMPLETED' && (
+          ) : job.status === 'COMPLETED' ? (
             <Button
-              variant="outline"
-              className="rounded-full"
+              className="rounded-full bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
               onClick={() =>
                 router.push(
                   requestJobPath({
@@ -290,192 +299,211 @@ export default function JobDetailPage() {
               <RotateCcw className="h-4 w-4" />
               Book again
             </Button>
-          )}
-        </div>
-      </div>
+          ) : null
+        }
+      />
 
       <JobTimeline job={job} />
 
       {job.status === 'OPEN' && (
-        <section className="space-y-3">
-          <h2 className="text-lg font-semibold text-foreground">Bids</h2>
+        <SectionPanel
+          title="Bids"
+          count={pendingBids.length}
+          bare
+          headerSlot={
+            pendingBids.length > 1 ? (
+              <span className="text-xs text-muted-foreground">
+                Sorted by price
+              </span>
+            ) : null
+          }
+        >
           {pendingBids.length === 0 ? (
-            <Card className="border-border bg-background/80 shadow-none">
-              <CardContent className="px-5 py-8 text-center">
-                <Building2 className="mx-auto mb-2 h-6 w-6 text-muted-foreground" />
-                <p className="text-sm font-medium text-foreground">
-                  Waiting for bids
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Providers in your area have been notified.
-                </p>
-              </CardContent>
-            </Card>
+            <div className="rounded-2xl border border-border bg-background/70 backdrop-blur-xl">
+              <EmptyState
+                icon={Building2}
+                title="Waiting for bids"
+                description="Providers in your area have been notified. Most requests get their first bid within a day."
+              />
+            </div>
           ) : (
             <div className="grid gap-3">
               {pendingBids
                 .slice()
                 .sort((a, b) => Number(a.price) - Number(b.price))
-                .map((bid) => (
-                  <Card
+                .map((bid, index) => (
+                  <div
                     key={bid.id}
-                    className="border-border bg-background/80 shadow-none"
+                    className={cn(
+                      'relative space-y-3 overflow-hidden rounded-2xl border bg-background/70 p-4 backdrop-blur-xl transition-colors',
+                      index === 0
+                        ? 'border-brand-lime/40'
+                        : 'border-border hover:border-brand-lime/40',
+                    )}
                   >
-                    <CardContent className="space-y-3 p-4">
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex items-start gap-3">
-                          <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-muted">
-                            <Building2 className="h-4 w-4 text-muted-foreground" />
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <span className="text-sm font-medium text-foreground">
-                                {bid.provider.businessName}
-                              </span>
-                              {bid.provider.verified && (
-                                <BadgeCheck className="h-4 w-4 text-brand-lime" />
-                              )}
-                            </div>
-                            {bid.provider.description && (
-                              <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
-                                {bid.provider.description}
-                              </p>
+                    <GlowingEffect
+                      disabled={false}
+                      glow
+                      proximity={72}
+                      spread={28}
+                      borderWidth={2}
+                    />
+
+                    <div className="relative flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted">
+                          <Building2 className="h-4 w-4 text-muted-foreground" />
+                        </span>
+                        <div className="min-w-0">
+                          <span className="flex items-center gap-1.5">
+                            <span className="truncate text-sm font-semibold text-foreground">
+                              {bid.provider.businessName}
+                            </span>
+                            {bid.provider.verified && (
+                              <BadgeCheck className="h-4 w-4 shrink-0 text-brand-lime" />
                             )}
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-lg font-bold text-foreground">
-                            ${Number(bid.price).toFixed(2)}
-                          </div>
+                          </span>
+                          {bid.provider.description && (
+                            <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
+                              {bid.provider.description}
+                            </p>
+                          )}
                         </div>
                       </div>
-                      {bid.notes && (
-                        <p className="rounded-lg bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
-                          {bid.notes}
+                      <div className="shrink-0 text-right">
+                        <p className="text-lg font-bold tracking-tight text-foreground">
+                          ${Number(bid.price).toFixed(2)}
                         </p>
-                      )}
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          onClick={() => handleAcceptBid(bid.id)}
-                          disabled={actionLoading === bid.id}
-                          className="h-8 flex-1 rounded-full bg-green-500 text-xs hover:bg-green-400"
-                        >
-                          <Check className="h-3 w-3" />
-                          Pay & accept
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeclineBid(bid.id)}
-                          disabled={actionLoading === bid.id}
-                          className="h-8 flex-1 rounded-full text-xs"
-                        >
-                          <X className="h-3 w-3" />
-                          Decline
-                        </Button>
+                        {index === 0 && pendingBids.length > 1 ? (
+                          <span className="text-[10px] font-semibold uppercase tracking-wide text-brand-navy dark:text-brand-lime">
+                            Lowest bid
+                          </span>
+                        ) : null}
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+
+                    {bid.notes && (
+                      <p className="relative rounded-xl bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
+                        {bid.notes}
+                      </p>
+                    )}
+
+                    <div className="relative flex items-center gap-2">
+                      <Button
+                        size="sm"
+                        onClick={() => handleAcceptBid(bid.id)}
+                        disabled={actionLoading === bid.id}
+                        className="h-9 flex-1 rounded-full bg-brand-lime text-xs font-semibold text-brand-ink hover:bg-brand-lime/90"
+                      >
+                        <Check className="h-3 w-3" />
+                        Pay &amp; accept
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeclineBid(bid.id)}
+                        disabled={actionLoading === bid.id}
+                        className="h-9 flex-1 rounded-full text-xs"
+                      >
+                        <X className="h-3 w-3" />
+                        Decline
+                      </Button>
+                    </div>
+                  </div>
                 ))}
             </div>
           )}
-        </section>
+        </SectionPanel>
       )}
 
-      <Card className="border-border bg-background/80 shadow-none">
-        <CardContent className="space-y-3 p-5">
-          <h2 className="text-base font-semibold text-foreground">Details</h2>
-
-          {job.acceptedBid && (
-            <div className="flex items-start gap-2 text-sm text-muted-foreground">
-              <Building2 className="mt-0.5 h-4 w-4 flex-shrink-0 text-muted-foreground" />
-              <span>
-                {job.acceptedBid.provider.businessName}
-                <span className="ml-1 font-medium text-foreground">
-                  · ${Number(job.acceptedBid.price).toFixed(2)}
-                </span>
-              </span>
-            </div>
-          )}
-
+      <SectionPanel title="Details" bodyClassName="space-y-3 p-5">
+        {job.acceptedBid && (
           <div className="flex items-start gap-2 text-sm text-muted-foreground">
-            <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0" />
+            <Building2 className="mt-0.5 h-4 w-4 flex-shrink-0" />
             <span>
-              {job.property.address}, {job.property.city}, {job.property.state}{' '}
-              {job.property.zip}
+              {job.acceptedBid.provider.businessName}
+              <span className="ml-1 font-semibold text-foreground">
+                · ${Number(job.acceptedBid.price).toFixed(2)}
+              </span>
             </span>
           </div>
+        )}
 
-          {job.scheduledDate && (
-            <div className="flex items-start gap-2 text-sm text-muted-foreground">
-              <Calendar className="mt-0.5 h-4 w-4 flex-shrink-0" />
-              <span>
-                {formatJobDateTime(job.scheduledDate, job.scheduledTime)}
+        <div className="flex items-start gap-2 text-sm text-muted-foreground">
+          <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0" />
+          <span>
+            {job.property.address}, {job.property.city}, {job.property.state}{' '}
+            {job.property.zip}
+          </span>
+        </div>
+
+        {job.scheduledDate && (
+          <div className="flex items-start gap-2 text-sm text-muted-foreground">
+            <Calendar className="mt-0.5 h-4 w-4 flex-shrink-0" />
+            <span>
+              {formatJobDateTime(job.scheduledDate, job.scheduledTime)}
+            </span>
+          </div>
+        )}
+
+        {job.completedAt && (
+          <div className="flex items-start gap-2 text-sm text-muted-foreground">
+            <Clock className="mt-0.5 h-4 w-4 flex-shrink-0" />
+            <span>
+              Completed {formatJobDate(job.completedAt, { year: true })}
+            </span>
+          </div>
+        )}
+
+        {job.assignments && job.assignments.length > 0 && (
+          <div className="flex items-start gap-2 text-sm text-muted-foreground">
+            <Users className="mt-0.5 h-4 w-4 flex-shrink-0" />
+            <span>
+              Crew:{' '}
+              {job.assignments
+                .map((assignment) => assignment.crew.name)
+                .join(', ')}
+            </span>
+          </div>
+        )}
+
+        {job.recurringSchedule?.active && (
+          <div className="flex items-start gap-2 text-sm">
+            <Repeat className="mt-0.5 h-4 w-4 flex-shrink-0 text-purple-400" />
+            <span className="text-purple-500 dark:text-purple-400">
+              {job.recurringSchedule.frequency} · Next:{' '}
+              {formatJobDate(job.recurringSchedule.nextDate)}
+            </span>
+          </div>
+        )}
+
+        {payment && (
+          <div className="text-sm text-muted-foreground">
+            Paid{' '}
+            <span className="font-semibold text-foreground">
+              ${(payment.amountCents / 100).toFixed(2)}
+            </span>
+          </div>
+        )}
+
+        {job.customerNotes && (
+          <>
+            <Separator />
+            <div className="rounded-xl bg-muted/60 px-3 py-2.5 text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">
+                Your notes:{' '}
               </span>
+              {job.customerNotes}
             </div>
-          )}
-
-          {job.completedAt && (
-            <div className="flex items-start gap-2 text-sm text-muted-foreground">
-              <Clock className="mt-0.5 h-4 w-4 flex-shrink-0" />
-              <span>
-                Completed {formatJobDate(job.completedAt, { year: true })}
-              </span>
-            </div>
-          )}
-
-          {job.assignments && job.assignments.length > 0 && (
-            <div className="flex items-start gap-2 text-sm text-muted-foreground">
-              <Users className="mt-0.5 h-4 w-4 flex-shrink-0" />
-              <span>
-                Crew:{' '}
-                {job.assignments.map((assignment) => assignment.crew.name).join(', ')}
-              </span>
-            </div>
-          )}
-
-          {job.recurringSchedule?.active && (
-            <div className="flex items-start gap-2 text-sm">
-              <Repeat className="mt-0.5 h-4 w-4 flex-shrink-0 text-purple-400" />
-              <span className="text-purple-500 dark:text-purple-400">
-                {job.recurringSchedule.frequency} · Next:{' '}
-                {formatJobDate(job.recurringSchedule.nextDate)}
-              </span>
-            </div>
-          )}
-
-          {payment && (
-            <div className="text-sm text-muted-foreground">
-              Paid{' '}
-              <span className="font-medium text-foreground">
-                ${(payment.amountCents / 100).toFixed(2)}
-              </span>
-            </div>
-          )}
-
-          {job.customerNotes && (
-            <>
-              <Separator />
-              <div className="rounded-lg bg-muted/60 px-3 py-2.5 text-sm text-muted-foreground">
-                <span className="font-medium text-foreground">Your notes: </span>
-                {job.customerNotes}
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+          </>
+        )}
+      </SectionPanel>
 
       {(job.photos?.length ?? 0) > 0 ||
       ['IN_PROGRESS', 'COMPLETED'].includes(job.status) ? (
-        <Card className="border-border bg-background/80 shadow-none">
-          <CardContent className="space-y-3 p-5">
-            <h2 className="text-base font-semibold text-foreground">
-              Before & after
-            </h2>
-            <JobPhotoGallery photos={job.photos} />
-          </CardContent>
-        </Card>
+        <SectionPanel title="Before & after" bodyClassName="p-5">
+          <JobPhotoGallery photos={job.photos} />
+        </SectionPanel>
       ) : null}
 
       <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
@@ -483,19 +511,24 @@ export default function JobDetailPage() {
           <DialogHeader>
             <DialogTitle>Cancel this request?</DialogTitle>
             <DialogDescription>
-              Providers will no longer be able to bid. This can&apos;t be undone.
+              Providers will no longer be able to bid. This can&apos;t be
+              undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCancelOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setCancelOpen(false)}
+              className="rounded-full"
+            >
               Keep request
             </Button>
             <Button
-              variant="destructive"
               onClick={handleCancelJob}
               disabled={cancelling}
+              className="rounded-full bg-red-500 text-white hover:bg-red-500/90"
             >
-              {cancelling ? 'Cancelling...' : 'Cancel request'}
+              {cancelling ? 'Cancelling…' : 'Cancel request'}
             </Button>
           </DialogFooter>
         </DialogContent>

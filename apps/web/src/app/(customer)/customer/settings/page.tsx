@@ -6,14 +6,16 @@ import { toast } from "sonner";
 import { trpc } from "../../../../lib/trpc";
 import { clearToken } from "../../../../lib/auth";
 import { ThemeToggle } from "../../../../components/ThemeToggle";
-import { cn } from "@/lib/utils";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { GlowingEffect } from "@/components/ui/glowing-effect";
+import { DashboardHero } from "@/components/dashboard/dashboard-hero";
+import { SectionPanel } from "@/components/dashboard/section-panel";
+import { EmptyState } from "@/components/dashboard/empty-state";
 import {
   Dialog,
   DialogContent,
@@ -221,11 +223,11 @@ export default function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <Skeleton className="w-32 h-8" />
-        <Skeleton className="h-24 rounded-xl" />
-        <Skeleton className="h-40 rounded-xl" />
-        <Skeleton className="h-16 rounded-xl" />
+      <div className="space-y-8">
+        <Skeleton className="h-40 rounded-3xl" />
+        <Skeleton className="h-56 rounded-2xl" />
+        <Skeleton className="h-48 rounded-2xl" />
+        <Skeleton className="h-20 rounded-2xl" />
       </div>
     );
   }
@@ -244,22 +246,25 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-8">
-      <h1 className="text-2xl font-bold tracking-tight text-neutral-900 dark:text-white">
-        Settings
-      </h1>
+      <DashboardHero
+        eyebrow="Account"
+        size="md"
+        title="Settings"
+        subtitle="Your profile, properties, and app preferences."
+      />
 
       {/* ── Profile ── */}
-      <Card className="overflow-hidden shadow-none">
-        <CardHeader className="flex flex-row gap-3 items-center p-5 pb-0">
+      <SectionPanel title="Profile" bodyClassName="p-5">
+        <div className="flex gap-3 items-center mb-4">
           <Avatar className="w-10 h-10">
             <AvatarFallback className="text-sm font-semibold text-white bg-gradient-to-br from-brand-navy to-brand-lime">
               {initials}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1 min-w-0">
-            <CardTitle className="text-sm">
+            <p className="text-sm font-semibold truncate text-foreground">
               {firstName} {lastName}
-            </CardTitle>
+            </p>
             <p className="text-xs text-muted-foreground">{phone}</p>
           </div>
           {!editingProfile && (
@@ -267,14 +272,15 @@ export default function SettingsPage() {
               variant="ghost"
               size="sm"
               onClick={startEditProfile}
-              className="px-2 h-7 text-xs text-brand-navy hover:text-brand-navy/70 dark:text-brand-lime dark:hover:text-brand-lime/80"
+              className="px-2 h-7 text-xs rounded-full text-brand-navy hover:text-brand-navy/70 dark:text-brand-lime dark:hover:text-brand-lime/80"
             >
-              <Pencil className="w-3.5 h-3.5 mr-1" />
+              <Pencil className="h-3.5 w-3.5" />
               Edit
             </Button>
           )}
-        </CardHeader>
-        <CardContent className="p-5 pt-4">
+        </div>
+
+        <div>
           {editingProfile ? (
             <div className="space-y-3">
               {profileError && (
@@ -313,99 +319,91 @@ export default function SettingsPage() {
                 <Button
                   onClick={saveProfile}
                   disabled={profileSaving}
-                  className="flex-1 bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
+                  className="flex-1 font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
                 >
-                  <Check className="w-3.5 h-3.5" />
-                  {profileSaving ? "Saving..." : "Save"}
+                  <Check className="h-3.5 w-3.5" />
+                  {profileSaving ? "Saving…" : "Save"}
                 </Button>
                 <Button
                   variant="outline"
                   onClick={() => setEditingProfile(false)}
+                  className="rounded-full"
                 >
                   Cancel
                 </Button>
               </div>
             </div>
           ) : (
-            <div className="space-y-0">
-              <div className="flex justify-between items-center py-3">
-                <div className="flex gap-3 items-center">
-                  <Phone className="w-4 h-4 text-neutral-400" />
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                    Phone
-                  </span>
-                </div>
-                <span className="font-mono text-sm text-neutral-500">
-                  {phone}
-                </span>
+            <dl className="border-t border-border">
+              <div className="flex gap-4 justify-between items-center py-3">
+                <dt className="flex gap-3 items-center text-sm text-muted-foreground">
+                  <Phone className="w-4 h-4" />
+                  Phone
+                </dt>
+                <dd className="font-mono text-sm text-foreground">{phone}</dd>
               </div>
               <Separator />
-              <div className="flex justify-between items-center py-3">
-                <div className="flex gap-3 items-center">
-                  <Mail className="w-4 h-4 text-neutral-400" />
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                    Email
-                  </span>
-                </div>
-                <span className="ml-4 text-sm truncate text-neutral-500">
+              <div className="flex gap-4 justify-between items-center py-3">
+                <dt className="flex gap-3 items-center text-sm text-muted-foreground">
+                  <Mail className="w-4 h-4" />
+                  Email
+                </dt>
+                <dd className="text-sm truncate text-foreground">
                   {user?.customerProfile?.email || "—"}
-                </span>
+                </dd>
               </div>
               <Separator />
-              <div className="flex justify-between items-center py-3">
-                <div className="flex gap-3 items-center">
-                  <Calendar className="w-4 h-4 text-neutral-400" />
-                  <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                    Member since
-                  </span>
-                </div>
-                <span className="text-sm text-neutral-500">{createdAt}</span>
+              <div className="flex gap-4 justify-between items-center py-3">
+                <dt className="flex gap-3 items-center text-sm text-muted-foreground">
+                  <Calendar className="w-4 h-4" />
+                  Member since
+                </dt>
+                <dd className="text-sm text-foreground">{createdAt}</dd>
               </div>
-            </div>
+            </dl>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </SectionPanel>
 
       {/* ── Properties ── */}
-      <section>
-        <div className="flex justify-between items-center mb-3">
-          <h2 className="text-sm font-semibold text-neutral-900 dark:text-white">
-            My Properties
-          </h2>
-          {!showAdd && (
+      <SectionPanel
+        title="My properties"
+        count={properties.length}
+        bare
+        headerSlot={
+          !showAdd ? (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setShowAdd(true)}
-              className="px-2 h-7 text-xs text-brand-navy hover:text-brand-navy/70 dark:text-brand-lime dark:hover:text-brand-lime/80"
+              className="px-2 h-7 text-xs rounded-full text-brand-navy hover:text-brand-navy/70 dark:text-brand-lime dark:hover:text-brand-lime/80"
             >
-              <Plus className="w-3.5 h-3.5 mr-1" />
+              <Plus className="h-3.5 w-3.5" />
               Add
             </Button>
-          )}
-        </div>
-
+          ) : null
+        }
+      >
         {/* add form */}
         {showAdd && (
-          <Card className="mb-3 shadow-none animate-step-enter border-brand-lime/30">
-            <CardContent className="p-4">
-              <div className="flex justify-between items-center mb-3">
-                <span className="text-sm font-medium text-neutral-900 dark:text-white">
-                  New Property
-                </span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="w-7 h-7"
-                  onClick={() => {
-                    setShowAdd(false);
-                    setAddError("");
-                  }}
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-              <form onSubmit={handleAdd} className="space-y-3">
+          <div className="p-4 mb-3 rounded-2xl border backdrop-blur-xl animate-step-enter border-brand-lime/30 bg-background/70">
+            <div className="flex justify-between items-center mb-3">
+              <span className="text-sm font-semibold text-foreground">
+                New property
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="w-7 h-7 rounded-full"
+                onClick={() => {
+                  setShowAdd(false);
+                  setAddError("");
+                }}
+              >
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+            <form onSubmit={handleAdd} className="space-y-3">
                 {addError && (
                   <p className="text-xs text-red-400">{addError}</p>
                 )}
@@ -461,41 +459,43 @@ export default function SettingsPage() {
                 <Button
                   type="submit"
                   disabled={addSaving}
-                  className="w-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
+                  className="w-full font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
                 >
-                  {addSaving ? "Adding..." : "Add Property"}
+                  {addSaving ? "Adding…" : "Add property"}
                 </Button>
               </form>
-            </CardContent>
-          </Card>
+            </div>
         )}
 
         {/* property list */}
-        <Card className="overflow-hidden shadow-none">
-          <div>
+        <div className="space-y-2">
             {properties.length === 0 && !showAdd && (
-              <CardContent className="py-10 text-center">
-                <MapPin className="mx-auto mb-3 w-8 h-8 text-neutral-300 dark:text-neutral-700" />
-                <p className="mb-3 text-sm text-neutral-500">
-                  No properties added yet.
-                </p>
-                <Button
-                  variant="ghost"
-                  onClick={() => setShowAdd(true)}
-                  className="text-sm text-brand-navy hover:text-brand-navy/70 dark:text-brand-lime dark:hover:text-brand-lime/80"
-                >
-                  <Plus className="mr-1 w-4 h-4" />
-                  Add your first property
-                </Button>
-              </CardContent>
+              <div className="rounded-2xl border border-dashed backdrop-blur-xl border-border bg-background/50">
+                <EmptyState
+                  icon={MapPin}
+                  title="No properties added yet"
+                  description="Add a home address so you can request services and start a plan."
+                  action={
+                    <Button
+                      onClick={() => setShowAdd(true)}
+                      className="font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
+                    >
+                      <Plus className="w-4 h-4" />
+                      Add your first property
+                    </Button>
+                  }
+                />
+              </div>
             )}
 
-            {properties.map((prop, i) => {
+            {properties.map((prop) => {
               if (editingId === prop.id) {
                 return (
-                  <div key={prop.id}>
-                    {i > 0 && <Separator />}
-                    <CardContent className="p-4 space-y-3 animate-step-enter">
+                  <div
+                    key={prop.id}
+                    className="rounded-2xl border backdrop-blur-xl border-brand-lime/30 bg-background/70"
+                  >
+                    <div className="p-4 space-y-3 animate-step-enter">
                       {editError && (
                         <p className="text-xs text-red-400">{editError}</p>
                       )}
@@ -567,121 +567,128 @@ export default function SettingsPage() {
                         <Button
                           onClick={saveEdit}
                           disabled={editSaving}
-                          className="flex-1 bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
+                          className="flex-1 font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
                         >
-                          <Check className="w-3.5 h-3.5" />
-                          {editSaving ? "Saving..." : "Save"}
+                          <Check className="h-3.5 w-3.5" />
+                          {editSaving ? "Saving…" : "Save"}
                         </Button>
                         <Button
                           variant="outline"
                           onClick={cancelEdit}
+                          className="rounded-full"
                         >
                           Cancel
                         </Button>
                       </div>
-                    </CardContent>
+                    </div>
                   </div>
                 );
               }
 
               return (
-                <div key={prop.id}>
-                  {i > 0 && <Separator />}
-                  <div className="flex gap-3 justify-between items-start px-5 py-4">
-                    <div className="flex gap-3 items-start min-w-0">
-                      <div className="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-800/60 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <MapPin className="w-4 h-4 text-neutral-400" />
-                      </div>
-                      <div className="min-w-0">
-                        <div className="text-sm font-medium truncate text-neutral-900 dark:text-white">
-                          {prop.address}
-                        </div>
-                        <div className="text-xs text-neutral-500 mt-0.5">
-                          {prop.city}, {prop.state} {prop.zip}
-                        </div>
-                        {prop.notes && (
-                          <div className="mt-1 text-xs text-neutral-400">
-                            {prop.notes}
-                          </div>
-                        )}
-                      </div>
+                <div
+                  key={prop.id}
+                  className="flex overflow-hidden relative gap-3 justify-between items-start p-4 rounded-2xl border backdrop-blur-xl transition-colors border-border bg-background/70 hover:border-brand-lime/50"
+                >
+                  <GlowingEffect
+                    disabled={false}
+                    glow
+                    proximity={64}
+                    spread={26}
+                    borderWidth={2}
+                  />
+
+                  <div className="flex relative gap-3 items-start min-w-0">
+                    <span className="mt-0.5 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-brand-lime/25 bg-brand-lime/10">
+                      <MapPin className="w-4 h-4 text-brand-lime" />
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium truncate text-foreground">
+                        {prop.address}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        {prop.city}, {prop.state} {prop.zip}
+                      </p>
+                      {prop.notes && (
+                        <p className="mt-1 text-xs text-muted-foreground/70">
+                          {prop.notes}
+                        </p>
+                      )}
                     </div>
-                    <div className="flex flex-shrink-0 gap-1 items-center">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="w-7 h-7 text-neutral-400 hover:text-neutral-600 dark:hover:text-neutral-200"
-                        onClick={() => startEdit(prop)}
-                      >
-                        <Pencil className="w-3.5 h-3.5" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="w-7 h-7 text-neutral-400 hover:text-red-500"
-                        onClick={() => openDelete(prop.id)}
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
-                    </div>
+                  </div>
+                  <div className="flex relative flex-shrink-0 gap-1 items-center">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-7 h-7 rounded-full text-muted-foreground hover:text-foreground"
+                      onClick={() => startEdit(prop)}
+                      aria-label="Edit property"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="w-7 h-7 rounded-full text-muted-foreground hover:text-red-500"
+                      onClick={() => openDelete(prop.id)}
+                      aria-label="Delete property"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
                 </div>
               );
             })}
-          </div>
-        </Card>
-      </section>
+        </div>
+      </SectionPanel>
 
       {/* ── Appearance ── */}
-      <Card className="overflow-hidden shadow-none">
-        <CardHeader className="p-5 pb-0">
-          <CardTitle className="text-sm">Appearance</CardTitle>
-        </CardHeader>
-        <CardContent className="p-5 pt-3">
-          <div className="flex justify-between items-center">
-            <div className="flex gap-3 items-center">
-              <Sun className="w-4 h-4 text-neutral-400" />
-              <span className="text-sm text-neutral-700 dark:text-neutral-300">
-                Theme
-              </span>
-            </div>
-            <ThemeToggle />
-          </div>
-        </CardContent>
-      </Card>
+      <SectionPanel title="Appearance" bodyClassName="p-5">
+        <div className="flex justify-between items-center">
+          <span className="flex gap-3 items-center text-sm text-muted-foreground">
+            <Sun className="w-4 h-4" />
+            Theme
+          </span>
+          <ThemeToggle />
+        </div>
+      </SectionPanel>
 
       {/* ── Sign Out ── */}
       <Button
         variant="outline"
         onClick={handleSignOut}
-        className="justify-between w-full text-red-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 border-neutral-200 dark:border-neutral-800/50"
+        className="justify-between py-6 w-full text-red-500 rounded-2xl backdrop-blur-xl border-border bg-background/70 hover:bg-red-500/5 hover:text-red-500"
       >
-        <div className="flex gap-3 items-center">
+        <span className="flex gap-3 items-center">
           <LogOut className="w-4 h-4" />
-          <span className="text-sm font-medium">Sign Out</span>
-        </div>
-        <ChevronRight className="w-4 h-4 text-neutral-300 dark:text-neutral-700" />
+          <span className="text-sm font-medium">Sign out</span>
+        </span>
+        <ChevronRight className="w-4 h-4 text-muted-foreground" />
       </Button>
 
       {/* Delete confirmation dialog */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Delete Property</DialogTitle>
+            <DialogTitle>Delete this property?</DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete this property? This action
-              cannot be undone.
+              Its address and access notes will be removed. Past jobs stay in
+              your history. This can&apos;t be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button
               variant="outline"
               onClick={() => setDeleteOpen(false)}
+              className="rounded-full"
             >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={confirmDelete}>
-              Delete
+            <Button
+              onClick={confirmDelete}
+              className="text-white bg-red-500 rounded-full hover:bg-red-500/90"
+            >
+              Delete property
             </Button>
           </DialogFooter>
         </DialogContent>

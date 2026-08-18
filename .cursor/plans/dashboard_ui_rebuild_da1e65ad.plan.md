@@ -7,25 +7,25 @@ todos:
     status: completed
   - id: customer-data
     content: Extend the customer dashboard data fetch with subscription.listForCustomer and payment.listForCustomer, and derive the stat values
-    status: in_progress
+    status: completed
   - id: customer-page
     content: 'Rewrite the customer dashboard page: hero band, stat tiles, tabbed job feed, sticky right rail, property carousel, new skeleton'
-    status: pending
+    status: completed
   - id: customer-components
     content: Add customer _components job-feed.tsx and property-carousel.tsx; restyle job-card, recent-activity-section, first-property-prompt; retire greeting/needs-attention/upcoming/property sections
-    status: pending
+    status: completed
   - id: provider-data
     content: Extend the provider dashboard data fetch with job.listOpen, job.listMyBids, crew.list, payment.listForProvider, and derive stats client-side
-    status: pending
+    status: completed
   - id: provider-page
     content: 'Rewrite the provider dashboard page: hero band, payout warning, stat tiles, tabbed job feed, sticky payout/crew rail, open-jobs carousel, new skeleton'
-    status: pending
+    status: completed
   - id: provider-components
     content: 'Add provider _components: job-feed.tsx, provider-job-card.tsx, payout-summary.tsx, open-jobs-carousel.tsx, and formatCurrencyFromCents in utils.ts'
-    status: pending
+    status: completed
   - id: verify
     content: Lint, type check, build, and screenshot both dashboards in light/dark at desktop and mobile, checking for hydration warnings
-    status: pending
+    status: completed
 isProject: false
 ---
 
