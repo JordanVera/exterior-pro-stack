@@ -431,9 +431,15 @@ model VerificationCode {
   code      String
   expiresAt DateTime
   used      Boolean  @default(false)
+  /// Failed verification attempts against this code. Guards against brute force.
+  attempts  Int      @default(0)
+  /// Request IP, used to throttle code sends from a single source.
+  ip        String?
   createdAt DateTime @default(now())
 
   @@index([phone, code])
+  @@index([phone, createdAt])
+  @@index([ip, createdAt])
 }
 
 // ─── Push Tokens ────────────────────────────────────────────────────────────

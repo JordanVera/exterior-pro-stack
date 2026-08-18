@@ -3,8 +3,33 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { cn } from '@/lib/utils';
 
+type BeamVariant = 'default' | 'lime';
+
+const BEAM_GRADIENTS: Record<
+  BeamVariant,
+  { start: string; mid: string; end: string }
+> = {
+  default: { start: '#18CCFC', mid: '#6344F5', end: '#AE48FF' },
+  lime: { start: '#C8F542', mid: '#B8E838', end: '#C8F542' },
+};
+
+const RADIAL_STOPS: Record<BeamVariant, [string, string]> = {
+  default: ['#d4d4d4', '#d4d4d4'],
+  lime: ['#C8F542', '#A8D438'],
+};
+
 export const BackgroundBeams = React.memo(
-  ({ className, delay }: { className?: string; delay?: number }) => {
+  ({
+    className,
+    delay,
+    variant = 'default',
+  }: {
+    className?: string;
+    delay?: number;
+    variant?: BeamVariant;
+  }) => {
+    const gradient = BEAM_GRADIENTS[variant];
+    const [radialInner, radialMid] = RADIAL_STOPS[variant];
     const paths = [
       'M-380 -189C-380 -189 -312 216 152 343C616 470 684 875 684 875',
       'M-373 -197C-373 -197 -305 208 159 335C623 462 691 867 691 867',
@@ -113,10 +138,14 @@ export const BackgroundBeams = React.memo(
                     delay != null ? delay + index * 0.04 : Math.random() * 10,
                 }}
               >
-                <stop stopColor="#18CCFC" stopOpacity="0"></stop>
-                <stop stopColor="#18CCFC"></stop>
-                <stop offset="32.5%" stopColor="#6344F5"></stop>
-                <stop offset="100%" stopColor="#AE48FF" stopOpacity="0"></stop>
+                <stop stopColor={gradient.start} stopOpacity="0"></stop>
+                <stop stopColor={gradient.start}></stop>
+                <stop offset="32.5%" stopColor={gradient.mid}></stop>
+                <stop
+                  offset="100%"
+                  stopColor={gradient.end}
+                  stopOpacity="0"
+                ></stop>
               </motion.linearGradient>
             ))}
 
@@ -128,8 +157,8 @@ export const BackgroundBeams = React.memo(
               gradientUnits="userSpaceOnUse"
               gradientTransform="translate(352 34) rotate(90) scale(555 1560.62)"
             >
-              <stop offset="0.0666667" stopColor="#d4d4d4"></stop>
-              <stop offset="0.243243" stopColor="#d4d4d4"></stop>
+              <stop offset="0.0666667" stopColor={radialInner}></stop>
+              <stop offset="0.243243" stopColor={radialMid}></stop>
               <stop offset="0.43594" stopColor="white" stopOpacity="0"></stop>
             </radialGradient>
           </defs>

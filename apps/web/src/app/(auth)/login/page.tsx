@@ -30,6 +30,13 @@ import { BackgroundBeams } from '@/components/ui/background-beams';
 
 type Step = 'phone' | 'code';
 
+/** Login and signup share this screen, so the heading must read well for both. */
+const headings = {
+  customer: 'Get your property handled',
+  provider: 'Join as a provider',
+  none: 'Sign in or get started',
+} as const;
+
 const OTP_SLOT_CLASS =
   'rounded-lg p-1.5 backdrop-blur-sm [&>div]:h-12 [&>div]:w-12 [&>div]:border [&>div]:border-border [&>div]:bg-background/60 [&>div]:text-foreground [&>div]:text-xl [&>div]:font-medium [&>div]:first:rounded-l-md [&>div]:last:rounded-r-md [&>div[data-active]]:ring-2 [&>div[data-active]]:ring-brand-lime [&>div[data-active]]:border-brand-lime/50 [&>div[role=separator]]:h-12 [&>div[role=separator]]:w-0 [&>div[role=separator]]:border-0 [&>div[role=separator]]:bg-transparent [&>div[role=separator]]:flex [&>div[role=separator]]:items-center [&>div[role=separator]]:justify-center [&>div[role=separator]]:px-2';
 
@@ -113,7 +120,7 @@ function LoginContent() {
   return (
     <div className="flex overflow-hidden relative flex-col min-h-screen bg-background text-foreground">
       <div className="bg-grid-fade pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
-      <BackgroundBeams className="opacity-40" delay={0} />
+      <BackgroundBeams className="opacity-40" delay={0} variant="lime" />
 
       <header className="relative z-20 px-4 pt-4">
         <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-black/70">
@@ -147,16 +154,12 @@ function LoginContent() {
           <Card className="relative p-8 rounded-2xl border shadow-lg backdrop-blur-xl border-border bg-background/80">
             <CardHeader className="p-0 mb-6 space-y-3 text-center">
               <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                {step === 'phone' ? 'Welcome back' : 'Check your messages'}
+                {step === 'phone' ? headings[intent ?? 'none'] : 'Check your messages'}
               </h1>
               <CardDescription>
                 {step === 'phone'
-                  ? intent === 'provider'
-                    ? 'Enter your phone number to join as a provider'
-                    : intent === 'customer'
-                      ? 'Enter your phone number to get your property handled'
-                      : 'Enter your phone number to get started'
-                  : 'Enter the verification code we sent you'}
+                  ? "Sign in or create an account with your phone number. We'll text you a 6-digit code — there's no password to remember."
+                  : `Enter the 6-digit code we sent to ${fullPhone}.`}
               </CardDescription>
             </CardHeader>
 
@@ -223,9 +226,6 @@ function LoginContent() {
                         <InputOTPSlot index={5} />
                       </InputOTPGroup>
                     </InputOTP>
-                    <p className="mt-2 text-sm text-muted-foreground">
-                      Sent to {fullPhone}
-                    </p>
                   </div>
 
                   {error ? (
@@ -256,10 +256,12 @@ function LoginContent() {
                 </form>
               )}
 
-              <div className="mt-6 flex flex-col items-center justify-center gap-0.5 font-mono text-xs text-muted-foreground">
-                <p>customer: 5551001001</p>
-                <p>provider: 5552001001</p>
-              </div>
+              {process.env.NODE_ENV === 'production' ? null : (
+                <div className="mt-6 flex flex-col items-center justify-center gap-0.5 font-mono text-xs text-muted-foreground">
+                  <p>customer: 5551001001</p>
+                  <p>provider: 5552001001</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
