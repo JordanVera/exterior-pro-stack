@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+/** Aligns a full-bleed track with the max-w-6xl page container. */
 const GUTTER = 'max(1.5rem, calc((100vw - 72rem) / 2))';
 
 type CarouselProps = {
@@ -11,13 +12,25 @@ type CarouselProps = {
   className?: string;
   /** Rendered to the left of the arrow controls. */
   controlsSlot?: React.ReactNode;
+  /**
+   * Inline padding on the track. Defaults to the full-bleed gutter; pass "0px"
+   * when the carousel already sits inside a padded container.
+   */
+  gutter?: string;
+  controlsClassName?: string;
 };
 
 /**
  * Horizontal drag/snap carousel. Scrolls natively (so trackpad and touch both
  * work) with scroll-snap, and adds pointer dragging plus arrow controls on top.
  */
-export function Carousel({ children, className, controlsSlot }: CarouselProps) {
+export function Carousel({
+  children,
+  className,
+  controlsSlot,
+  gutter = GUTTER,
+  controlsClassName,
+}: CarouselProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -99,18 +112,23 @@ export function Carousel({ children, className, controlsSlot }: CarouselProps) {
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
         onClickCapture={onClickCapture}
-        // Gutter matches the max-w-6xl page container. scroll-padding must match
-        // the padding, otherwise snapping pulls the first card flush to the edge.
+        // scroll-padding must match the padding, otherwise snapping pulls the
+        // first card flush to the edge.
         style={{
-          paddingInline: GUTTER,
-          scrollPaddingInline: GUTTER,
+          paddingInline: gutter,
+          scrollPaddingInline: gutter,
         }}
         className="scrollbar-hide flex snap-x snap-mandatory gap-6 overflow-x-auto scroll-smooth py-4 [scrollbar-width:none]"
       >
         {children}
       </div>
 
-      <div className="flex gap-4 justify-between items-center px-6 mx-auto mt-6 max-w-6xl">
+      <div
+        className={cn(
+          'flex gap-4 justify-between items-center px-6 mx-auto mt-6 max-w-6xl',
+          controlsClassName,
+        )}
+      >
         <div className="min-w-0">{controlsSlot}</div>
         <div className="flex gap-2 shrink-0">
           <button
