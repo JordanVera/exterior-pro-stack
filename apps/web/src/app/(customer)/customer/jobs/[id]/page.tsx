@@ -10,7 +10,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { GlowingEffect } from '@/components/ui/glowing-effect';
-import { DashboardHero, type HeroChip } from '@/components/dashboard/dashboard-hero';
+import {
+  DashboardHero,
+  type HeroChip,
+} from '@/components/dashboard/dashboard-hero';
 import { SectionPanel } from '@/components/dashboard/section-panel';
 import { EmptyState } from '@/components/dashboard/empty-state';
 import {
@@ -90,17 +93,17 @@ function timelineDone(job: CustomerJob, key: (typeof TIMELINE)[number]['key']) {
 function JobTimeline({ job }: { job: CustomerJob }) {
   if (job.status === 'CANCELLED') {
     return (
-      <div className="rounded-2xl border border-red-500/20 bg-red-500/5 px-5 py-4 text-sm text-red-500 dark:text-red-400">
+      <div className="px-5 py-4 text-sm text-red-500 rounded-2xl border border-red-500/20 bg-red-500/5 dark:text-red-400">
         This job was cancelled.
       </div>
     );
   }
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-border bg-background/70 p-5 backdrop-blur-xl">
+    <div className="overflow-hidden relative p-5 rounded-2xl border backdrop-blur-xl border-border bg-background/70">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(200,245,66,0.1),transparent_60%)]" />
 
-      <div className="relative flex items-center gap-1 overflow-x-auto pb-1">
+      <div className="flex overflow-x-auto relative gap-1 items-center pb-1">
         {TIMELINE.map((step, i) => {
           const done = timelineDone(job, step.key);
           const current =
@@ -108,7 +111,7 @@ function JobTimeline({ job }: { job: CustomerJob }) {
           const active = done || current;
 
           return (
-            <div key={step.key} className="flex min-w-0 flex-1 items-center">
+            <div key={step.key} className="flex flex-1 items-center min-w-0">
               <div className="flex min-w-0 flex-col items-center gap-1.5">
                 <div
                   className={cn(
@@ -123,7 +126,7 @@ function JobTimeline({ job }: { job: CustomerJob }) {
                 </div>
                 <span
                   className={cn(
-                    'whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide',
+                    'font-semibold tracking-wide uppercase whitespace-nowrap text-[10px]',
                     active ? 'text-foreground' : 'text-muted-foreground/50',
                   )}
                 >
@@ -133,7 +136,7 @@ function JobTimeline({ job }: { job: CustomerJob }) {
               {i < TIMELINE.length - 1 && (
                 <div
                   className={cn(
-                    'mx-1 mb-5 h-px flex-1',
+                    'flex-1 mx-1 mb-5 h-px',
                     done ? 'bg-brand-lime/40' : 'bg-border',
                   )}
                 />
@@ -227,7 +230,7 @@ export default function JobDetailPage() {
 
   if (notFound || !job) {
     return (
-      <div className="rounded-2xl border border-border bg-background/70 backdrop-blur-xl">
+      <div className="rounded-2xl border backdrop-blur-xl border-border bg-background/70">
         <EmptyState
           icon={FileQuestion}
           title="Job not found"
@@ -279,14 +282,14 @@ export default function JobDetailPage() {
           job.status === 'OPEN' ? (
             <Button
               variant="outline"
-              className="rounded-full text-red-500 hover:bg-red-500/10 hover:text-red-500"
+              className="text-red-500 rounded-full hover:bg-red-500/10 hover:text-red-500"
               onClick={() => setCancelOpen(true)}
             >
               Cancel request
             </Button>
           ) : job.status === 'COMPLETED' ? (
             <Button
-              className="rounded-full bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
+              className="font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
               onClick={() =>
                 router.push(
                   requestJobPath({
@@ -296,7 +299,7 @@ export default function JobDetailPage() {
                 )
               }
             >
-              <RotateCcw className="h-4 w-4" />
+              <RotateCcw className="w-4 h-4" />
               Book again
             </Button>
           ) : null
@@ -319,7 +322,7 @@ export default function JobDetailPage() {
           }
         >
           {pendingBids.length === 0 ? (
-            <div className="rounded-2xl border border-border bg-background/70 backdrop-blur-xl">
+            <div className="rounded-2xl border backdrop-blur-xl border-border bg-background/70">
               <EmptyState
                 icon={Building2}
                 title="Waiting for bids"
@@ -349,18 +352,18 @@ export default function JobDetailPage() {
                       borderWidth={2}
                     />
 
-                    <div className="relative flex items-start justify-between gap-3">
-                      <div className="flex min-w-0 items-start gap-3">
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted">
-                          <Building2 className="h-4 w-4 text-muted-foreground" />
+                    <div className="flex relative gap-3 justify-between items-start">
+                      <div className="flex gap-3 items-start min-w-0">
+                        <span className="flex justify-center items-center w-9 h-9 rounded-lg border shrink-0 border-border bg-muted">
+                          <Building2 className="w-4 h-4 text-muted-foreground" />
                         </span>
                         <div className="min-w-0">
                           <span className="flex items-center gap-1.5">
-                            <span className="truncate text-sm font-semibold text-foreground">
+                            <span className="text-sm font-semibold truncate text-foreground">
                               {bid.provider.businessName}
                             </span>
                             {bid.provider.verified && (
-                              <BadgeCheck className="h-4 w-4 shrink-0 text-brand-lime" />
+                              <BadgeCheck className="w-4 h-4 shrink-0 text-brand-lime" />
                             )}
                           </span>
                           {bid.provider.description && (
@@ -370,7 +373,7 @@ export default function JobDetailPage() {
                           )}
                         </div>
                       </div>
-                      <div className="shrink-0 text-right">
+                      <div className="text-right shrink-0">
                         <p className="text-lg font-bold tracking-tight text-foreground">
                           ${Number(bid.price).toFixed(2)}
                         </p>
@@ -383,19 +386,19 @@ export default function JobDetailPage() {
                     </div>
 
                     {bid.notes && (
-                      <p className="relative rounded-xl bg-muted/60 px-3 py-2 text-xs text-muted-foreground">
+                      <p className="relative px-3 py-2 text-xs rounded-xl bg-muted/60 text-muted-foreground">
                         {bid.notes}
                       </p>
                     )}
 
-                    <div className="relative flex items-center gap-2">
+                    <div className="flex relative gap-2 items-center">
                       <Button
                         size="sm"
                         onClick={() => handleAcceptBid(bid.id)}
                         disabled={actionLoading === bid.id}
-                        className="h-9 flex-1 rounded-full bg-brand-lime text-xs font-semibold text-brand-ink hover:bg-brand-lime/90"
+                        className="flex-1 h-9 text-xs font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
                       >
-                        <Check className="h-3 w-3" />
+                        <Check className="w-3 h-3" />
                         Pay &amp; accept
                       </Button>
                       <Button
@@ -403,9 +406,9 @@ export default function JobDetailPage() {
                         size="sm"
                         onClick={() => handleDeclineBid(bid.id)}
                         disabled={actionLoading === bid.id}
-                        className="h-9 flex-1 rounded-full text-xs"
+                        className="flex-1 h-9 text-xs rounded-full"
                       >
-                        <X className="h-3 w-3" />
+                        <X className="w-3 h-3" />
                         Decline
                       </Button>
                     </div>
@@ -418,7 +421,7 @@ export default function JobDetailPage() {
 
       <SectionPanel title="Details" bodyClassName="space-y-3 p-5">
         {job.acceptedBid && (
-          <div className="flex items-start gap-2 text-sm text-muted-foreground">
+          <div className="flex gap-2 items-start text-sm text-muted-foreground">
             <Building2 className="mt-0.5 h-4 w-4 flex-shrink-0" />
             <span>
               {job.acceptedBid.provider.businessName}
@@ -429,7 +432,7 @@ export default function JobDetailPage() {
           </div>
         )}
 
-        <div className="flex items-start gap-2 text-sm text-muted-foreground">
+        <div className="flex gap-2 items-start text-sm text-muted-foreground">
           <MapPin className="mt-0.5 h-4 w-4 flex-shrink-0" />
           <span>
             {job.property.address}, {job.property.city}, {job.property.state}{' '}
@@ -438,7 +441,7 @@ export default function JobDetailPage() {
         </div>
 
         {job.scheduledDate && (
-          <div className="flex items-start gap-2 text-sm text-muted-foreground">
+          <div className="flex gap-2 items-start text-sm text-muted-foreground">
             <Calendar className="mt-0.5 h-4 w-4 flex-shrink-0" />
             <span>
               {formatJobDateTime(job.scheduledDate, job.scheduledTime)}
@@ -447,7 +450,7 @@ export default function JobDetailPage() {
         )}
 
         {job.completedAt && (
-          <div className="flex items-start gap-2 text-sm text-muted-foreground">
+          <div className="flex gap-2 items-start text-sm text-muted-foreground">
             <Clock className="mt-0.5 h-4 w-4 flex-shrink-0" />
             <span>
               Completed {formatJobDate(job.completedAt, { year: true })}
@@ -456,7 +459,7 @@ export default function JobDetailPage() {
         )}
 
         {job.assignments && job.assignments.length > 0 && (
-          <div className="flex items-start gap-2 text-sm text-muted-foreground">
+          <div className="flex gap-2 items-start text-sm text-muted-foreground">
             <Users className="mt-0.5 h-4 w-4 flex-shrink-0" />
             <span>
               Crew:{' '}
@@ -468,7 +471,7 @@ export default function JobDetailPage() {
         )}
 
         {job.recurringSchedule?.active && (
-          <div className="flex items-start gap-2 text-sm">
+          <div className="flex gap-2 items-start text-sm">
             <Repeat className="mt-0.5 h-4 w-4 flex-shrink-0 text-purple-400" />
             <span className="text-purple-500 dark:text-purple-400">
               {job.recurringSchedule.frequency} · Next:{' '}
@@ -501,7 +504,14 @@ export default function JobDetailPage() {
 
       {(job.photos?.length ?? 0) > 0 ||
       ['IN_PROGRESS', 'COMPLETED'].includes(job.status) ? (
-        <SectionPanel title="Before & after" bodyClassName="p-5">
+        <SectionPanel
+          title={
+            ['OPEN', 'PENDING'].includes(job.status)
+              ? 'Reference photos'
+              : 'Before & after'
+          }
+          bodyClassName="p-5"
+        >
           <JobPhotoGallery photos={job.photos} />
         </SectionPanel>
       ) : null}
@@ -526,7 +536,7 @@ export default function JobDetailPage() {
             <Button
               onClick={handleCancelJob}
               disabled={cancelling}
-              className="rounded-full bg-red-500 text-white hover:bg-red-500/90"
+              className="text-white bg-red-500 rounded-full hover:bg-red-500/90"
             >
               {cancelling ? 'Cancelling…' : 'Cancel request'}
             </Button>

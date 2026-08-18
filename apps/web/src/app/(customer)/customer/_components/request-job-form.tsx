@@ -23,6 +23,12 @@ import {
   X,
 } from 'lucide-react';
 import { getCategoryIcon, formatPrice } from './utils';
+import {
+  JobPhotoPicker,
+  clearPendingJobPhotos,
+  type PendingJobPhoto,
+} from '@/components/job-photo-picker';
+import { uploadJobPhotoFile } from '@/lib/job-photos';
 
 type ServiceItem = {
   id: string;
@@ -83,6 +89,7 @@ export function RequestJobForm({
     null,
   );
   const [notes, setNotes] = useState('');
+  const [pendingPhotos, setPendingPhotos] = useState<PendingJobPhoto[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [successJobId, setSuccessJobId] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -129,6 +136,8 @@ export function RequestJobForm({
   }, [allServices, categoryId, query]);
 
   const resetService = () => {
+    clearPendingJobPhotos(pendingPhotos);
+    setPendingPhotos([]);
     setSelectedService(null);
     setNotes('');
     setError('');
@@ -145,6 +154,31 @@ export function RequestJobForm({
         propertyId: selectedProperty.id,
         customerNotes: notes || undefined,
       });
+
+      if (pendingPhotos.length > 0) {
+        const uploads = await Promise.allSettled(
+          pendingPhotos.map((photo) =>
+            uploadJobPhotoFile({
+              jobId: newJob.id,
+              kind: 'BEFORE',
+              file: photo.file,
+            }),
+          ),
+        );
+        const failed = uploads.filter(
+          (result) => result.status === 'rejected',
+        ).length;
+        if (failed > 0) {
+          toast.warning(
+            failed === pendingPhotos.length
+              ? 'Job submitted, but photos failed to upload'
+              : `Job submitted, but ${failed} photo${failed === 1 ? '' : 's'} failed to upload`,
+          );
+        }
+      }
+
+      clearPendingJobPhotos(pendingPhotos);
+      setPendingPhotos([]);
       toast.success('Job request submitted successfully');
       setSuccessJobId(newJob.id);
     } catch (err: any) {
@@ -323,6 +357,8 @@ export function RequestJobForm({
             </div>
           </div>
         )}
+
+        <JobPhotoPicker photos={pendingPhotos} onChange={setPendingPhotos} />
 
         <div className="space-y-2">
           <label className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">

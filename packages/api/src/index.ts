@@ -1,7 +1,13 @@
 export { appRouter, type AppRouter } from "./root";
 export { createContext, type Context } from "./trpc";
-export { assertJobAccess } from "./lib/field-access";
-export { uploadJobPhoto } from "./lib/job-photos";
+export {
+  assertJobAccess,
+  assertJobPhotoUploadAccess,
+} from "./lib/field-access";
+export {
+  uploadJobPhoto,
+  MAX_JOB_PHOTO_BYTES,
+} from "./lib/job-photos";
 export {
   refreshPropertyImage,
   propertyImagesEnabled,
