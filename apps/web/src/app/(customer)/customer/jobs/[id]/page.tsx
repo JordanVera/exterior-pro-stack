@@ -40,6 +40,7 @@ import {
   type CustomerJob,
 } from '../../_components/job-status';
 import { requestJobPath } from '../../_components/utils';
+import { JobPhotoGallery } from '@/components/job-photo-gallery';
 
 const TIMELINE = [
   { key: 'requested', label: 'Requested' },
@@ -464,6 +465,18 @@ export default function JobDetailPage() {
           )}
         </CardContent>
       </Card>
+
+      {(job.photos?.length ?? 0) > 0 ||
+      ['IN_PROGRESS', 'COMPLETED'].includes(job.status) ? (
+        <Card className="border-border bg-background/80 shadow-none">
+          <CardContent className="space-y-3 p-5">
+            <h2 className="text-base font-semibold text-foreground">
+              Before & after
+            </h2>
+            <JobPhotoGallery photos={job.photos} />
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <DialogContent className="sm:max-w-md">

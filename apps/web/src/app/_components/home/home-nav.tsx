@@ -222,7 +222,7 @@ export function HomeNav() {
           <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4">
             <Link href="#home" className="flex items-center gap-2 shrink-0">
               <Image
-                src="/logos/logo-stacked.png"
+                src="/logos/logo-stacked-lime.png"
                 alt="Exterior Pro"
                 width={84}
                 height={32}

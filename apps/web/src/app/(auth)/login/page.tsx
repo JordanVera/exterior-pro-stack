@@ -119,7 +119,7 @@ function LoginContent() {
         <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-black/70">
           <Link href="/" className="flex gap-2 items-center pl-1">
             <Image
-              src="/logos/logo-stacked.png"
+              src="/logos/logo-stacked-lime.png"
               alt="Exterior Pro"
               width={84}
               height={32}

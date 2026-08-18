@@ -1,5 +1,7 @@
 export { appRouter, type AppRouter } from "./root";
 export { createContext, type Context } from "./trpc";
+export { assertJobAccess } from "./lib/field-access";
+export { uploadJobPhoto } from "./lib/job-photos";
 export { stripe, Stripe } from "./lib/stripe";
 export { verifyToken, signToken } from "./lib/jwt";
 export { handleStripeEvent, constructStripeEvent } from "./lib/stripe-webhooks";

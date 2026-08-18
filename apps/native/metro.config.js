@@ -25,6 +25,8 @@ for (const name of [
   'expo-file-system',
   'expo-font',
   'expo-keep-awake',
+  'expo-image-picker',
+  'expo-image-manipulator',
 ]) {
   const nested = path.join(expoNested, name);
   const local = path.join(projectRoot, 'node_modules', name);

@@ -38,6 +38,11 @@ enum JobType {
   SUBSCRIPTION
 }
 
+enum JobPhotoKind {
+  BEFORE
+  AFTER
+}
+
 enum RecurringFrequency {
   WEEKLY
   BIWEEKLY
@@ -127,6 +132,7 @@ model User {
   crewMemberships CrewMember[]
   notifications   Notification[]
   pushTokens      PushToken[]
+  jobPhotos       JobPhoto[]
 }
 
 // ─── Profiles ───────────────────────────────────────────────────────────────
@@ -312,6 +318,22 @@ model Job {
   assignments       JobAssignment[]
   recurringSchedule RecurringSchedule?
   payments          Payment[]
+  photos            JobPhoto[]
+}
+
+model JobPhoto {
+  id           String       @id @default(cuid())
+  jobId        String
+  kind         JobPhotoKind
+  url          String       @db.VarChar(2048)
+  pathname     String       @db.VarChar(1024)
+  uploadedById String
+  createdAt    DateTime     @default(now())
+
+  job        Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  uploadedBy User @relation(fields: [uploadedById], references: [id])
+
+  @@index([jobId, kind])
 }
 
 model JobBid {

@@ -17,6 +17,7 @@ export {
   BidStatus,
   JobStatus,
   JobType,
+  JobPhotoKind,
   RecurringFrequency,
   ServiceFrequency,
   SubscriptionStatus,

@@ -90,7 +90,7 @@ Keep motion where it sells (hero preview float, plan glow). Cut crypto-SaaS nois
 - Remove meteor rain
 - One spotlight max, lime, low opacity
 - Infinite marquee can stay as a thin capability ticker under the hero
-- Footer uses `/logos/logo-stacked.png`
+- Footer uses `/logos/logo-stacked-lime.png`
 - Buttons: lime fill + ink text; secondary = navy/outline, never cyan
 
 ## Auth funnel (small, high leverage)

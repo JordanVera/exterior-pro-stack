@@ -77,7 +77,7 @@ export default function ProviderLayout({
           <div className="flex gap-4 items-center">
             <Link href="/provider" className="flex gap-2 items-center pl-1">
               <Image
-                src="/logos/logo-stacked.png"
+                src="/logos/logo-stacked-lime.png"
                 alt="Exterior Pro"
                 width={84}
                 height={32}
