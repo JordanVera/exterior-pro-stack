@@ -1,31 +1,32 @@
-import * as ImagePicker from "expo-image-picker";
-import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
-import { getBaseUrl } from "./trpc";
+import * as ImagePicker from 'expo-image-picker';
+import { manipulateAsync, SaveFormat } from 'expo-image-manipulator';
+import { File, UploadType } from 'expo-file-system';
+import { getBaseUrl } from './trpc';
 
 const MAX_EDGE = 1600;
 
-export async function pickAndCompressPhoto(source: "camera" | "library") {
-  if (source === "camera") {
+export async function pickAndCompressPhoto(source: 'camera' | 'library') {
+  if (source === 'camera') {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
-      throw new Error("Camera access is required to take job photos.");
+      throw new Error('Camera access is required to take job photos.');
     }
   } else {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      throw new Error("Photo library access is required to attach job photos.");
+      throw new Error('Photo library access is required to attach job photos.');
     }
   }
 
   const options: ImagePicker.ImagePickerOptions = {
-    mediaTypes: ["images"],
+    mediaTypes: ['images'],
     quality: 1,
     allowsEditing: false,
     exif: false,
   };
 
   const result =
-    source === "camera"
+    source === 'camera'
       ? await ImagePicker.launchCameraAsync(options)
       : await ImagePicker.launchImageLibraryAsync(options);
 
@@ -53,35 +54,33 @@ export async function pickAndCompressPhoto(source: "camera" | "library") {
 
 export async function uploadJobPhotoFile(opts: {
   jobId: string;
-  kind: "BEFORE" | "AFTER";
+  kind: 'BEFORE' | 'AFTER';
   uri: string;
   token: string;
 }) {
-  const form = new FormData();
-  form.append("kind", opts.kind);
-  form.append(
-    "file",
+  const result = await new File(opts.uri).upload(
+    `${getBaseUrl()}/api/jobs/${opts.jobId}/photos`,
     {
-      uri: opts.uri,
-      name: "photo.jpg",
-      type: "image/jpeg",
-    } as unknown as Blob,
+      httpMethod: 'POST',
+      uploadType: UploadType.MULTIPART,
+      fieldName: 'file',
+      mimeType: 'image/jpeg',
+      parameters: { kind: opts.kind },
+      headers: {
+        Authorization: `Bearer ${opts.token}`,
+      },
+    },
   );
 
-  const response = await fetch(`${getBaseUrl()}/api/jobs/${opts.jobId}/photos`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${opts.token}`,
-    },
-    body: form,
-  });
+  let body: { error?: string } | null = null;
+  try {
+    body = JSON.parse(result.body) as { error?: string };
+  } catch {
+    body = null;
+  }
 
-  const body = (await response.json().catch(() => null)) as {
-    error?: string;
-  } | null;
-
-  if (!response.ok) {
-    throw new Error(body?.error || `Upload failed (${response.status})`);
+  if (result.status < 200 || result.status >= 300) {
+    throw new Error(body?.error || `Upload failed (${result.status})`);
   }
 
   return body;

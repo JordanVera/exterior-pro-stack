@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState } from 'react';
 import {
   Alert,
   Image,
@@ -7,21 +7,18 @@ import {
   ScrollView,
   Text,
   View,
-} from "react-native";
-import { useMutation } from "@tanstack/react-query";
-import { trpc } from "@/lib/trpc";
-import {
-  pickAndCompressPhoto,
-  uploadJobPhotoFile,
-} from "@/lib/job-photos";
-import { queryClient } from "@/lib/query";
-import type { FieldJob } from "@/lib/types";
+} from 'react-native';
+import { useMutation } from '@tanstack/react-query';
+import { trpc } from '@/lib/trpc';
+import { pickAndCompressPhoto, uploadJobPhotoFile } from '@/lib/job-photos';
+import { queryClient } from '@/lib/query';
+import type { FieldJob } from '@/lib/types';
 
-type Photo = FieldJob["photos"][number];
-type Kind = "BEFORE" | "AFTER";
+type Photo = FieldJob['photos'][number];
+type Kind = 'BEFORE' | 'AFTER';
 
 function invalidateJob(jobId: string) {
-  return queryClient.invalidateQueries({ queryKey: ["jobs"] });
+  return queryClient.invalidateQueries({ queryKey: ['jobs'] });
 }
 
 function PhotoSection({
@@ -51,9 +48,9 @@ function PhotoSection({
     onSuccess: () => invalidateJob(jobId),
   });
 
-  const addPhoto = async (source: "camera" | "library") => {
+  const addPhoto = async (source: 'camera' | 'library') => {
     if (!token) {
-      Alert.alert("Sign in required", "Sign in again to upload photos.");
+      Alert.alert('Sign in required', 'Sign in again to upload photos.');
       return;
     }
     try {
@@ -64,8 +61,8 @@ function PhotoSection({
       await invalidateJob(jobId);
     } catch (error) {
       Alert.alert(
-        "Could not add photo",
-        error instanceof Error ? error.message : "Try again",
+        'Could not add photo',
+        error instanceof Error ? error.message : 'Try again',
       );
     } finally {
       setBusyKind(null);
@@ -73,17 +70,17 @@ function PhotoSection({
   };
 
   const confirmDelete = (photo: Photo) => {
-    Alert.alert("Remove photo?", "This photo will be deleted from the job.", [
-      { text: "Cancel", style: "cancel" },
+    Alert.alert('Remove photo?', 'This photo will be deleted from the job.', [
+      { text: 'Cancel', style: 'cancel' },
       {
-        text: "Remove",
-        style: "destructive",
+        text: 'Remove',
+        style: 'destructive',
         onPress: () =>
           deleteMutation.mutate(photo.id, {
             onError: (error) =>
               Alert.alert(
-                "Could not remove photo",
-                error instanceof Error ? error.message : "Try again",
+                'Could not remove photo',
+                error instanceof Error ? error.message : 'Try again',
               ),
           }),
       },
@@ -108,12 +105,13 @@ function PhotoSection({
             >
               <Image
                 source={{ uri: photo.url }}
-                className="h-28 w-28 rounded-2xl bg-navy-700"
+                className="rounded-2xl bg-navy-700"
+                style={{ width: 112, height: 112 }}
               />
               {canEdit ? (
                 <Pressable
                   onPress={() => confirmDelete(photo)}
-                  className="absolute right-1 top-1 h-7 w-7 items-center justify-center rounded-full bg-black/70"
+                  className="absolute top-1 right-1 justify-center items-center w-7 h-7 rounded-full bg-black/70"
                 >
                   <Text className="text-sm font-bold text-white">×</Text>
                 </Pressable>
@@ -128,20 +126,20 @@ function PhotoSection({
       {canEdit ? (
         <View className="flex-row gap-2">
           <Pressable
-            onPress={() => addPhoto("camera")}
+            onPress={() => addPhoto('camera')}
             disabled={loading}
-            className={`flex-1 items-center rounded-2xl bg-navy-700 px-3 py-4 ${loading ? "opacity-50" : ""}`}
+            className={`flex-1 items-center rounded-2xl bg-navy-700 px-3 py-4 ${loading ? 'opacity-50' : ''}`}
           >
-            <Text className="text-center text-sm font-semibold text-white">
-              {loading ? "Uploading…" : "Take photo"}
+            <Text className="text-sm font-semibold text-center text-white">
+              {loading ? 'Uploading…' : 'Take photo'}
             </Text>
           </Pressable>
           <Pressable
-            onPress={() => addPhoto("library")}
+            onPress={() => addPhoto('library')}
             disabled={loading}
-            className={`flex-1 items-center rounded-2xl bg-navy-700 px-3 py-4 ${loading ? "opacity-50" : ""}`}
+            className={`flex-1 items-center rounded-2xl bg-navy-700 px-3 py-4 ${loading ? 'opacity-50' : ''}`}
           >
-            <Text className="text-center text-sm font-semibold text-white">
+            <Text className="text-sm font-semibold text-center text-white">
               Choose from library
             </Text>
           </Pressable>
@@ -150,13 +148,13 @@ function PhotoSection({
 
       <Modal visible={Boolean(preview)} animationType="fade" transparent>
         <Pressable
-          className="flex-1 items-center justify-center bg-black/90"
+          className="flex-1 justify-center items-center bg-black/90"
           onPress={() => setPreview(null)}
         >
           {preview ? (
             <Image
               source={{ uri: preview }}
-              className="h-[80%] w-full"
+              style={{ width: '100%', height: '80%' }}
               resizeMode="contain"
             />
           ) : null}
@@ -174,9 +172,10 @@ export function JobPhotos({
   token: string | null;
 }) {
   const [busyKind, setBusyKind] = useState<Kind | null>(null);
-  const canEdit = job.status !== "COMPLETED" && job.status !== "CANCELLED";
-  const before = job.photos.filter((photo) => photo.kind === "BEFORE");
-  const after = job.photos.filter((photo) => photo.kind === "AFTER");
+  const photos = job.photos ?? [];
+  const canEdit = job.status !== 'COMPLETED' && job.status !== 'CANCELLED';
+  const before = photos.filter((photo) => photo.kind === 'BEFORE');
+  const after = photos.filter((photo) => photo.kind === 'AFTER');
 
   return (
     <View className="mt-8">
@@ -210,7 +209,7 @@ export function JobPhotos({
 
 export function hasBeforeAndAfterPhotos(photos: { kind: string }[]) {
   return (
-    photos.some((photo) => photo.kind === "BEFORE") &&
-    photos.some((photo) => photo.kind === "AFTER")
+    photos.some((photo) => photo.kind === 'BEFORE') &&
+    photos.some((photo) => photo.kind === 'AFTER')
   );
 }

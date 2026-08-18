@@ -97,7 +97,7 @@ export default function JobDetailScreen() {
   const customerPhone = job.property.customer.user.phone;
   const customerName = `${job.property.customer.firstName} ${job.property.customer.lastName}`;
   const assigned = job.assignments.map((a) => a.crew.name).join(", ");
-  const canComplete = hasBeforeAndAfterPhotos(job.photos);
+  const canComplete = hasBeforeAndAfterPhotos(job.photos ?? []);
 
   const openMaps = () => {
     const q = encodeURIComponent(address);

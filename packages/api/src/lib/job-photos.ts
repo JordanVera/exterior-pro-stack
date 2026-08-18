@@ -26,7 +26,8 @@ export async function uploadJobPhoto(opts: {
   contentType: string | null | undefined;
   uploadedById: string;
 }) {
-  const contentType = normalizeContentType(opts.contentType);
+  const contentType =
+    normalizeContentType(opts.contentType) || "image/jpeg";
   if (!contentType || !ALLOWED_TYPES.has(contentType)) {
     throw new TRPCError({
       code: "BAD_REQUEST",
