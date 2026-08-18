@@ -72,6 +72,7 @@ export default function FieldLayout() {
           tabBarIcon: tabIcon('person-circle', 'person-circle-outline'),
         }}
       />
+      <Tabs.Screen name="crews" options={{ href: null }} />
     </Tabs>
   );
 }

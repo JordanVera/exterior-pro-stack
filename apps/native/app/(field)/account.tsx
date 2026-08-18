@@ -8,7 +8,7 @@ import { colors } from '@/lib/theme';
 import { initialsFor } from '@/lib/utils';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { EmptyState, Screen } from '@/components/Screen';
-import { Card, ScreenHeader, SectionPanel } from '@/components/ui';
+import { Card, PressableCard, ScreenHeader, SectionPanel } from '@/components/ui';
 
 export default function AccountScreen() {
   const router = useRouter();
@@ -73,16 +73,27 @@ export default function AccountScreen() {
 
         {!isCrew ? (
           <View className="mt-8">
-            <SectionPanel title="Your crews" count={crews.length}>
+            <SectionPanel
+              title="Your crews"
+              count={crews.length}
+              actionLabel="Manage crews"
+              onAction={() => router.push('/crews')}
+            >
               {crews.length === 0 ? (
                 <EmptyState
                   icon="people-outline"
                   title="No crews yet"
-                  body="Create crews on the web portal, then assign them to jobs from here."
+                  body="Add crews and members here, then assign them to jobs from the Jobs tab."
+                  actionLabel="Manage crews"
+                  onAction={() => router.push('/crews')}
                 />
               ) : (
                 crews.map((crew) => (
-                  <Card key={crew.id} className="mb-3">
+                  <PressableCard
+                    key={crew.id}
+                    onPress={() => router.push(`/crews/${crew.id}`)}
+                    className="mb-3"
+                  >
                     <View className="flex-row gap-3 items-center">
                       <View className="h-11 w-11 items-center justify-center rounded-2xl bg-white/[0.07]">
                         <Ionicons name="people" size={20} color={colors.lime} />
@@ -99,8 +110,13 @@ export default function AccountScreen() {
                                 .join(', ')}
                         </Text>
                       </View>
+                      <Ionicons
+                        name="chevron-forward"
+                        size={18}
+                        color={colors.muted}
+                      />
                     </View>
-                  </Card>
+                  </PressableCard>
                 ))
               )}
             </SectionPanel>

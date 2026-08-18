@@ -7,8 +7,8 @@ export const colors = {
   mist: '#F4F6F0',
   elevated: '#163552',
   muted: '#94a3b8',
-  surface: '#101F30',
-  surfaceRaised: '#17293D',
+  surface: '#151517',
+  surfaceRaised: '#1F1F22',
 } as const;
 
 /**

@@ -31,11 +31,13 @@ export function Card({
 export function PressableCard({
   children,
   onPress,
+  onLongPress,
   className = "",
   tone = "default",
 }: {
   children: ReactNode;
   onPress: () => void;
+  onLongPress?: () => void;
   className?: string;
   tone?: "default" | "raised" | "accent";
 }) {
@@ -49,6 +51,7 @@ export function PressableCard({
   return (
     <Pressable
       onPress={onPress}
+      onLongPress={onLongPress}
       className={`rounded-3xl border p-5 active:opacity-80 ${toneClass} ${className}`}
     >
       {children}
