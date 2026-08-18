@@ -31,7 +31,7 @@ todos:
     status: completed
   - id: verify
     content: Type check and capture simulator screenshots of all four screens in both provider and crew roles
-    status: in_progress
+    status: pending
 isProject: false
 ---
 
