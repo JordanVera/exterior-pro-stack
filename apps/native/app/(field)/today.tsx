@@ -48,6 +48,17 @@ function todaysJobs(jobs: Job[]) {
   );
 }
 
+/** Scheduled work still ahead, excluding whatever is already on today's list. */
+function upcomingCount(jobs: Job[]) {
+  return jobs.filter(
+    (job) =>
+      job.status === 'SCHEDULED' &&
+      job.scheduledDate &&
+      !isToday(job.scheduledDate) &&
+      new Date(job.scheduledDate) > new Date(),
+  ).length;
+}
+
 function completedThisWeek(jobs: Job[]) {
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
