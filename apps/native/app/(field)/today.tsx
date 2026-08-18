@@ -95,11 +95,19 @@ export default function TodayScreen() {
           tone: 'amber',
         },
         {
+          id: 'upcoming',
+          label: 'Upcoming',
+          value: upcomingCount(jobs),
+          icon: 'calendar-outline',
+          tone: 'blue',
+          onPress: () => router.push('/jobs'),
+        },
+        {
           id: 'done',
           label: 'Done this week',
           value: completedThisWeek(jobs),
           icon: 'checkmark-done-outline',
-          tone: 'blue',
+          tone: 'muted',
         },
       ];
     }

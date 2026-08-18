@@ -59,8 +59,9 @@ export function StatTiles({ tiles }: { tiles: StatTile[] }) {
           </>
         );
 
-        // flex-basis math: two per row with a 12px gap between them.
-        const sizing = 'min-w-[47%] flex-1 basis-[47%]';
+        // Two per row with a 12px gap. Deliberately not `flex-1`: a lone tile on
+        // the last row should stay half width rather than stretching across.
+        const sizing = 'grow-0 basis-[48%]';
 
         return tile.onPress ? (
           <Pressable
