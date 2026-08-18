@@ -6,7 +6,8 @@
   "types": "./src/index.ts",
   "scripts": {
     "build": "tsc",
-    "clean": "rm -rf dist node_modules"
+    "clean": "rm -rf dist node_modules",
+    "backfill:property-images": "tsx scripts/backfill-property-images.ts"
   },
   "dependencies": {
     "@repo/db": "*",
@@ -23,6 +24,7 @@
   },
   "devDependencies": {
     "@repo/typescript-config": "*",
+    "tsx": "^4.7.0",
     "typescript": "^5.7.2"
   }
 }

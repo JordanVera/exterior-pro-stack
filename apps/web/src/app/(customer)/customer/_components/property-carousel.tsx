@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { MapPin, Plus, RotateCcw } from 'lucide-react';
+import { Plus, RotateCcw } from 'lucide-react';
 import { Carousel, CarouselItem } from '@/components/ui/carousel';
 import { GlowingEffect } from '@/components/ui/glowing-effect';
+import { PropertyPhoto } from '@/components/property-photo';
 import { Button } from '@/components/ui/button';
 import { SectionPanel } from '@/components/dashboard/section-panel';
 import { requestJobPath, type PropertySummary } from './utils';
@@ -33,7 +34,7 @@ export function PropertyCarousel({
         {summaries.map(
           ({ property, activeJobsCount, openJobsCount, lastCompletedJob }) => (
             <CarouselItem key={property.id} className="w-[17.5rem]">
-              <div className="relative flex h-full min-h-[13.5rem] flex-col overflow-hidden rounded-2xl border border-border bg-background/70 p-5 backdrop-blur-xl transition-colors hover:border-brand-lime/50">
+              <div className="relative flex h-full min-h-[13.5rem] flex-col overflow-hidden rounded-2xl border border-border bg-background/70 backdrop-blur-xl transition-colors hover:border-brand-lime/50">
                 <GlowingEffect
                   disabled={false}
                   glow
@@ -42,12 +43,14 @@ export function PropertyCarousel({
                   borderWidth={2}
                 />
 
-                <div className="flex relative flex-col flex-1">
-                  <span className="flex justify-center items-center w-10 h-10 rounded-xl border border-brand-lime/25 bg-brand-lime/10">
-                    <MapPin className="w-4 h-4 text-brand-lime" />
-                  </span>
+                <PropertyPhoto
+                  src={property.imageUrl}
+                  address={property.address}
+                  className="relative h-28 shrink-0"
+                />
 
-                  <p className="mt-4 text-sm font-semibold truncate text-foreground">
+                <div className="flex relative flex-col flex-1 px-5 pt-3 pb-5">
+                  <p className="text-sm font-semibold truncate text-foreground">
                     {property.address}
                   </p>
                   <p className="mt-0.5 truncate text-xs text-muted-foreground">
@@ -71,37 +74,37 @@ export function PropertyCarousel({
                       </span>
                     ) : null}
                   </div>
-                </div>
 
-                <div className="relative mt-4 flex flex-col gap-1.5 border-t border-border pt-3">
-                  <Button
-                    asChild
-                    size="sm"
-                    variant="outline"
-                    className="w-full h-8 text-xs rounded-full"
-                  >
-                    <Link href={requestJobPath({ propertyId: property.id })}>
-                      Request a job
-                    </Link>
-                  </Button>
-                  {lastCompletedJob ? (
+                  <div className="flex flex-col gap-1.5 pt-3 mt-auto border-t border-border">
                     <Button
                       asChild
                       size="sm"
-                      variant="ghost"
-                      className="w-full h-8 text-xs rounded-full text-brand-navy hover:bg-brand-lime/10 dark:text-brand-lime"
+                      variant="outline"
+                      className="w-full h-8 text-xs rounded-full"
                     >
-                      <Link
-                        href={requestJobPath({
-                          serviceId: lastCompletedJob.service.id,
-                          propertyId: lastCompletedJob.property.id,
-                        })}
-                      >
-                        <RotateCcw className="mr-1 w-3 h-3" />
-                        Book {lastCompletedJob.serviceName} again
+                      <Link href={requestJobPath({ propertyId: property.id })}>
+                        Request a job
                       </Link>
                     </Button>
-                  ) : null}
+                    {lastCompletedJob ? (
+                      <Button
+                        asChild
+                        size="sm"
+                        variant="ghost"
+                        className="w-full h-8 text-xs rounded-full text-brand-navy hover:bg-brand-lime/10 dark:text-brand-lime"
+                      >
+                        <Link
+                          href={requestJobPath({
+                            serviceId: lastCompletedJob.service.id,
+                            propertyId: lastCompletedJob.property.id,
+                          })}
+                        >
+                          <RotateCcw className="mr-1 w-3 h-3" />
+                          Book {lastCompletedJob.serviceName} again
+                        </Link>
+                      </Button>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             </CarouselItem>

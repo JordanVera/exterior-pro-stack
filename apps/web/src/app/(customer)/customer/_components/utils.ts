@@ -93,6 +93,7 @@ export interface PropertySummary {
     city: string;
     state: string;
     zip: string;
+    imageUrl?: string | null;
   };
   activeJobsCount: number;
   openJobsCount: number;
@@ -112,6 +113,7 @@ export function groupDataByProperty(
     city: string;
     state: string;
     zip: string;
+    imageUrl?: string | null;
   }[],
   jobs: {
     id: string;

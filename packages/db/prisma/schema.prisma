@@ -189,9 +189,22 @@ model Property {
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
+  // Cached exterior photo, fetched once from Google and mirrored to Blob so the
+  // card render never hits the maps API. imageCheckedAt is set even when no
+  // imagery exists, so addresses without coverage aren't retried on every view.
+  imageUrl       String?              @db.VarChar(2048)
+  imagePathname  String?              @db.VarChar(1024)
+  imageSource    PropertyImageSource?
+  imageCheckedAt DateTime?
+
   customer      CustomerProfile        @relation(fields: [customerId], references: [id], onDelete: Cascade)
   jobs          Job[]
   subscriptions CustomerSubscription[]
+}
+
+enum PropertyImageSource {
+  STREET_VIEW
+  SATELLITE
 }
 
 // ─── Service Catalog ────────────────────────────────────────────────────────

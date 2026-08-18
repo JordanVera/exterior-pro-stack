@@ -25,7 +25,7 @@ todos:
     status: completed
   - id: verify
     content: Lint, type check, build, and screenshot both dashboards in light/dark at desktop and mobile, checking for hydration warnings
-    status: completed
+    status: in_progress
 isProject: false
 ---
 
