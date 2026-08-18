@@ -1,100 +1,67 @@
-'use client';
-
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
-import { Button } from '@/components/ui/button';
+import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
-import { FOOTER_HOMEOWNER_LINKS, FOOTER_PROVIDER_LINKS } from './data';
+import {
+  FOOTER_COMPANY_LINKS,
+  FOOTER_HOMEOWNER_LINKS,
+  FOOTER_PROVIDER_LINKS,
+} from './data';
+
+const COLUMNS = [
+  { heading: 'For homeowners', links: FOOTER_HOMEOWNER_LINKS },
+  { heading: 'For providers', links: FOOTER_PROVIDER_LINKS },
+  { heading: 'Company', links: FOOTER_COMPANY_LINKS },
+];
 
 export function LandingFooter() {
-  const router = useRouter();
-
   return (
-    <footer className="py-12 border-t border-border">
-      <div className="px-6 mx-auto max-w-7xl">
-        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
-          <div className="col-span-2 md:col-span-1">
-            <div className="mb-4">
-              <Image
-                src="/logos/logo-stacked-lime.png"
-                alt="Exterior Pro"
-                width={110}
-                height={42}
-              />
-            </div>
-            <p className="text-sm leading-relaxed text-muted-foreground">
-              The operating system for exterior property services. Plans, jobs,
-              crews, and tracking — in one place.
+    <footer className="border-t border-border py-14">
+      <div className="mx-auto max-w-6xl px-6">
+        <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(3,1fr)]">
+          <div>
+            <Image
+              src="/logos/logo-stacked-lime.png"
+              alt="Exterior Pro"
+              width={110}
+              height={42}
+            />
+            <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
+              Recurring plans and on-demand jobs for everything outside your
+              walls, run by verified local crews.
             </p>
           </div>
-          <div>
-            <h4 className="mb-4 text-sm font-semibold text-foreground">
-              For homeowners
-            </h4>
-            <ul className="space-y-2.5 text-sm text-muted-foreground">
-              {FOOTER_HOMEOWNER_LINKS.map((item) => (
-                <li key={item.label}>
-                  <Button
-                    variant="link"
-                    onClick={() => router.push(item.href)}
-                    className="p-0 h-auto text-muted-foreground hover:text-foreground"
-                  >
-                    {item.label}
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h4 className="mb-4 text-sm font-semibold text-foreground">
-              For providers
-            </h4>
-            <ul className="space-y-2.5 text-sm text-muted-foreground">
-              {FOOTER_PROVIDER_LINKS.map((item) => (
-                <li key={item.label}>
-                  <Button
-                    variant="link"
-                    onClick={() => router.push(item.href)}
-                    className="p-0 h-auto text-muted-foreground hover:text-foreground"
-                  >
-                    {item.label}
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h4 className="mb-4 text-sm font-semibold text-foreground">
-              Company
-            </h4>
-            <ul className="space-y-2.5 text-sm text-muted-foreground">
-              <li>
-                <span className="cursor-default">About</span>
-              </li>
-              <li>
-                <Button
-                  variant="link"
-                  onClick={() => router.push('/privacy')}
-                  className="p-0 h-auto text-muted-foreground hover:text-foreground"
-                >
-                  Privacy Policy
-                </Button>
-              </li>
-              <li>
-                <Button
-                  variant="link"
-                  onClick={() => router.push('/terms')}
-                  className="p-0 h-auto text-muted-foreground hover:text-foreground"
-                >
-                  Terms of Service
-                </Button>
-              </li>
-            </ul>
-          </div>
+
+          {COLUMNS.map((column) => (
+            <div key={column.heading}>
+              <h4 className="mb-4 text-sm font-semibold text-foreground">
+                {column.heading}
+              </h4>
+              <ul className="space-y-2.5 text-sm">
+                {column.links.map((item) => (
+                  <li key={item.label}>
+                    <Link
+                      href={item.href}
+                      className="text-muted-foreground transition-colors hover:text-foreground"
+                    >
+                      {item.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
+
         <Separator className="mt-12" />
-        <div className="pt-8 text-sm text-center text-muted-foreground">
-          &copy; {new Date().getFullYear()} Exterior Pro. All rights reserved.
+
+        <div className="flex flex-col items-center justify-between gap-3 pt-8 text-sm text-muted-foreground sm:flex-row">
+          <p>
+            &copy; {new Date().getFullYear()} Exterior Pro. All rights reserved.
+          </p>
+          <p>
+            Exterior Pro is the merchant of record. Providers are independent
+            contractors.
+          </p>
         </div>
       </div>
     </footer>

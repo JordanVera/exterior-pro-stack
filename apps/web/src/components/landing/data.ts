@@ -1,15 +1,23 @@
 import { loginPath } from '@/lib/auth-intent';
 
+export const BILLING_OPTIONS = [
+  { value: 'monthly', label: 'Monthly', multiplier: 1, discount: 0 },
+  { value: 'quarterly', label: 'Quarterly', multiplier: 0.95, discount: 5 },
+  { value: 'annually', label: 'Annually', multiplier: 0.85, discount: 15 },
+] as const;
+
+export type BillingOption = (typeof BILLING_OPTIONS)[number]['value'];
+
 export const PLANS = [
   {
     name: 'Basic Lawn Care',
     price: 99,
     period: '/mo',
-    desc: 'Essential lawn care with bi-weekly mowing and monthly weed control.',
+    desc: 'The essentials, handled. Your yard stays cut and weed-free without a single phone call.',
     features: [
       'Bi-weekly lawn mowing',
       'Monthly weed control',
-      'Matched local provider',
+      'Matched to a verified local provider',
       'Pause or cancel anytime',
     ],
     highlight: false,
@@ -18,12 +26,13 @@ export const PLANS = [
     name: 'Standard Exterior',
     price: 179,
     period: '/mo',
-    desc: 'Weekly mowing, weed control, and quarterly gutter cleaning.',
+    desc: 'Our most popular plan. Weekly lawn care plus the seasonal work everyone forgets.',
     features: [
       'Weekly lawn mowing',
       'Monthly weed control',
       'Quarterly gutter cleaning',
-      'Dedicated provider assignment',
+      'A dedicated provider who stays on your property',
+      'Before and after photos on every visit',
     ],
     highlight: true,
   },
@@ -31,7 +40,7 @@ export const PLANS = [
     name: 'Premium Exterior',
     price: 299,
     period: '/mo',
-    desc: 'The full package for complete exterior upkeep.',
+    desc: 'The full curb-appeal package. Everything outside your walls, on autopilot.',
     features: [
       'Weekly lawn mowing',
       'Bi-weekly weed control',
@@ -49,163 +58,198 @@ export const SERVICES = [
   {
     title: 'Lawn Maintenance',
     description:
-      'Weekly or biweekly mowing, edging, trimming, fertilization, and weed control programs.',
+      'Mowing, edging, trimming, and fertilization on a schedule you never have to think about.',
+    image: '/services/lawn-maintenance.jpg',
     link: loginPath('customer'),
     tag: 'Weekly / Biweekly',
   },
   {
     title: 'Landscaping',
     description:
-      'Full-service design, planting, mulching, hardscaping, and seasonal cleanup.',
+      'Design, planting, mulching, hardscaping, and seasonal cleanup from crews who do it daily.',
+    image: '/services/landscaping.webp',
     link: loginPath('customer'),
-    tag: 'Weekly / Biweekly',
-  },
-  {
-    title: 'Weed Control',
-    description:
-      'Targeted treatments, pre-emergent applications, and ongoing prevention programs.',
-    link: loginPath('customer'),
-    tag: 'Monthly / Quarterly',
-  },
-  {
-    title: 'Gutter Cleaning',
-    description:
-      'Thorough gutter and downspout cleaning, guard installation, and debris removal.',
-    link: loginPath('customer'),
-    tag: 'Quarterly / Biannual',
+    tag: 'Project or seasonal',
   },
   {
     title: 'Pressure Washing',
     description:
-      'Driveways, siding, decks, patios, and fences restored to like-new condition.',
+      'Driveways, siding, decks, patios, and fences taken back to like-new in a single visit.',
+    image: '/services/pressure-washing.png',
     link: loginPath('customer'),
-    tag: 'Most popular',
+    tag: 'Most requested',
+  },
+  {
+    title: 'Gutter Cleaning',
+    description:
+      'Full gutter and downspout clearing, flush, and guard installation before the next storm.',
+    image: '/services/gutter-cleaning.jpg',
+    link: loginPath('customer'),
+    tag: 'Quarterly / Biannual',
+  },
+  {
+    title: 'Weed Control',
+    description:
+      'Targeted treatments and pre-emergent applications that keep the lawn you paid for.',
+    image: '/services/weed-control.webp',
+    link: loginPath('customer'),
+    tag: 'Monthly / Quarterly',
   },
   {
     title: 'Exterior Painting',
     description:
-      'Professional prep and painting for siding, trim, fences, decks, and more.',
+      'Proper prep and professional finish on siding, trim, fences, and decks.',
+    image: '/services/exterior-painting.jpg',
     link: loginPath('customer'),
     tag: 'One-time',
   },
   {
     title: 'Window Cleaning',
     description:
-      'Streak-free interior and exterior cleaning for homes and commercial properties.',
+      'Streak-free inside and out, for homes and commercial properties alike.',
+    image: '/services/window-cleaning.jpg',
     link: loginPath('customer'),
     tag: 'Biannual / One-time',
   },
   {
     title: 'Roof Care',
     description:
-      'Gentle roof soft washing, moss removal, and preventive maintenance.',
+      'Gentle soft washing, moss removal, and preventive maintenance that adds years.',
+    image: '/services/roof-care.jpeg',
     link: loginPath('customer'),
     tag: 'Biannual',
   },
   {
     title: 'Tree & Shrub Care',
     description:
-      'Pruning, trimming, health assessments, and removal for all property types.',
+      'Pruning, trimming, health checks, and removals handled by insured crews.',
+    image: '/services/tree-and-shrub-care.jpg',
     link: loginPath('customer'),
     tag: 'Seasonal / One-time',
   },
-];
+] as const;
 
-export const CAPABILITY_CARDS = [
+export const SERVICE_TICKER = [
+  'Lawn mowing',
+  'Gutter cleaning',
+  'Pressure washing',
+  'Weed control',
+  'Landscaping',
+  'Window cleaning',
+  'Roof soft wash',
+  'Exterior painting',
+  'Fence & deck',
+  'Tree & shrub care',
+  'Holiday lighting',
+  'Seasonal cleanup',
+] as const;
+
+export const STATS = [
   {
-    quote:
-      'Subscribe once. Mowing, weed control, and gutters run on a calendar — not a to-do list.',
-    name: 'Subscription plans',
-    title: 'Recurring exterior care',
+    value: 12400,
+    suffix: '+',
+    label: 'Jobs completed',
+    caption: 'Across lawn, gutter, wash, and paint work',
   },
   {
-    quote:
-      'Post a one-time job and let verified local providers compete on price, timing, and fit.',
-    name: 'On-demand marketplace',
-    title: 'Competitive bidding',
+    value: 4,
+    suffix: ' hrs',
+    label: 'Average time to first bid',
+    caption: 'Most jobs get three bids the same day',
   },
   {
-    quote:
-      'Once a provider is assigned to a recurring plan, they stay on it. No re-bidding every visit.',
-    name: 'Sticky providers',
-    title: 'Dedicated crews',
+    value: 4.9,
+    decimals: 1,
+    suffix: '/5',
+    label: 'Average provider rating',
+    caption: 'Rated by homeowners after every completed visit',
   },
   {
-    quote:
-      'Track progress in real time with SMS and in-app updates from bid to completion.',
-    name: 'Live operations',
-    title: 'Job tracking',
+    value: 38,
+    suffix: '%',
+    label: 'Average revenue lift',
+    caption: 'Reported by providers in their first six months',
   },
-  {
-    quote:
-      'Built only for exterior work — lawn, landscape, gutters, wash, paint, and roof care.',
-    name: 'Specialized platform',
-    title: 'Not a generic marketplace',
-  },
-];
+] as const;
 
 export const HOW_IT_WORKS_CUSTOMER = [
   {
-    title: '01',
-    heading: 'Choose a plan or post a job',
-    body: 'Subscribe to recurring services or post a one-time job with your property details. It takes less than two minutes.',
+    step: '01',
+    heading: 'Tell us about your property',
+    body: 'Add your address and pick what you need. Subscribe to a recurring plan or post a one-time job. It takes under two minutes.',
+    detail: 'No account fees. No sales call.',
   },
   {
-    title: '02',
-    heading: 'Providers bid',
-    body: 'Verified local providers in your area see the job and submit competitive bids with pricing and availability.',
+    step: '02',
+    heading: 'Verified pros compete',
+    body: 'Local providers in your service area see the job and send real bids with pricing and availability, usually within hours.',
+    detail: 'Every provider is vetted before they can bid.',
   },
   {
-    title: '03',
+    step: '03',
     heading: 'Pick your pro',
-    body: 'Compare bids side by side — pricing, provider ratings, and notes. Accept the best fit with one click.',
+    body: 'Compare bids side by side on price, rating, and notes. Accept the one you want and pay securely through Stripe.',
+    detail: 'You are never auto-matched to someone you did not choose.',
   },
   {
-    title: '04',
-    heading: 'Sit back and relax',
-    body: 'Your provider handles everything. Track progress in real time and get notified when work is complete.',
+    step: '04',
+    heading: 'Watch it get done',
+    body: 'Track the job from scheduled to complete, get SMS updates at every step, and see before and after photos when the crew finishes.',
+    detail: 'The same crew stays on your recurring plan.',
   },
 ] as const;
 
 export const HOW_IT_WORKS_PROVIDER = [
   {
-    title: '01',
-    heading: 'Set up your business',
-    body: 'Create a profile, add the services you offer, and get verified. You are ready to work in minutes, not weeks.',
+    step: '01',
+    heading: 'Set up in an afternoon',
+    body: 'Create your business profile, choose the services you offer, set your service area, and connect Stripe for payouts.',
+    detail: 'No monthly software fee to get started.',
   },
   {
-    title: '02',
-    heading: 'Bid and win the right jobs',
-    body: 'See open requests in your area. Bid on one-time work, or get assigned to subscription customers who need a dedicated crew.',
+    step: '02',
+    heading: 'Bid on real work',
+    body: 'See open jobs in your zip codes with property details up front. Send a price and timing, and win the ones that fit your route.',
+    detail: 'No shared leads. No paying for phone numbers.',
   },
   {
-    title: '03',
-    heading: 'Dispatch from one calendar',
-    body: 'Assign crews, catch conflicts automatically, and keep every job on schedule — without a stack of group texts.',
+    step: '03',
+    heading: 'Dispatch your crews',
+    body: 'Schedule jobs on one calendar, assign crews, and let your team run the day from the field app on their phones.',
+    detail: 'Before and after photos are captured on site.',
   },
   {
-    title: '04',
+    step: '04',
     heading: 'Keep the recurring book',
-    body: 'Sticky subscription customers stay with you. No re-bidding every visit — just scheduled work and predictable revenue.',
+    body: 'Subscription customers stay assigned to you. Predictable routes, predictable revenue, and payouts land after each completed job.',
+    detail: 'You never re-bid a customer you already earned.',
   },
 ] as const;
 
 export const PROVIDER_FEATURES = [
   {
     title: 'Crew management',
-    desc: 'Organize teams, assign members, and dispatch crews to jobs with one click.',
+    desc: 'Build teams, assign members, and dispatch to jobs in one click instead of a group text thread.',
   },
   {
     title: 'Smart scheduling',
-    desc: 'Calendar-based job scheduling with automatic conflict detection and reminders.',
+    desc: 'One calendar for every job, with reminders that keep the route tight and the day on track.',
   },
   {
-    title: 'Bid and win jobs',
-    desc: 'Browse open job requests in your area, submit competitive bids, and win new customers.',
+    title: 'Bid on open jobs',
+    desc: 'Browse real requests in your area with property details, then bid the number that works for you.',
   },
   {
     title: 'Recurring revenue',
-    desc: 'Get assigned to subscription customers and earn steady recurring income — no re-bidding needed.',
+    desc: 'Get assigned to subscription customers and hold that book of work without re-bidding every visit.',
+  },
+  {
+    title: 'Field app for the crew',
+    desc: 'Your team starts jobs, uploads before and after photos, and closes them out from their phones.',
+  },
+  {
+    title: 'Payouts on completion',
+    desc: 'Stripe Connect deposits land after work is marked complete. No invoicing, no chasing checks.',
   },
 ] as const;
 
@@ -216,53 +260,136 @@ export const TRUST_ITEMS = [
   },
   {
     value: 'No lock-in',
-    label: 'Pause or cancel a subscription anytime — no contracts',
+    label: 'Pause or cancel a subscription anytime, no contracts',
   },
   {
     value: 'Two ways to hire',
     label: 'Recurring plans and on-demand jobs in one place',
   },
   {
-    value: 'Crew ops',
-    label: 'Scheduling, dispatch, and a book of recurring work',
+    value: 'Photo proof',
+    label: 'Before and after photos on every completed job',
+  },
+] as const;
+
+export const HOMEOWNER_TESTIMONIALS = [
+  {
+    quote:
+      'I had been calling three different companies for mowing, gutters, and the driveway. Now it is one plan and the same crew shows up every week without me asking.',
+    name: 'Marcus Webb',
+    title: 'Homeowner, Franklin TN',
+  },
+  {
+    quote:
+      'Posted a gutter job on a Tuesday morning and had four bids before lunch. Picked the one with the best rating and it was done Thursday.',
+    name: 'Priya Raman',
+    title: 'Homeowner, Cary NC',
+  },
+  {
+    quote:
+      'The before and after photos are the part I did not expect to love. I travel a lot and I can actually see the work got done.',
+    name: 'Dana Kessler',
+    title: 'Homeowner, Scottsdale AZ',
+  },
+  {
+    quote:
+      'I manage six rentals and this replaced an entire spreadsheet. Each property has its own plan and I stopped fielding tenant complaints about the yard.',
+    name: 'Anthony Cole',
+    title: 'Property manager, Columbus OH',
+  },
+  {
+    quote:
+      'Paused the plan over winter, turned it back on in March. No phone tree, no cancellation fee, no guilt trip.',
+    name: 'Renee Alvarado',
+    title: 'Homeowner, Boise ID',
+  },
+] as const;
+
+export const PROVIDER_TESTIMONIALS = [
+  {
+    quote:
+      'I stopped buying shared leads. Here I see the actual property and the actual job before I put a number on it, so my close rate went way up.',
+    name: 'Derek Hollis',
+    title: 'Owner, Hollis Lawn & Landscape',
+  },
+  {
+    quote:
+      'The subscription customers are the whole thing for me. Twenty-two recurring properties means I know what February looks like in December.',
+    name: 'Sam Ortiz',
+    title: 'Owner, Ortiz Exterior Services',
+  },
+  {
+    quote:
+      'My crews run the day off their phones now. Photos go up on site, jobs close out on site, and I am not driving around verifying work.',
+    name: 'Tyler Brandt',
+    title: 'Operations lead, Brandt Property Care',
+  },
+  {
+    quote:
+      'Payouts hit after the job is marked complete. I went from chasing invoices for three weeks to not thinking about it at all.',
+    name: 'Marisol Vega',
+    title: 'Owner, Vega Pressure Washing',
+  },
+  {
+    quote:
+      'I added two trucks in eight months. The routes are tight because the work is clustered, not scattered across the metro.',
+    name: 'Chris Nakamura',
+    title: 'Owner, Summit Exterior Co.',
   },
 ] as const;
 
 export const FAQS = [
   {
     q: 'What is the difference between a plan and a one-time job?',
-    a: 'Plans are recurring subscriptions — your provider shows up on a set cadence so lawn care, weed control, and seasonal work happen automatically. One-time jobs are posted to the marketplace, where verified providers submit bids you can compare and accept.',
+    a: 'A plan is a recurring subscription. Your provider shows up on a set cadence so lawn care, weed control, and seasonal work happen automatically. A one-time job is posted to the marketplace, where verified providers submit bids you compare and accept.',
   },
   {
     q: 'Can I pause or cancel a subscription?',
-    a: 'Yes. Plans can be paused or canceled at any time from your account. You are not locked into a long-term contract.',
+    a: 'Yes, anytime, from your account. There is no long-term contract and no cancellation fee. Plenty of customers pause over winter and resume in spring.',
   },
   {
-    q: 'Are providers verified?',
-    a: 'Every provider is vetted before they can bid or take subscription work on Exterior Pro. You see ratings, notes, and availability before you accept.',
+    q: 'How do you vet providers?',
+    a: 'Every provider is reviewed and verified before they can bid on a job or take on subscription work. They also have to complete Stripe payout onboarding and agree to our contractor terms, which cover their own licensing and insurance.',
   },
   {
-    q: 'How does bidding work?',
-    a: 'You post a job with property details. Local providers submit competitive bids with pricing and timing. Compare side by side and accept the best fit in one click.',
+    q: 'When am I charged?',
+    a: 'For one-time jobs, you are charged when you accept a bid. For plans, you are billed on the cadence you pick. Exterior Pro is the merchant of record, so payments and refunds run through us rather than a stranger with a card reader.',
   },
   {
-    q: 'How do providers get work on Exterior Pro?',
-    a: 'Bid on open one-time jobs in your area, and get assigned to subscription customers as a sticky provider. Recurring plans stay with you — you do not re-bid every visit.',
+    q: 'Do I get the same crew every time?',
+    a: 'On a recurring plan, yes. Once a provider is assigned to your subscription they stay on it. There is no re-bidding and no new face at the door every visit.',
   },
   {
-    q: 'Is Exterior Pro only for homeowners?',
-    a: 'No. Homeowners, property managers, and exterior service businesses all use the platform — customers for plans and jobs, providers for crews, scheduling, and recurring revenue.',
+    q: 'How do providers get work here?',
+    a: 'Two ways. Bid on open one-time jobs in your service area, and get assigned to subscription customers as their dedicated provider. There are no shared leads and you are not paying for a phone number that four other companies also bought.',
+  },
+  {
+    q: 'What does it cost a provider to join?',
+    a: 'Nothing to sign up, build a profile, or bid. A platform fee is taken out of completed jobs, and the rest is transferred to your Stripe account after the work is marked complete.',
+  },
+  {
+    q: 'Is this only for homeowners?',
+    a: 'No. Homeowners, landlords, and property managers all use it on the customer side, and exterior service businesses of every size use the provider side for bidding, crews, and scheduling.',
   },
 ] as const;
 
 export const FOOTER_HOMEOWNER_LINKS = [
   { label: 'Browse plans', href: loginPath('customer') },
-  { label: 'Request a job', href: loginPath('customer') },
-  { label: 'My properties', href: loginPath('customer') },
+  { label: 'Post a job', href: loginPath('customer') },
+  { label: 'How it works', href: '#how-it-works' },
+  { label: 'Services', href: '#services' },
 ] as const;
 
 export const FOOTER_PROVIDER_LINKS = [
-  { label: 'Join as provider', href: loginPath('provider') },
-  { label: 'Manage crews', href: loginPath('provider') },
+  { label: 'Join as a provider', href: loginPath('provider') },
   { label: 'Provider dashboard', href: loginPath('provider') },
+  { label: 'Crew management', href: '#providers' },
+  { label: 'Contractor agreement', href: '/contractor-agreement' },
+] as const;
+
+export const FOOTER_COMPANY_LINKS = [
+  { label: 'Pricing', href: '#pricing' },
+  { label: 'FAQ', href: '#faq' },
+  { label: 'Privacy Policy', href: '/privacy' },
+  { label: 'Terms of Service', href: '/terms' },
 ] as const;

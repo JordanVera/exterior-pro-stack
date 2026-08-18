@@ -88,23 +88,29 @@ export const InfiniteMovingCards = ({
       >
         {items.map((item, idx) => (
           <li
-            className="relative w-[350px] max-w-full shrink-0 rounded-2xl border border-b-0 border-zinc-200 bg-[linear-gradient(180deg,#fafafa,#f5f5f5)] px-8 py-6 md:w-[450px] dark:border-zinc-700 dark:bg-[linear-gradient(180deg,#27272a,#18181b)]"
+            className="relative w-[330px] max-w-full shrink-0 rounded-2xl border border-border bg-background/70 px-7 py-6 backdrop-blur-xl transition-colors hover:border-brand-lime/40 md:w-[420px] dark:bg-white/[0.03]"
             key={item.name}
           >
-            <blockquote>
-              <div
-                aria-hidden="true"
-                className="user-select-none pointer-events-none absolute -top-0.5 -left-0.5 -z-1 h-[calc(100%_+_4px)] w-[calc(100%_+_4px)]"
-              ></div>
-              <span className="relative z-20 text-sm leading-[1.6] font-normal text-neutral-800 dark:text-gray-100">
-                {item.quote}
+            <blockquote className="flex h-full flex-col justify-between">
+              <span className="relative z-20 text-[0.95rem] font-normal leading-relaxed text-foreground">
+                &ldquo;{item.quote}&rdquo;
               </span>
-              <div className="flex relative z-20 flex-row items-center mt-6">
-                <span className="flex flex-col gap-1">
-                  <span className="text-sm leading-[1.6] font-normal text-neutral-500 dark:text-gray-400">
+              <div className="relative z-20 mt-6 flex items-center gap-3">
+                <span
+                  aria-hidden="true"
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-brand-lime/25 bg-brand-lime/10 text-xs font-bold text-brand-navy dark:text-brand-lime"
+                >
+                  {item.name
+                    .split(' ')
+                    .map((part) => part[0])
+                    .join('')
+                    .slice(0, 2)}
+                </span>
+                <span className="flex flex-col">
+                  <span className="text-sm font-semibold text-foreground">
                     {item.name}
                   </span>
-                  <span className="text-sm leading-[1.6] font-normal text-neutral-500 dark:text-gray-400">
+                  <span className="text-xs text-muted-foreground">
                     {item.title}
                   </span>
                 </span>
