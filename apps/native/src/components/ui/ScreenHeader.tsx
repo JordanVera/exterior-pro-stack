@@ -1,0 +1,43 @@
+import type { ReactNode } from "react";
+import { Text, View } from "react-native";
+
+/**
+ * Standard page masthead: lime eyebrow, large title, supporting line.
+ * Mirrors the web dashboard hero so the two products read as one product.
+ */
+export function ScreenHeader({
+  eyebrow,
+  title,
+  subtitle,
+  meta,
+  right,
+}: {
+  eyebrow: string;
+  title: string;
+  subtitle?: string;
+  /** Small line above the title, e.g. today's date. */
+  meta?: string;
+  right?: ReactNode;
+}) {
+  return (
+    <View className="flex-row items-start justify-between gap-4">
+      <View className="flex-1">
+        <Text className="font-semibold text-xs uppercase tracking-[2px] text-brand-lime">
+          {eyebrow}
+        </Text>
+        {meta ? (
+          <Text className="mt-1.5 text-sm text-slate-400">{meta}</Text>
+        ) : null}
+        <Text className="mt-1 font-bold text-[32px] leading-[38px] text-white">
+          {title}
+        </Text>
+        {subtitle ? (
+          <Text className="mt-2 text-base leading-6 text-slate-300">
+            {subtitle}
+          </Text>
+        ) : null}
+      </View>
+      {right ? <View className="pt-1">{right}</View> : null}
+    </View>
+  );
+}

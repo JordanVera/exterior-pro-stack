@@ -4,6 +4,15 @@ module.exports = {
   presets: [require("nativewind/preset")],
   theme: {
     extend: {
+      // React Native does not synthesize weights for custom fonts, so each
+      // Outfit weight is registered as its own family. Use font-semibold /
+      // font-bold as usual; they map to the real cut rather than a faux one.
+      fontFamily: {
+        sans: ["Outfit_400Regular"],
+        medium: ["Outfit_500Medium"],
+        semibold: ["Outfit_600SemiBold"],
+        bold: ["Outfit_700Bold"],
+      },
       colors: {
         brand: {
           lime: "#C8F542",
@@ -17,6 +26,17 @@ module.exports = {
           900: "#070B12",
           800: "#0B1F33",
           700: "#163552",
+        },
+        // Field-first surfaces. Slightly lifted from the old flat navy-800 so
+        // cards separate from the background in bright outdoor light.
+        surface: {
+          DEFAULT: "#101F30",
+          raised: "#17293D",
+          sunken: "#0A1421",
+        },
+        line: {
+          DEFAULT: "rgba(255,255,255,0.10)",
+          strong: "rgba(255,255,255,0.18)",
         },
       },
     },
