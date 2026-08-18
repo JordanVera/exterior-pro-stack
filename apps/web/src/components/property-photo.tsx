@@ -12,6 +12,7 @@ import { cn } from '@/lib/utils';
  * with no Street View or satellite coverage. The band keeps its height either
  * way so cards in a row stay aligned.
  */
+
 export function PropertyPhoto({
   src,
   address,
@@ -46,15 +47,11 @@ export function PropertyPhoto({
           aria-hidden
           className="flex absolute inset-0 justify-center items-center bg-[radial-gradient(circle_at_50%_120%,rgba(163,230,53,0.22),transparent_70%)]"
         >
-          <span className="flex justify-center items-center w-10 h-10 rounded-xl border border-brand-lime/25 bg-brand-lime/10">
-            <MapPin className="w-4 h-4 text-brand-lime" />
+          <span className="flex justify-center items-center w-10 h-10 rounded-xl border border-brand-lime/30 bg-brand-lime/15">
+            <MapPin className="w-4 h-4 text-brand-navy dark:text-brand-lime" />
           </span>
         </div>
       )}
-
-      {/* Blends the photo into the card body without covering Google's
-          attribution, which sits in the bottom-left of the source image. */}
-      <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t to-transparent pointer-events-none from-background/80" />
     </div>
   );
 }

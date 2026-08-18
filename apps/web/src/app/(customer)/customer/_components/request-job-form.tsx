@@ -158,12 +158,12 @@ export function RequestJobForm({
 
   if (successJobId) {
     return (
-      <div className="animate-step-enter relative overflow-hidden rounded-2xl border border-brand-lime/30 bg-background/70 py-14 text-center backdrop-blur-xl">
+      <div className="overflow-hidden relative py-14 text-center rounded-2xl border backdrop-blur-xl animate-step-enter border-brand-lime/30 bg-background/70">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(200,245,66,0.14),transparent_60%)]" />
 
         <div className="relative">
-          <span className="animate-scale-check mx-auto mb-4 inline-flex h-16 w-16 items-center justify-center rounded-full border border-brand-lime/30 bg-brand-lime/10">
-            <Check className="h-8 w-8 text-brand-lime" />
+          <span className="inline-flex justify-center items-center mx-auto mb-4 w-16 h-16 rounded-full border animate-scale-check border-brand-lime/30 bg-brand-lime/10">
+            <Check className="w-8 h-8 text-brand-lime" />
           </span>
           <h3 className="text-lg font-semibold text-foreground">
             Job request submitted
@@ -172,7 +172,7 @@ export function RequestJobForm({
             Providers in your area have been notified and can start submitting
             bids.
           </p>
-          <div className="mt-6 flex items-center justify-center gap-3">
+          <div className="flex gap-3 justify-center items-center mt-6">
             <Button
               variant="outline"
               onClick={resetService}
@@ -182,7 +182,7 @@ export function RequestJobForm({
             </Button>
             <Button
               onClick={() => router.push(`/customer/jobs/${successJobId}`)}
-              className="rounded-full bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
+              className="font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
             >
               View this job
             </Button>
@@ -193,7 +193,7 @@ export function RequestJobForm({
   }
 
   const confirmPanel = selectedService ? (
-    <div className="relative h-fit overflow-hidden rounded-2xl border border-border bg-background/70 p-5 backdrop-blur-xl lg:sticky lg:top-28">
+    <div className="overflow-hidden relative p-5 min-w-0 rounded-2xl border backdrop-blur-xl h-fit border-border bg-background/70 lg:sticky lg:top-28 lg:self-start">
       <GlowingEffect
         disabled={false}
         glow
@@ -203,7 +203,7 @@ export function RequestJobForm({
       />
 
       <div className="relative space-y-4">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex gap-3 justify-between items-start">
           <div>
             <h3 className="text-base font-semibold text-foreground">
               Confirm request
@@ -216,25 +216,25 @@ export function RequestJobForm({
             variant="ghost"
             size="sm"
             onClick={resetService}
-            className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground lg:hidden"
+            className="px-2 h-7 text-xs text-muted-foreground hover:text-foreground lg:hidden"
           >
-            <ArrowLeft className="h-3 w-3" />
+            <ArrowLeft className="w-3 h-3" />
             Back
           </Button>
         </div>
 
-        <div className="flex items-start gap-3">
-          <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-brand-lime/25 bg-brand-lime/10">
+        <div className="flex gap-3 items-start">
+          <span className="flex flex-shrink-0 justify-center items-center w-9 h-9 rounded-lg border border-brand-lime/25 bg-brand-lime/10">
             {(() => {
               const Icon = getCategoryIcon(selectedService.categoryName);
-              return <Icon className="h-4 w-4 text-brand-lime" />;
+              return <Icon className="w-4 h-4 text-brand-lime" />;
             })()}
           </span>
           <div className="min-w-0">
             <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
               Service
             </p>
-            <p className="mt-0.5 text-sm font-medium text-foreground">
+            <p className="mt-0.5 break-words text-sm font-medium text-foreground">
               {selectedService.name}
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
@@ -245,10 +245,10 @@ export function RequestJobForm({
           <button
             type="button"
             onClick={resetService}
-            className="ml-auto hidden text-muted-foreground transition-colors hover:text-foreground lg:block"
+            className="hidden ml-auto transition-colors text-muted-foreground hover:text-foreground lg:block"
             aria-label="Change service"
           >
-            <X className="h-4 w-4" />
+            <X className="w-4 h-4" />
           </button>
         </div>
 
@@ -265,24 +265,24 @@ export function RequestJobForm({
                 <Button
                   onClick={() => router.push('/customer/settings')}
                   size="sm"
-                  className="rounded-full bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
+                  className="font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
                 >
-                  <Plus className="h-4 w-4" />
+                  <Plus className="w-4 h-4" />
                   Add property
                 </Button>
               }
             />
           </div>
         ) : properties.length === 1 && selectedProperty ? (
-          <div className="flex items-start gap-3">
-            <span className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg border border-border bg-muted">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
+          <div className="flex gap-3 items-start">
+            <span className="flex flex-shrink-0 justify-center items-center w-9 h-9 rounded-lg border border-border bg-muted">
+              <MapPin className="w-4 h-4 text-muted-foreground" />
             </span>
-            <div>
+            <div className="min-w-0">
               <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
                 Property
               </p>
-              <p className="mt-0.5 text-sm font-medium text-foreground">
+              <p className="mt-0.5 break-words text-sm font-medium text-foreground">
                 {selectedProperty.address}
               </p>
               <p className="mt-0.5 text-xs text-muted-foreground">
@@ -305,13 +305,13 @@ export function RequestJobForm({
                     type="button"
                     onClick={() => setSelectedProperty(prop)}
                     className={cn(
-                      'rounded-xl border px-3 py-3 text-left transition-all',
+                      'px-3 py-3 text-left rounded-xl border transition-all',
                       isSelected
-                        ? 'border-brand-lime bg-brand-lime/5 ring-1 ring-brand-lime/20'
+                        ? 'ring-1 border-brand-lime bg-brand-lime/5 ring-brand-lime/20'
                         : 'border-border hover:border-brand-lime/50',
                     )}
                   >
-                    <span className="block text-sm font-medium text-foreground">
+                    <span className="block text-sm font-medium break-words text-foreground">
                       {prop.address}
                     </span>
                     <span className="mt-0.5 block text-xs text-muted-foreground">
@@ -334,7 +334,7 @@ export function RequestJobForm({
             placeholder="Describe what you need, special requirements, access instructions..."
             rows={3}
             maxLength={2000}
-            className="resize-none rounded-xl text-sm"
+            className="text-sm rounded-xl resize-none"
           />
           <p className="text-right text-[11px] text-muted-foreground">
             {notes.length}/2000
@@ -346,16 +346,16 @@ export function RequestJobForm({
         <Button
           onClick={handleSubmit}
           disabled={submitting || !selectedProperty}
-          className="w-full rounded-full bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
+          className="w-full font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
         >
           {submitting ? (
             <>
-              <span className="h-4 w-4 animate-spin rounded-full border-2 border-brand-ink/30 border-t-brand-ink" />
+              <span className="w-4 h-4 rounded-full border-2 animate-spin border-brand-ink/30 border-t-brand-ink" />
               Submitting…
             </>
           ) : (
             <>
-              <Send className="h-4 w-4" />
+              <Send className="w-4 h-4" />
               Submit job request
             </>
           )}
@@ -366,16 +366,19 @@ export function RequestJobForm({
 
   return (
     <div
-      className={cn('grid gap-6', selectedService && 'lg:grid-cols-[1fr_360px]')}
+      className={cn(
+        'grid w-full min-w-0 gap-6',
+        selectedService && 'lg:grid-cols-[minmax(0,1fr)_minmax(0,360px)]',
+      )}
     >
-      <div className={cn(selectedService && 'hidden lg:block')}>
+      <div className={cn('min-w-0', selectedService && 'hidden lg:block')}>
         <div className="relative mb-4">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search services"
-            className="h-11 rounded-full border-border bg-background/70 pl-10 backdrop-blur-xl"
+            className="pl-10 h-11 rounded-full backdrop-blur-xl border-border bg-background/70"
           />
         </div>
 
@@ -394,7 +397,7 @@ export function RequestJobForm({
         />
 
         {filteredServices.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-border bg-background/50 backdrop-blur-xl">
+          <div className="rounded-2xl border border-dashed backdrop-blur-xl border-border bg-background/50">
             <EmptyState
               icon={SearchX}
               title={
@@ -437,8 +440,8 @@ export function RequestJobForm({
                   />
 
                   <span className="relative min-w-0">
-                    <span className="mb-2 flex h-9 w-9 items-center justify-center rounded-lg border border-brand-lime/25 bg-brand-lime/10">
-                      <Icon className="h-4 w-4 text-brand-lime" />
+                    <span className="flex justify-center items-center mb-2 w-9 h-9 rounded-lg border border-brand-lime/25 bg-brand-lime/10">
+                      <Icon className="w-4 h-4 text-brand-lime" />
                     </span>
                     <span className="block text-sm font-medium text-foreground">
                       {svc.name}
@@ -447,7 +450,7 @@ export function RequestJobForm({
                       {svc.categoryName}
                     </span>
                     {svc.description && (
-                      <span className="mt-1 line-clamp-2 block text-xs text-muted-foreground">
+                      <span className="block mt-1 text-xs line-clamp-2 text-muted-foreground">
                         {svc.description}
                       </span>
                     )}
