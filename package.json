@@ -16,6 +16,9 @@
     "@types/react-dom": "^19.0.0",
     "expo": "^57.0.13"
   },
+  "optionalDependencies": {
+    "@rollup/rollup-linux-x64-gnu": "4.62.4"
+  },
   "engines": {
     "node": ">=22.13"
   },

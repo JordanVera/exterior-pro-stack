@@ -28,7 +28,10 @@
         "SENTRY_DSN",
         "SENTRY_ORG",
         "SENTRY_PROJECT",
-        "SENTRY_AUTH_TOKEN"
+        "SENTRY_AUTH_TOKEN",
+        "BLOB_READ_WRITE_TOKEN",
+        "BLOB_STORE_ID",
+        "BLOB_WEBHOOK_PUBLIC_KEY"
       ]
     },
     "dev": {
