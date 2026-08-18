@@ -37,7 +37,14 @@
     "plugins": [
       "expo-router",
       "expo-status-bar",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow Exterior Pro to access your photos so you can attach before and after job pictures.",
+          "cameraPermission": "Allow Exterior Pro to use the camera to take before and after job pictures."
+        }
+      ]
     ]
   }
 }

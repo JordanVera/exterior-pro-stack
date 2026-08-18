@@ -53,6 +53,10 @@ export const getJobByIdInput = z.object({
   jobId: z.string().cuid(),
 });
 
+export const deleteJobPhotoInput = z.object({
+  photoId: z.string().cuid(),
+});
+
 export type CreateJobInput = z.infer<typeof createJobInput>;
 export type ScheduleJobInput = z.infer<typeof scheduleJobInput>;
 export type AssignCrewInput = z.infer<typeof assignCrewInput>;
@@ -61,3 +65,4 @@ export type CreateRecurringScheduleInput = z.infer<typeof createRecurringSchedul
 export type CancelJobInput = z.infer<typeof cancelJobInput>;
 export type ListMineInput = z.infer<typeof listMineInput>;
 export type GetJobByIdInput = z.infer<typeof getJobByIdInput>;
+export type DeleteJobPhotoInput = z.infer<typeof deleteJobPhotoInput>;

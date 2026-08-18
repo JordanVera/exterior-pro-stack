@@ -15,6 +15,7 @@ export const fieldJobInclude = {
   service: { include: { category: true } },
   acceptedBid: true,
   assignments: { include: { crew: { include: { members: true } } } },
+  photos: { orderBy: { createdAt: "asc" } },
 } satisfies Prisma.JobInclude;
 
 type AuthedCtx = {
@@ -91,4 +92,21 @@ export async function assertJobAccess(
     throw new TRPCError({ code: "NOT_FOUND", message: "Job not found" });
   }
   return { access, job };
+}
+
+export async function assertCompletePhotos(
+  ctx: AuthedCtx,
+  jobId: string,
+) {
+  const photos = await ctx.db.jobPhoto.findMany({
+    where: { jobId },
+    select: { kind: true },
+  });
+  const kinds = new Set(photos.map((photo) => photo.kind));
+  if (!kinds.has("BEFORE") || !kinds.has("AFTER")) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Add before and after photos to complete",
+    });
+  }
 }

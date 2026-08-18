@@ -18,6 +18,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { formatJobDateTime, STATUS_BADGE } from '../_components/utils';
+import {
+  JobPhotoGallery,
+  jobHasBeforeAndAfter,
+} from '@/components/job-photo-gallery';
 
 const FILTERS = [
   { value: '', label: 'All' },
@@ -157,6 +161,7 @@ export default function ProviderJobsPage() {
         <div className="space-y-3">
           {jobs.map((job) => {
             const badge = STATUS_BADGE[job.status] || STATUS_BADGE.PENDING;
+            const photosReady = jobHasBeforeAndAfter(job.photos);
             return (
               <Card
                 key={job.id}
@@ -220,6 +225,8 @@ export default function ProviderJobsPage() {
                       )}
                     </div>
                   </div>
+
+                  <JobPhotoGallery photos={job.photos} />
 
                   <div className="flex flex-wrap gap-2">
                     {job.status === 'PENDING' &&
@@ -323,13 +330,21 @@ export default function ProviderJobsPage() {
                     )}
 
                     {job.status === 'IN_PROGRESS' && (
-                      <Button
-                        size="sm"
-                        className="h-8 bg-brand-lime text-brand-ink rounded-full hover:bg-brand-lime/90"
-                        onClick={() => handleStatusUpdate(job.id, 'COMPLETED')}
-                      >
-                        Complete job
-                      </Button>
+                      <div className="flex flex-col gap-1">
+                        <Button
+                          size="sm"
+                          disabled={!photosReady}
+                          className="h-8 bg-brand-lime text-brand-ink rounded-full hover:bg-brand-lime/90 disabled:opacity-50"
+                          onClick={() => handleStatusUpdate(job.id, 'COMPLETED')}
+                        >
+                          Complete job
+                        </Button>
+                        {!photosReady ? (
+                          <p className="text-xs text-muted-foreground">
+                            Add before and after photos to complete
+                          </p>
+                        ) : null}
+                      </div>
                     )}
 
                     {['PENDING', 'SCHEDULED'].includes(job.status) && (

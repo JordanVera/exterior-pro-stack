@@ -54,6 +54,11 @@ export type CustomerJob = {
     amountCents: number;
     kind: string;
   }[];
+  photos?: {
+    id: string;
+    url: string;
+    kind: 'BEFORE' | 'AFTER' | string;
+  }[];
 };
 
 export const STATUS_DOT: Record<string, string> = {

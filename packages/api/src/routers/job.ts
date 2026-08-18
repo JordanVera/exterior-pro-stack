@@ -11,6 +11,7 @@ import {
   cancelJobInput,
   listMineInput,
   getJobByIdInput,
+  deleteJobPhotoInput,
 } from '@repo/validators';
 import {
   notifyNewJobAvailable,
@@ -25,7 +26,9 @@ import {
   jobWhereForAccess,
   todayRange,
   assertJobAccess,
+  assertCompletePhotos,
 } from '../lib/field-access';
+import { deleteJobPhotoBlob } from '../lib/job-photos';
 
 export const jobRouter = router({
   /** Customer: create a new job request (broadcasts to local providers) */
@@ -172,6 +175,7 @@ export const jobRouter = router({
           assignments: { include: { crew: true } },
           recurringSchedule: true,
           payments: true,
+          photos: { orderBy: { createdAt: 'asc' } },
         },
       });
 
@@ -339,6 +343,7 @@ export const jobRouter = router({
           acceptedBid: { include: { provider: true } },
           assignments: { include: { crew: { include: { members: true } } } },
           recurringSchedule: true,
+          photos: { orderBy: { createdAt: 'asc' } },
         },
         orderBy: [{ scheduledDate: 'asc' }, { createdAt: 'desc' }],
       });
@@ -503,6 +508,10 @@ export const jobRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
       }
 
+      if (input.status === 'COMPLETED') {
+        await assertCompletePhotos(ctx, input.jobId);
+      }
+
       const updated = await ctx.db.job.update({
         where: { id: input.jobId },
         data: {
@@ -646,4 +655,21 @@ export const jobRouter = router({
 
     return job;
   }),
+
+  /** Provider or crew: remove a photo from a job they can access */
+  deletePhoto: fieldProcedure
+    .input(deleteJobPhotoInput)
+    .mutation(async ({ ctx, input }) => {
+      const photo = await ctx.db.jobPhoto.findUnique({
+        where: { id: input.photoId },
+      });
+      if (!photo) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Photo not found' });
+      }
+
+      await assertJobAccess(ctx, photo.jobId);
+      await deleteJobPhotoBlob(photo.url);
+      await ctx.db.jobPhoto.delete({ where: { id: photo.id } });
+      return { ok: true as const };
+    }),
 });

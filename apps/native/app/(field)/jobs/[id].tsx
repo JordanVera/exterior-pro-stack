@@ -23,6 +23,10 @@ import {
 import { PrimaryButton } from "@/components/PrimaryButton";
 import { StatusBadge } from "@/components/StatusBadge";
 import { EmptyState, LoadingScreen, Screen } from "@/components/Screen";
+import {
+  JobPhotos,
+  hasBeforeAndAfterPhotos,
+} from "@/components/JobPhotos";
 
 function invalidateJobs() {
   return queryClient.invalidateQueries({ queryKey: ["jobs"] });
@@ -30,7 +34,7 @@ function invalidateJobs() {
 
 export default function JobDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const isProvider = user?.role === "PROVIDER";
   const [assignOpen, setAssignOpen] = useState(false);
   const [scheduleDate, setScheduleDate] = useState(nextDays(1)[0]?.iso ?? "");
@@ -93,6 +97,7 @@ export default function JobDetailScreen() {
   const customerPhone = job.property.customer.user.phone;
   const customerName = `${job.property.customer.firstName} ${job.property.customer.lastName}`;
   const assigned = job.assignments.map((a) => a.crew.name).join(", ");
+  const canComplete = hasBeforeAndAfterPhotos(job.photos);
 
   const openMaps = () => {
     const q = encodeURIComponent(address);
@@ -232,6 +237,8 @@ export default function JobDetailScreen() {
           </View>
         ) : null}
 
+        <JobPhotos job={job} token={token} />
+
         <View className="mt-8 gap-3">
           {job.status === "SCHEDULED" || job.status === "PENDING" ? (
             <PrimaryButton
@@ -241,11 +248,19 @@ export default function JobDetailScreen() {
             />
           ) : null}
           {job.status === "IN_PROGRESS" || job.status === "SCHEDULED" ? (
-            <PrimaryButton
-              label="Mark complete"
-              onPress={() => runStatus("COMPLETED")}
-              loading={statusMutation.isPending}
-            />
+            <>
+              <PrimaryButton
+                label="Mark complete"
+                onPress={() => runStatus("COMPLETED")}
+                loading={statusMutation.isPending}
+                disabled={!canComplete}
+              />
+              {!canComplete ? (
+                <Text className="text-center text-sm text-amber-400">
+                  Add before and after photos to complete
+                </Text>
+              ) : null}
+            </>
           ) : null}
           {job.status === "COMPLETED" ? (
             <Text className="text-center text-base text-green-400">
