@@ -1,8 +1,29 @@
-import { Redirect, Tabs } from "expo-router";
-import Ionicons from "@expo/vector-icons/Ionicons";
-import { useAuth } from "@/lib/auth";
-import { LoadingScreen } from "@/components/Screen";
-import { colors } from "@/lib/theme";
+import { Redirect, Tabs } from 'expo-router';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import type { ColorValue } from 'react-native';
+import { useAuth } from '@/lib/auth';
+import { LoadingScreen } from '@/components/Screen';
+import { colors, fonts } from '@/lib/theme';
+
+/** Filled glyph on the active tab, outline when inactive. */
+function tabIcon(
+  active: keyof typeof Ionicons.glyphMap,
+  inactive: keyof typeof Ionicons.glyphMap,
+) {
+  return function TabIcon({
+    color,
+    size,
+    focused,
+  }: {
+    color: ColorValue;
+    size: number;
+    focused: boolean;
+  }) {
+    return (
+      <Ionicons name={focused ? active : inactive} size={size} color={color} />
+    );
+  };
+}
 
 export default function FieldLayout() {
   const { isReady, isFieldUser } = useAuth();
@@ -15,41 +36,40 @@ export default function FieldLayout() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: colors.navy,
-          borderTopColor: "rgba(200,245,66,0.12)",
-          height: 84,
-          paddingTop: 8,
+          backgroundColor: colors.night,
+          borderTopColor: 'rgba(255,255,255,0.08)',
+          borderTopWidth: 1,
+          height: 88,
+          paddingTop: 10,
         },
         tabBarActiveTintColor: colors.lime,
         tabBarInactiveTintColor: colors.muted,
-        tabBarLabelStyle: { fontSize: 12, fontWeight: "600" },
+        tabBarLabelStyle: {
+          fontFamily: fonts.semibold,
+          fontSize: 12,
+          marginTop: 2,
+        },
       }}
     >
       <Tabs.Screen
         name="today"
         options={{
-          title: "Today",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="today-outline" size={size} color={color} />
-          ),
+          title: 'Today',
+          tabBarIcon: tabIcon('today', 'today-outline'),
         }}
       />
       <Tabs.Screen
         name="jobs"
         options={{
-          title: "Jobs",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="briefcase-outline" size={size} color={color} />
-          ),
+          title: 'Jobs',
+          tabBarIcon: tabIcon('briefcase', 'briefcase-outline'),
         }}
       />
       <Tabs.Screen
         name="account"
         options={{
-          title: "Account",
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="person-circle-outline" size={size} color={color} />
-          ),
+          title: 'Account',
+          tabBarIcon: tabIcon('person-circle', 'person-circle-outline'),
         }}
       />
     </Tabs>

@@ -44,7 +44,9 @@
           "photosPermission": "Allow Exterior Pro to access your photos so you can attach before and after job pictures.",
           "cameraPermission": "Allow Exterior Pro to use the camera to take before and after job pictures."
         }
-      ]
+      ],
+      "expo-font",
+      "expo-splash-screen"
     ]
   }
 }

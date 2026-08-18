@@ -17,6 +17,11 @@ export const assignCrewInput = z.object({
   crewId: z.string().cuid(),
 });
 
+export const unassignCrewInput = z.object({
+  jobId: z.string().cuid(),
+  crewId: z.string().cuid(),
+});
+
 export const updateJobStatusInput = z.object({
   jobId: z.string().cuid(),
   status: z.enum(["OPEN", "PENDING", "SCHEDULED", "IN_PROGRESS", "COMPLETED", "CANCELLED"]),
@@ -60,6 +65,7 @@ export const deleteJobPhotoInput = z.object({
 export type CreateJobInput = z.infer<typeof createJobInput>;
 export type ScheduleJobInput = z.infer<typeof scheduleJobInput>;
 export type AssignCrewInput = z.infer<typeof assignCrewInput>;
+export type UnassignCrewInput = z.infer<typeof unassignCrewInput>;
 export type UpdateJobStatusInput = z.infer<typeof updateJobStatusInput>;
 export type CreateRecurringScheduleInput = z.infer<typeof createRecurringScheduleInput>;
 export type CancelJobInput = z.infer<typeof cancelJobInput>;
