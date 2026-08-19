@@ -11,7 +11,11 @@ type PlanCardProps = {
     monthlyPriceCents: number;
     quarterlyPriceCents: number;
     annualPriceCents: number;
-    services: Array<{ id: string; name: string }>;
+    services: Array<{
+      id: string;
+      frequency: string;
+      service: { id: string; name: string };
+    }>;
   };
   onPress: () => void;
   isSubscribed?: boolean;
@@ -56,10 +60,10 @@ export function PlanCard({ plan, onPress, isSubscribed }: PlanCardProps) {
         <Text className="font-semibold text-xs uppercase tracking-wider text-slate-400">
           Included services
         </Text>
-        {plan.services.map((service) => (
-          <View key={service.id} className="flex-row items-center gap-2">
+        {plan.services.map((ps) => (
+          <View key={ps.id} className="flex-row items-center gap-2">
             <Ionicons name="checkmark" size={16} color={colors.lime} />
-            <Text className="flex-1 text-sm text-slate-200">{service.name}</Text>
+            <Text className="flex-1 text-sm text-slate-200">{ps.service.name}</Text>
           </View>
         ))}
       </View>

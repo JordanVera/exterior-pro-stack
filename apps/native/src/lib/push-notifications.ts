@@ -2,6 +2,8 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
+import { router } from 'expo-router';
+import type { Me } from './types';
 
 // Configure notification behavior
 Notifications.setNotificationHandler({
@@ -116,4 +118,23 @@ export async function setBadgeCountAsync(count: number): Promise<void> {
  */
 export async function dismissAllNotificationsAsync(): Promise<void> {
   await Notifications.dismissAllNotificationsAsync();
+}
+
+/**
+ * Setup notification tap handlers with role-based routing
+ */
+export function setupNotificationHandlers(user: Me | null) {
+  // Handle notification tap when app is in foreground or background
+  return Notifications.addNotificationResponseReceivedListener((response) => {
+    const data = response.notification.request.content.data;
+
+    // Route to job detail based on user role
+    if (data.jobId && user) {
+      if (user.role === 'CUSTOMER') {
+        router.push(`/customer/jobs/${data.jobId}`);
+      } else if (user.role === 'PROVIDER' || user.role === 'CREW') {
+        router.push(`/jobs/${data.jobId}`);
+      }
+    }
+  });
 }

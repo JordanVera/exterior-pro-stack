@@ -52,7 +52,7 @@ export default function CustomerLayout() {
       }}
     >
       <Tabs.Screen
-        name="index"
+        name="home"
         options={{
           title: 'Home',
           tabBarIcon: tabIcon('home', 'home-outline'),

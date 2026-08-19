@@ -65,15 +65,17 @@ export default function LoginScreen() {
         code,
       });
       const me = await signIn(result.token);
-      
+
       // Route based on role
       if (me.role === 'CUSTOMER') {
-        router.replace('/customer');
+        router.replace('/home');
       } else if (me.role === 'PROVIDER' || me.role === 'CREW') {
         router.replace('/today');
       } else {
         await signOut();
-        setError('Unable to determine your account type. Please contact support.');
+        setError(
+          'Unable to determine your account type. Please contact support.',
+        );
       }
     } catch (err) {
       setError(

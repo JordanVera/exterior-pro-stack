@@ -16,7 +16,7 @@ export default function Index() {
 
   // Route based on role
   if (user.role === 'CUSTOMER') {
-    return <Redirect href="/customer" />;
+    return <Redirect href="/home" />;
   }
 
   if (isFieldUser) {

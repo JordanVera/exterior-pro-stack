@@ -10,37 +10,37 @@ todos:
     status: completed
   - id: home
     content: Build customer home screen with properties carousel, stats, and activity feed
-    status: pending
+    status: completed
   - id: properties
     content: Implement property management UI in settings (CRUD with forms and modals)
-    status: pending
+    status: completed
   - id: jobs-list
     content: Create jobs list screen with filters and job cards
-    status: pending
+    status: completed
   - id: job-detail
     content: Build job detail screen with bids, schedule, photos, and actions
-    status: pending
+    status: completed
   - id: job-request
     content: Implement new job request flow (service picker, property picker, notes, photos)
-    status: pending
+    status: completed
   - id: plans
     content: Create plans browsing screens and subscription flow with Stripe checkout
-    status: pending
+    status: completed
   - id: payments
     content: Build payments list screen with filters and receipt links
-    status: pending
+    status: completed
   - id: settings
     content: Create customer settings screen with profile, properties, notifications, theme
-    status: pending
+    status: completed
   - id: components
     content: Build reusable customer components (PropertyCarousel, JobCard, BidCard, PlanCard, etc.)
-    status: in_progress
+    status: completed
   - id: notifications
     content: Update push notification routing to handle customer role and navigate to customer job details
-    status: pending
+    status: completed
   - id: testing
     content: Test full customer flows and verify no field user regressions
-    status: pending
+    status: completed
 isProject: false
 ---
 
