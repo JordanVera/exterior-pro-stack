@@ -81,6 +81,12 @@ function PhotoGallery({
   );
 }
 
+function invalidateJobQueries() {
+  queryClient.invalidateQueries({ queryKey: ['jobs', 'customer'] });
+  queryClient.invalidateQueries({ queryKey: ['job'] });
+  queryClient.invalidateQueries({ queryKey: ['bids'] });
+}
+
 export default function CustomerJobDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
@@ -88,59 +94,66 @@ export default function CustomerJobDetailScreen() {
   const [acceptingBidId, setAcceptingBidId] = useState<string | null>(null);
   const [decliningBidId, setDecliningBidId] = useState<string | null>(null);
 
-  const utils = trpc.useUtils();
-  const {
-    data: job,
-    isLoading,
-    refetch,
-  } = trpc.job.getForCustomer.useQuery({ id: id! }, { enabled: !!id });
-  const { data: bids = [] } = trpc.bid.listForJob.useQuery(
-    { jobId: id! },
-    { enabled: !!id },
-  );
+  const jobQuery = useQuery({
+    queryKey: ['job', id],
+    queryFn: () => trpc.job.getForCustomer.query({ jobId: id! }),
+    enabled: !!id,
+  });
 
-  const acceptBid = trpc.bid.accept.useMutation({
+  const bidsQuery = useQuery({
+    queryKey: ['bids', id],
+    queryFn: () => trpc.bid.listForJob.query({ jobId: id! }),
+    enabled: !!id,
+  });
+
+  const job = jobQuery.data;
+  const bids = bidsQuery.data ?? [];
+
+  const acceptBid = useMutation({
+    mutationFn: (bidId: string) =>
+      trpc.bid.accept.mutate({ jobId: id!, bidId }),
     onSuccess: (data) => {
       if (data.checkoutUrl) {
         Linking.openURL(data.checkoutUrl);
       }
-      utils.job.getForCustomer.invalidate({ id: id! });
-      utils.bid.listForJob.invalidate({ jobId: id! });
-      utils.job.listForCustomer.invalidate();
+      invalidateJobQueries();
       setAcceptingBidId(null);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       Alert.alert('Error', error.message);
       setAcceptingBidId(null);
     },
   });
 
-  const declineBid = trpc.bid.decline.useMutation({
+  const declineBid = useMutation({
+    mutationFn: (bidId: string) =>
+      trpc.bid.decline.mutate({ jobId: id!, bidId }),
     onSuccess: () => {
-      utils.bid.listForJob.invalidate({ jobId: id! });
+      queryClient.invalidateQueries({ queryKey: ['bids', id] });
       setDecliningBidId(null);
     },
-    onError: (error) => {
+    onError: (error: any) => {
       Alert.alert('Error', error.message);
       setDecliningBidId(null);
     },
   });
 
-  const cancelJob = trpc.job.cancelForCustomer.useMutation({
+  const cancelJob = useMutation({
+    mutationFn: () => trpc.job.cancelForCustomer.mutate({ jobId: id! }),
     onSuccess: () => {
       Alert.alert('Success', 'Job cancelled successfully', [
         { text: 'OK', onPress: () => router.back() },
       ]);
-      utils.job.listForCustomer.invalidate();
+      invalidateJobQueries();
     },
-    onError: (error) => {
+    onError: (error: any) => {
       Alert.alert('Error', error.message);
     },
   });
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await refetch();
+    await Promise.all([jobQuery.refetch(), bidsQuery.refetch()]);
     setRefreshing(false);
   };
 

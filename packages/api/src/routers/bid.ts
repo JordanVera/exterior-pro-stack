@@ -107,11 +107,24 @@ export const bidRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
       }
 
-      return ctx.db.jobBid.findMany({
+      const bids = await ctx.db.jobBid.findMany({
         where: { jobId: input.jobId },
         include: { provider: true },
         orderBy: { createdAt: 'desc' },
       });
+
+      // Transform to match frontend expectations
+      return bids.map((bid) => ({
+        id: bid.id,
+        jobId: bid.jobId,
+        providerId: bid.providerId,
+        priceCents: Math.round(Number(bid.price) * 100),
+        notes: bid.notes,
+        status: bid.status,
+        createdAt: bid.createdAt,
+        updatedAt: bid.updatedAt,
+        provider: bid.provider,
+      }));
     }),
 
   /**

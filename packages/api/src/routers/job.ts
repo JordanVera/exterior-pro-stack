@@ -138,7 +138,7 @@ export const jobRouter = router({
         select: { id: true },
       });
 
-      return ctx.db.job.findMany({
+      const jobs = await ctx.db.job.findMany({
         where: {
           propertyId: { in: propertyIds.map((p) => p.id) },
           ...(input?.status ? { status: input.status } : {}),
@@ -154,6 +154,21 @@ export const jobRouter = router({
         },
         orderBy: { createdAt: 'desc' },
       });
+
+      // Transform bids to include priceCents
+      return jobs.map((job) => ({
+        ...job,
+        bids: job.bids.map((bid) => ({
+          ...bid,
+          priceCents: Math.round(Number(bid.price) * 100),
+        })),
+        acceptedBid: job.acceptedBid
+          ? {
+              ...job.acceptedBid,
+              priceCents: Math.round(Number(job.acceptedBid.price) * 100),
+            }
+          : null,
+      }));
     }),
 
   /** Customer: get a single job they own */
@@ -189,7 +204,20 @@ export const jobRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
       }
 
-      return job;
+      // Transform bids to include priceCents
+      return {
+        ...job,
+        bids: job.bids.map((bid) => ({
+          ...bid,
+          priceCents: Math.round(Number(bid.price) * 100),
+        })),
+        acceptedBid: job.acceptedBid
+          ? {
+              ...job.acceptedBid,
+              priceCents: Math.round(Number(job.acceptedBid.price) * 100),
+            }
+          : null,
+      };
     }),
 
   /** Customer: cancel an open job request */
