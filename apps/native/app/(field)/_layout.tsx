@@ -66,10 +66,10 @@ export default function FieldLayout() {
         }}
       />
       <Tabs.Screen
-        name="account"
+        name="settings"
         options={{
-          title: 'Account',
-          tabBarIcon: tabIcon('person-circle', 'person-circle-outline'),
+          title: 'Settings',
+          tabBarIcon: tabIcon('settings', 'settings-outline'),
         }}
       />
       <Tabs.Screen name="crews" options={{ href: null }} />

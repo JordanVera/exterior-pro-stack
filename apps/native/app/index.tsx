@@ -3,15 +3,26 @@ import { useAuth } from "@/lib/auth";
 import { LoadingScreen } from "@/components/Screen";
 
 export default function Index() {
-  const { isReady, isFieldUser } = useAuth();
+  const { isReady, user, isFieldUser } = useAuth();
 
   if (!isReady) {
     return <LoadingScreen />;
   }
 
-  if (!isFieldUser) {
+  // Not authenticated - go to login
+  if (!user) {
     return <Redirect href="/login" />;
   }
 
-  return <Redirect href="/today" />;
+  // Route based on role
+  if (user.role === 'CUSTOMER') {
+    return <Redirect href="/customer" />;
+  }
+
+  if (isFieldUser) {
+    return <Redirect href="/today" />;
+  }
+
+  // Fallback to login for unknown roles
+  return <Redirect href="/login" />;
 }

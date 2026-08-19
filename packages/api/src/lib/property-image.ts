@@ -1,6 +1,18 @@
-import { del, put } from "@vercel/blob";
-import { randomUUID } from "crypto";
-import type { PrismaClient, Property, PropertyImageSource } from "@repo/db";
+import { del, put } from '@vercel/blob';
+import type { PrismaClient, Property, PropertyImageSource } from '@repo/db';
+
+// Use Web Crypto API which works in both Node.js and Edge Runtime
+function randomUUID(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback for older environments
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
 
 /**
  * Cached exterior photo for a property.
@@ -15,9 +27,9 @@ import type { PrismaClient, Property, PropertyImageSource } from "@repo/db";
  */
 
 const STREET_VIEW_METADATA =
-  "https://maps.googleapis.com/maps/api/streetview/metadata";
-const STREET_VIEW_IMAGE = "https://maps.googleapis.com/maps/api/streetview";
-const STATIC_MAP = "https://maps.googleapis.com/maps/api/staticmap";
+  'https://maps.googleapis.com/maps/api/streetview/metadata';
+const STREET_VIEW_IMAGE = 'https://maps.googleapis.com/maps/api/streetview';
+const STATIC_MAP = 'https://maps.googleapis.com/maps/api/staticmap';
 
 /** 2x the rendered card band, so the photo stays sharp on retina displays. */
 const IMAGE_SIZE = { width: 640, height: 320 };
@@ -25,7 +37,7 @@ const FETCH_TIMEOUT_MS = 8_000;
 
 export type PropertyAddress = Pick<
   Property,
-  "address" | "city" | "state" | "zip"
+  'address' | 'city' | 'state' | 'zip'
 >;
 
 export function formatPropertyAddress(property: PropertyAddress) {
@@ -62,16 +74,16 @@ async function hasStreetView(address: string, key: string) {
   const res = await fetchWithTimeout(url);
   if (!res.ok) return false;
   const body = (await res.json()) as { status?: string };
-  return body.status === "OK";
+  return body.status === 'OK';
 }
 
 function streetViewUrl(address: string, key: string) {
   return `${STREET_VIEW_IMAGE}?${new URLSearchParams({
     location: address,
     size: `${IMAGE_SIZE.width}x${IMAGE_SIZE.height}`,
-    fov: "70",
-    pitch: "10",
-    return_error_code: "true",
+    fov: '70',
+    pitch: '10',
+    return_error_code: 'true',
     key,
   })}`;
 }
@@ -80,9 +92,9 @@ function satelliteUrl(address: string, key: string) {
   return `${STATIC_MAP}?${new URLSearchParams({
     center: address,
     size: `${IMAGE_SIZE.width}x${IMAGE_SIZE.height}`,
-    zoom: "19",
-    maptype: "satellite",
-    scale: "1",
+    zoom: '19',
+    maptype: 'satellite',
+    scale: '1',
     key,
   })}`;
 }
@@ -90,11 +102,11 @@ function satelliteUrl(address: string, key: string) {
 async function downloadImage(url: string) {
   const res = await fetchWithTimeout(url);
   if (!res.ok) return null;
-  const contentType = res.headers.get("content-type") ?? "";
-  if (!contentType.startsWith("image/")) return null;
+  const contentType = res.headers.get('content-type') ?? '';
+  if (!contentType.startsWith('image/')) return null;
   const buffer = Buffer.from(await res.arrayBuffer());
   if (buffer.byteLength === 0) return null;
-  return { buffer, contentType: contentType.split(";")[0]!.trim() };
+  return { buffer, contentType: contentType.split(';')[0]!.trim() };
 }
 
 /**
@@ -107,18 +119,22 @@ async function fetchPropertyImage(propertyId: string, address: string) {
 
   const useStreetView = await hasStreetView(address, key).catch(() => false);
   const source: PropertyImageSource = useStreetView
-    ? "STREET_VIEW"
-    : "SATELLITE";
+    ? 'STREET_VIEW'
+    : 'SATELLITE';
   const image = await downloadImage(
     useStreetView ? streetViewUrl(address, key) : satelliteUrl(address, key),
   );
   if (!image) return null;
 
-  const extension = image.contentType === "image/png" ? "png" : "jpg";
+  const extension = image.contentType === 'image/png' ? 'png' : 'jpg';
   const blob = await put(
     `properties/${propertyId}/${randomUUID()}.${extension}`,
     image.buffer,
-    { access: "public", addRandomSuffix: false, contentType: image.contentType },
+    {
+      access: 'public',
+      addRandomSuffix: false,
+      contentType: image.contentType,
+    },
   );
 
   return { url: blob.url, pathname: blob.pathname, source };
@@ -126,7 +142,7 @@ async function fetchPropertyImage(propertyId: string, address: string) {
 
 /** Removes a previously cached photo from Blob. Safe to call with nulls. */
 export async function deletePropertyImage(
-  property: Pick<Property, "imageUrl">,
+  property: Pick<Property, 'imageUrl'>,
 ) {
   if (!property.imageUrl) return;
   await del(property.imageUrl).catch(() => undefined);
@@ -176,6 +192,9 @@ export async function refreshPropertyImage(opts: {
 }
 
 /** True when the address changed in a way that invalidates a cached photo. */
-export function addressChanged(before: PropertyAddress, after: PropertyAddress) {
+export function addressChanged(
+  before: PropertyAddress,
+  after: PropertyAddress,
+) {
   return formatPropertyAddress(before) !== formatPropertyAddress(after);
 }

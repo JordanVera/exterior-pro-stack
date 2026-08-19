@@ -1,7 +1,19 @@
 import { del, put } from "@vercel/blob";
-import { randomUUID } from "crypto";
 import { TRPCError } from "@trpc/server";
 import type { JobPhotoKind, PrismaClient } from "@repo/db";
+
+// Use Web Crypto API which works in both Node.js and Edge Runtime
+function randomUUID(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID();
+  }
+  // Fallback for older environments
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
 
 export const MAX_JOB_PHOTO_BYTES = 8 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
