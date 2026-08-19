@@ -8,7 +8,7 @@ import { ServicesSection } from './services-section';
 import { WhySection } from './why-section';
 import { PlansSection } from './plans-section';
 import { ProvidersSection } from './providers-section';
-import { TestimonialsSection } from './testimonials-section';
+// import { TestimonialsSection } from './testimonials-section';
 import { FaqSection } from './faq-section';
 import { CtaSection } from './cta-section';
 import { LandingFooter } from './footer';
@@ -27,7 +27,7 @@ export function LandingPage() {
           <WhySection />
           <PlansSection />
           <ProvidersSection />
-          <TestimonialsSection />
+          {/* <TestimonialsSection /> */}
           <FaqSection />
           <CtaSection />
         </main>
