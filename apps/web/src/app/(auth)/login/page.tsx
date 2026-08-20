@@ -331,7 +331,7 @@ function LoginContent() {
                     </p>
                     <p className="text-cyan-400">
                       <span className="font-bold text-red-500">provider:</span>{' '}
-                      payouts@dfwpowerwash.example.com
+                      payouts@houstonpowerwash.example.com
                     </p>
                   </div>
                 )}

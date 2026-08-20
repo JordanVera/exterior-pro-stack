@@ -1,4 +1,5 @@
 export * from "./auth";
+export * from "./zips";
 export * from "./property";
 export * from "./service";
 export * from "./bid";

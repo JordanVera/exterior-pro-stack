@@ -7,6 +7,7 @@ import Link from 'next/link';
 import {
   Briefcase,
   Building2,
+  FileText,
   LayoutDashboard,
   Layers,
   LogOut,
@@ -24,6 +25,7 @@ import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/admin', label: 'Overview', icon: LayoutDashboard },
+  { href: '/admin/business-plan', label: 'Business plan', icon: FileText },
   { href: '/admin/users', label: 'Users', icon: Users },
   { href: '/admin/providers', label: 'Providers', icon: Building2 },
   { href: '/admin/services', label: 'Services', icon: Layers },
@@ -111,8 +113,8 @@ export default function AdminLayout({
   );
 
   return (
-    <div className="flex min-h-screen bg-brand-mist dark:bg-brand-night">
-      <aside className="hidden sticky top-0 flex-col w-64 h-screen border-r shrink-0 border-white/10 bg-brand-navy md:flex">
+    <div className="flex min-h-screen bg-brand-mist dark:bg-brand-night print:block print:min-h-0 print:bg-white">
+      <aside className="hidden sticky top-0 flex-col w-64 h-screen border-r shrink-0 border-white/10 bg-brand-navy md:flex print:hidden">
         <div className="p-6">
           <Link href="/admin" className="flex gap-2 items-center">
             <Image
@@ -146,7 +148,7 @@ export default function AdminLayout({
       </aside>
 
       {open ? (
-        <div className="fixed inset-0 z-50 md:hidden">
+        <div className="fixed inset-0 z-50 md:hidden print:hidden">
           <button
             type="button"
             className="absolute inset-0 bg-black/60"
@@ -182,14 +184,14 @@ export default function AdminLayout({
       ) : null}
 
       <div className="flex flex-col flex-1 min-w-0">
-        <header className="flex justify-between items-center px-4 py-3 border-b backdrop-blur-xl border-border bg-background/70 md:hidden">
+        <header className="flex justify-between items-center px-4 py-3 border-b backdrop-blur-xl border-border bg-background/70 md:hidden print:hidden">
           <Button variant="ghost" size="icon" onClick={() => setOpen(true)}>
             <Menu className="w-5 h-5" />
           </Button>
           <span className="text-sm font-semibold">Admin</span>
           <ThemeToggle />
         </header>
-        <main className="flex-1 p-4 sm:p-8">{children}</main>
+        <main className="flex-1 p-4 sm:p-8 print:p-0">{children}</main>
       </div>
     </div>
   );

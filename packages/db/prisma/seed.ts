@@ -1,7 +1,12 @@
 import { PrismaClient, PriceUnit } from '@prisma/client';
 import chalk from 'chalk';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { PROVIDER_LOGO_FILES } from './seed-assets/logos';
 
 const prisma = new PrismaClient();
+const SEED_DIR = dirname(fileURLToPath(import.meta.url));
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -40,6 +45,37 @@ function crewLoginEmail(name: string) {
   return `${slug}@crew.example.com`;
 }
 
+async function attachProviderLogo(userId: string, businessName: string) {
+  if (!process.env.BLOB_READ_WRITE_TOKEN) return;
+  const filename = PROVIDER_LOGO_FILES[businessName];
+  if (!filename) return;
+  const filePath = resolve(SEED_DIR, 'seed-assets/logos', filename);
+  if (!existsSync(filePath)) {
+    warn(`Logo file missing: ${filename}`);
+    return;
+  }
+  try {
+    const { del, list, put } = await import('@vercel/blob');
+    const prefix = `providers/${userId}/logo`;
+    const { blobs } = await list({ prefix });
+    if (blobs.length > 0) {
+      await del(blobs.map((blob) => blob.url));
+    }
+    const blob = await put(`${prefix}.png`, readFileSync(filePath), {
+      access: 'public',
+      addRandomSuffix: true,
+      contentType: 'image/png',
+    });
+    await prisma.providerProfile.update({
+      where: { userId },
+      data: { logoUrl: blob.url, logoPathname: blob.pathname },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    warn(`Logo upload failed for ${businessName}: ${message}`);
+  }
+}
+
 async function upsertLoginUser(data: {
   email: string;
   phone?: string;
@@ -75,10 +111,10 @@ async function upsertLoginUser(data: {
   });
 }
 
-/** Local copy of platform fee split (18% + 2.9% + 30¢). Do not import from @repo/api. */
+/** Local copy of platform fee split (10% + 2.9% + 30¢). Do not import from @repo/api. */
 function splitCharge(amountCents: number) {
   const stripeFeeCents = Math.round(amountCents * 0.029) + 30;
-  const platformFeeCents = Math.round((amountCents * 1800) / 10_000);
+  const platformFeeCents = Math.round((amountCents * 1000) / 10_000);
   const transferAmountCents = Math.max(
     0,
     amountCents - platformFeeCents - stripeFeeCents,
@@ -535,22 +571,22 @@ async function main() {
       email: 'jordan.vera96@gmail.com',
       properties: [
         {
-          address: '742 Evergreen Terrace',
-          city: 'Dallas',
+          address: '742 W 22nd St',
+          city: 'Houston',
           state: 'TX',
-          zip: '75201',
+          zip: '77008',
           notes: 'Main residence, large front yard. Gate code: 4521',
-          latitude: 32.7871,
-          longitude: -96.7989,
+          latitude: 29.8024,
+          longitude: -95.4092,
         },
         {
-          address: '8800 Maple Ridge Dr',
-          city: 'Plano',
+          address: '8800 S Fry Rd',
+          city: 'Katy',
           state: 'TX',
-          zip: '75024',
+          zip: '77494',
           notes: 'Rental property, contact tenant before arrival',
-          latitude: 33.0754,
-          longitude: -96.8218,
+          latitude: 29.7405,
+          longitude: -95.782,
         },
       ],
     },
@@ -561,13 +597,13 @@ async function main() {
       email: 'mike.chen@example.com',
       properties: [
         {
-          address: '315 Oak Hollow Blvd',
-          city: 'Fort Worth',
+          address: '315 N Forest Park St',
+          city: 'The Woodlands',
           state: 'TX',
-          zip: '76102',
+          zip: '77381',
           notes: 'Two-story, back gate is unlocked',
-          latitude: 32.7555,
-          longitude: -97.3308,
+          latitude: 30.1658,
+          longitude: -95.4705,
         },
       ],
     },
@@ -578,31 +614,31 @@ async function main() {
       email: 'emily.r@example.com',
       properties: [
         {
-          address: '1200 Lakeview Circle',
-          city: 'Arlington',
+          address: '1200 Marina Bay Dr',
+          city: 'League City',
           state: 'TX',
-          zip: '76013',
+          zip: '77573',
           notes: 'Lakefront property, be careful near the dock',
-          latitude: 32.7079,
-          longitude: -97.1228,
+          latitude: 29.5075,
+          longitude: -95.0949,
         },
         {
-          address: '509 W Commerce St',
-          city: 'Dallas',
+          address: '509 Main St',
+          city: 'Houston',
           state: 'TX',
-          zip: '75208',
+          zip: '77002',
           notes: 'Commercial storefront, after-hours access only',
-          latitude: 32.7764,
-          longitude: -96.8102,
+          latitude: 29.7601,
+          longitude: -95.3615,
         },
         {
-          address: '2211 Preston Rd',
-          city: 'Frisco',
+          address: '2211 Business Center Dr',
+          city: 'Pearland',
           state: 'TX',
-          zip: '75034',
+          zip: '77584',
           notes: 'New construction, no landscaping yet',
-          latitude: 33.1507,
-          longitude: -96.8055,
+          latitude: 29.5466,
+          longitude: -95.3894,
         },
       ],
     },
@@ -613,13 +649,13 @@ async function main() {
       email: 'jwilliams@example.com',
       properties: [
         {
-          address: '4401 Cedar Springs Rd',
-          city: 'Dallas',
+          address: '4401 Willowick Rd',
+          city: 'Houston',
           state: 'TX',
-          zip: '75219',
+          zip: '77019',
           notes: 'Corner lot with large trees',
-          latitude: 32.8137,
-          longitude: -96.8125,
+          latitude: 29.7513,
+          longitude: -95.4302,
         },
       ],
     },
@@ -630,22 +666,22 @@ async function main() {
       email: 'lisa.park@example.com',
       properties: [
         {
-          address: '777 Southlake Blvd',
-          city: 'Southlake',
+          address: '777 Commonwealth Blvd',
+          city: 'Sugar Land',
           state: 'TX',
-          zip: '76092',
+          zip: '77479',
           notes: 'HOA requires 48hr notice for exterior work',
-          latitude: 32.9412,
-          longitude: -97.1344,
+          latitude: 29.5994,
+          longitude: -95.6149,
         },
         {
-          address: '900 Main St Apt 12B',
-          city: 'Grapevine',
+          address: '900 Waugh Dr Apt 12B',
+          city: 'Houston',
           state: 'TX',
-          zip: '76051',
+          zip: '77019',
           notes: 'Apartment — parking lot cleaning only',
-          latitude: 32.934,
-          longitude: -97.0781,
+          latitude: 29.7606,
+          longitude: -95.3978,
         },
       ],
     },
@@ -722,14 +758,14 @@ async function main() {
   }[] = [
     {
       phone: '+15552001001',
-      businessName: 'DFW Power Wash Pros',
+      businessName: 'Houston Power Wash Pros',
       description:
-        'Top-rated pressure washing company serving the Dallas-Fort Worth metroplex since 2018. Residential and commercial.',
-      email: 'payouts@dfwpowerwash.example.com',
-      serviceArea: 'Dallas, Fort Worth, Plano, Frisco, Arlington',
-      serviceAreaZips: '75201,75208,75219,75024,75034,76102,76013',
+        'Top-rated pressure washing company serving Greater Houston since 2018. Residential and commercial.',
+      email: 'payouts@houstonpowerwash.example.com',
+      serviceArea: 'Houston, Katy, Pearland, Sugar Land, The Woodlands',
+      serviceAreaZips: '77008,77002,77019,77494,77584,77381,77573,77479',
       verified: true,
-      stripeAccountId: 'acct_seed_dfwpowerwash',
+      stripeAccountId: 'acct_seed_houstonpowerwash',
       stripeTransfersEnabled: true,
       contractorAgreedAt,
       serviceNames: [
@@ -768,8 +804,8 @@ async function main() {
       description:
         'Full-service lawn care and landscaping. Weekly maintenance plans and one-time projects. Licensed and insured.',
       email: 'billing@greenscape.example.com',
-      serviceArea: 'Plano, Frisco, McKinney, Allen, Richardson',
-      serviceAreaZips: '75024,75034,75201,75208,75219,76013,76092,76051',
+      serviceArea: 'Katy, Sugar Land, Pearland, Houston, The Woodlands',
+      serviceAreaZips: '77494,77479,77584,77008,77019,77002,77381,77573',
       verified: true,
       stripeAccountId: 'acct_seed_greenscape',
       stripeTransfersEnabled: true,
@@ -824,8 +860,8 @@ async function main() {
       description:
         'Expert exterior painting with premium paints. Color consultation included. 5-year warranty on all jobs.',
       email: 'hello@texaspainters.example.com',
-      serviceArea: 'Dallas, Southlake, Keller, Colleyville, Grapevine',
-      serviceAreaZips: '75201,75208,75219,76092,76051',
+      serviceArea: 'Houston, River Oaks, Heights, Bellaire, West University',
+      serviceAreaZips: '77008,77002,77019,77401,77005,77006',
       verified: true,
       stripeAccountId: 'acct_seed_texaspainters',
       stripeTransfersEnabled: true,
@@ -856,10 +892,10 @@ async function main() {
       phone: '+15552004004',
       businessName: 'Crystal Clear Windows & Gutters',
       description:
-        'Professional window cleaning and gutter services. Streak-free guaranteed. Serving DFW for 10+ years.',
+        'Professional window cleaning and gutter services. Streak-free guaranteed. Serving Greater Houston for 10+ years.',
       email: 'payouts@crystalclear.example.com',
-      serviceArea: 'Dallas, Fort Worth, Arlington, Grand Prairie',
-      serviceAreaZips: '75201,75208,75219,76102,76013',
+      serviceArea: 'Houston, League City, Pearland, Sugar Land, The Woodlands',
+      serviceAreaZips: '77008,77002,77019,77573,77584,77479,77381',
       verified: true,
       stripeAccountId: 'acct_seed_crystalclear',
       stripeTransfersEnabled: true,
@@ -887,8 +923,8 @@ async function main() {
       description:
         'Roof cleaning specialists. Soft wash experts. Also offering pressure washing and holiday lighting.',
       email: 'office@lonestar.example.com',
-      serviceArea: 'North Texas — 50-mile radius from Dallas',
-      serviceAreaZips: '75201,75208,75219,75024,75034,76102,76013,76092,76051',
+      serviceArea: 'Greater Houston — 50-mile radius from downtown',
+      serviceAreaZips: '77008,77002,77019,77494,77479,77381,77573,77584',
       verified: true,
       serviceNames: [
         'Soft Wash Roof Treatment',
@@ -922,8 +958,8 @@ async function main() {
       description:
         'Fence repair, deck restoration, and staining. Quality craftsmanship at honest prices.',
       email: 'steve@handyfence.example.com',
-      serviceArea: 'Fort Worth, Arlington, Mansfield, Burleson',
-      serviceAreaZips: '76102,76013,75201',
+      serviceArea: 'Katy, Sugar Land, Houston Heights',
+      serviceAreaZips: '77494,77479,77008',
       verified: true,
       stripeTransfersEnabled: false,
       contractorAgreedAt,
@@ -944,14 +980,14 @@ async function main() {
     },
     {
       phone: '+15552007007',
-      businessName: 'Metroplex Irrigation & Lighting',
+      businessName: 'Bayou City Irrigation & Lighting',
       description:
-        'Holiday lighting design plus seasonal exterior lighting. Fully insured crews serving North Texas.',
-      email: 'payouts@metroplexlights.example.com',
-      serviceArea: 'Dallas, Plano, Frisco, McKinney, Allen',
-      serviceAreaZips: '75201,75208,75219,75024,75034,76092',
+        'Holiday lighting design plus seasonal exterior lighting. Fully insured crews serving Greater Houston.',
+      email: 'payouts@bayoucitylights.example.com',
+      serviceArea: 'Houston, The Woodlands, Katy, Sugar Land',
+      serviceAreaZips: '77008,77002,77019,77381,77494,77479',
       verified: true,
-      stripeAccountId: 'acct_seed_metroplexlights',
+      stripeAccountId: 'acct_seed_bayoucitylights',
       stripeTransfersEnabled: true,
       contractorAgreedAt,
       serviceNames: [
@@ -973,12 +1009,12 @@ async function main() {
     },
     {
       phone: '+15552008008',
-      businessName: 'All-Seasons Gutters DFW',
+      businessName: 'All-Seasons Gutters Houston',
       description:
         'Gutter cleaning, flushing, and guard installation. Same-week residential appointments.',
       email: 'hello@allseasonsgutters.example.com',
-      serviceArea: 'Dallas, Arlington, Grand Prairie, Irving',
-      serviceAreaZips: '75201,75208,75219,76102,76013',
+      serviceArea: 'Houston, Pearland, League City, The Woodlands',
+      serviceAreaZips: '77008,77002,77019,77584,77573,77381',
       verified: true,
       serviceNames: [
         'Gutter Clean & Flush',
@@ -999,10 +1035,10 @@ async function main() {
       phone: '+15552009009',
       businessName: 'Prairie View Land Care',
       description:
-        'New lawn-care outfit covering Frisco and McKinney. Awaiting admin verification.',
+        'New lawn-care outfit covering Cypress and Spring. Awaiting admin verification.',
       email: 'jordan@prairieview.example.com',
-      serviceArea: 'Frisco, McKinney, Allen',
-      serviceAreaZips: '75034,75024',
+      serviceArea: 'Cypress, Spring, Tomball',
+      serviceAreaZips: '77433,77379',
       verified: false,
       serviceNames: [
         'Weekly Lawn Mowing',
@@ -1023,10 +1059,10 @@ async function main() {
       phone: '+15552010010',
       businessName: 'Sparkle Soft Wash Co.',
       description:
-        'Residential soft wash for siding, driveways, and roofs. Family-owned in Arlington.',
+        'Residential soft wash for siding, driveways, and roofs. Family-owned in Pearland.',
       email: 'hello@sparklesoftwash.example.com',
-      serviceArea: 'Arlington, Fort Worth, Mansfield',
-      serviceAreaZips: '76013,76102,75201',
+      serviceArea: 'Pearland, League City, Houston',
+      serviceAreaZips: '77584,77573,77002,77008',
       verified: true,
       serviceNames: [
         'Driveway Pressure Wash',
@@ -1088,6 +1124,8 @@ async function main() {
         contractorAgreedAt: prov.contractorAgreedAt,
       },
     });
+
+    await attachProviderLogo(user.id, prov.businessName);
 
     // Assign services with slight custom pricing variation
     for (const svcName of prov.serviceNames) {
@@ -1359,7 +1397,7 @@ async function main() {
       status: 'OPEN',
       bids: [
         {
-          providerBusiness: 'DFW Power Wash Pros',
+          providerBusiness: 'Houston Power Wash Pros',
           price: 285,
           notes: 'Soft wash recommended for vinyl.',
           status: 'PENDING',
@@ -1412,7 +1450,7 @@ async function main() {
       status: 'OPEN',
       bids: [
         {
-          providerBusiness: 'DFW Power Wash Pros',
+          providerBusiness: 'Houston Power Wash Pros',
           price: 190,
           notes: 'Can complete in one afternoon.',
           status: 'PENDING',
@@ -1440,7 +1478,7 @@ async function main() {
       status: 'PENDING',
       bids: [
         {
-          providerBusiness: 'DFW Power Wash Pros',
+          providerBusiness: 'Houston Power Wash Pros',
           price: 310,
           notes: 'Soft wash, two-story. Includes rinse of patio doors.',
           status: 'ACCEPTED',
@@ -1486,7 +1524,7 @@ async function main() {
       scheduledTime: '09:00',
       bids: [
         {
-          providerBusiness: 'DFW Power Wash Pros',
+          providerBusiness: 'Houston Power Wash Pros',
           price: 175,
           notes: 'Oil stain treatment included at no extra charge.',
           status: 'ACCEPTED',
@@ -1542,7 +1580,7 @@ async function main() {
       scheduledTime: '14:00',
       bids: [
         {
-          providerBusiness: 'Metroplex Irrigation & Lighting',
+          providerBusiness: 'Bayou City Irrigation & Lighting',
           price: 620,
           notes: 'Includes clips, timers, and takedown credit.',
           status: 'ACCEPTED',
@@ -1578,7 +1616,7 @@ async function main() {
       crewName: 'Bravo Team',
       bids: [
         {
-          providerBusiness: 'DFW Power Wash Pros',
+          providerBusiness: 'Houston Power Wash Pros',
           price: 160,
           status: 'ACCEPTED',
         },
@@ -1597,7 +1635,7 @@ async function main() {
       crewName: 'Alpha Team',
       bids: [
         {
-          providerBusiness: 'DFW Power Wash Pros',
+          providerBusiness: 'Houston Power Wash Pros',
           price: 185,
           notes: 'Oil-stain pretreatment included.',
           status: 'ACCEPTED',
@@ -1616,7 +1654,7 @@ async function main() {
       crewName: 'Alpha Team',
       bids: [
         {
-          providerBusiness: 'DFW Power Wash Pros',
+          providerBusiness: 'Houston Power Wash Pros',
           price: 275,
           notes: 'Soft wash, includes patio doors.',
           status: 'ACCEPTED',
@@ -1635,7 +1673,7 @@ async function main() {
       crewName: 'Alpha Team',
       bids: [
         {
-          providerBusiness: 'DFW Power Wash Pros',
+          providerBusiness: 'Houston Power Wash Pros',
           price: 190,
           status: 'ACCEPTED',
         },
@@ -1646,14 +1684,14 @@ async function main() {
       propertyIndex: 1,
       serviceName: 'Sidewalk & Walkway Wash',
       customerNotes:
-        'Front walk and side path at the Plano rental. Tenant on site.',
+        'Front walk and side path at the Katy rental. Tenant on site.',
       status: 'SCHEDULED',
       scheduledOffsetDays: 0,
       scheduledTime: '14:00',
       crewName: 'Alpha Team',
       bids: [
         {
-          providerBusiness: 'DFW Power Wash Pros',
+          providerBusiness: 'Houston Power Wash Pros',
           price: 110,
           status: 'ACCEPTED',
         },
@@ -1663,7 +1701,7 @@ async function main() {
       customerPhone: '+18325428743',
       propertyIndex: 1,
       serviceName: 'Fence / Deck Staining',
-      customerNotes: 'Back cedar fence at the Plano rental.',
+      customerNotes: 'Back cedar fence at the Katy rental.',
       status: 'IN_PROGRESS',
       scheduledOffsetDays: -1,
       scheduledTime: '09:30',
@@ -1716,7 +1754,7 @@ async function main() {
       scheduledTime: '11:00',
       bids: [
         {
-          providerBusiness: 'DFW Power Wash Pros',
+          providerBusiness: 'Houston Power Wash Pros',
           price: 120,
           status: 'ACCEPTED',
         },
@@ -2057,7 +2095,7 @@ async function main() {
           userId: user.id,
           type: 'BID_RECEIVED',
           title: 'New Bid Received',
-          body: 'DFW Power Wash Pros submitted a bid for your Driveway Pressure Wash job.',
+          body: 'Houston Power Wash Pros submitted a bid for your Driveway Pressure Wash job.',
           read: false,
         },
         {
@@ -2086,7 +2124,7 @@ async function main() {
           userId: user.id,
           type: 'NEW_JOB_AVAILABLE',
           title: 'New Job Available',
-          body: 'New Window Cleaning job at 1200 Lakeview Circle, Arlington. Submit your bid!',
+          body: 'New Window Cleaning job at 1200 Marina Bay Dr, League City. Submit your bid!',
           read: false,
         },
         {
@@ -2161,13 +2199,13 @@ async function main() {
   console.log(chalk.dim('    Admin:    verawebdev@protonmail.com'));
   console.log(chalk.dim('    Admin:    admin@example.com'));
   console.log(chalk.dim('    Customer: jordan.vera96@gmail.com'));
-  console.log(chalk.dim('    Provider: payouts@dfwpowerwash.example.com'));
+  console.log(chalk.dim('    Provider: payouts@houstonpowerwash.example.com'));
   console.log(
-    chalk.dim('    Crew:     vera.jojo96@gmail.com (DFW Alpha Team)'),
+    chalk.dim('    Crew:     vera.jojo96@gmail.com (Houston Alpha Team)'),
   );
   console.log(
     chalk.dim(
-      '    Payout-ready: DFW Power Wash, GreenScape, Texas Painters, Crystal Clear, Metroplex Lights',
+      '    Payout-ready: Houston Power Wash, GreenScape, Texas Painters, Crystal Clear, Bayou City Lights',
     ),
   );
   console.log();

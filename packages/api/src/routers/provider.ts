@@ -70,6 +70,10 @@ export const providerRouter = router({
       const data = {
         ...input,
         email: input.email === "" ? null : input.email,
+        serviceAreaZips:
+          input.serviceAreaZips === undefined
+            ? undefined
+            : input.serviceAreaZips || null,
       };
       return ctx.db.providerProfile.update({
         where: { userId: ctx.user.userId },

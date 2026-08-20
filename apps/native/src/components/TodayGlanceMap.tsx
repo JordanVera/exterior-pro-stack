@@ -22,13 +22,14 @@ type Stop = {
 
 /** City centers used when a property has no stored coordinates yet. */
 const CITY_COORDS: Record<string, { latitude: number; longitude: number }> = {
-  Dallas: { latitude: 32.7767, longitude: -96.797 },
-  Plano: { latitude: 33.0198, longitude: -96.6989 },
-  "Fort Worth": { latitude: 32.7555, longitude: -97.3308 },
-  Arlington: { latitude: 32.7357, longitude: -97.1081 },
-  Frisco: { latitude: 33.1507, longitude: -96.8236 },
-  Southlake: { latitude: 32.9412, longitude: -97.1344 },
-  Grapevine: { latitude: 32.934, longitude: -97.0781 },
+  Houston: { latitude: 29.7604, longitude: -95.3698 },
+  Katy: { latitude: 29.7858, longitude: -95.8245 },
+  "The Woodlands": { latitude: 30.1658, longitude: -95.4613 },
+  "League City": { latitude: 29.5075, longitude: -95.0949 },
+  Pearland: { latitude: 29.5636, longitude: -95.286 },
+  "Sugar Land": { latitude: 29.6197, longitude: -95.6349 },
+  Cypress: { latitude: 29.9691, longitude: -95.6972 },
+  Spring: { latitude: 30.0799, longitude: -95.4172 },
 };
 
 function asCoordinate(value: unknown) {

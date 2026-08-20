@@ -16,6 +16,7 @@ import {
 import { signToken } from '../lib/jwt';
 import { generateVerificationCode } from '../lib/otp';
 import { sendVerificationEmail } from '../lib/email';
+import { assertOwnedLogoPath } from '../lib/provider-logo';
 
 const CODE_TTL_MINUTES = 10;
 /** Minimum gap between two codes for the same email. */
@@ -367,22 +368,49 @@ export const authRouter = router({
         select: { email: true },
       });
       const email = input.email || user?.email || undefined;
+      assertOwnedLogoPath(ctx.user.userId, input.logoPathname);
+
+      const serviceIds = [...new Set(input.serviceIds)];
+      const activeServices = await ctx.db.service.findMany({
+        where: { id: { in: serviceIds }, active: true },
+        select: { id: true },
+      });
+      if (activeServices.length !== serviceIds.length) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'One or more selected services are invalid',
+        });
+      }
 
       const profile = await ctx.db.providerProfile.upsert({
         where: { userId: ctx.user.userId },
         update: {
           businessName: input.businessName,
           description: input.description,
-          serviceArea: input.serviceArea,
+          serviceAreaZips: input.serviceAreaZips,
           email,
+          ...(input.logoUrl ? { logoUrl: input.logoUrl } : {}),
+          ...(input.logoPathname ? { logoPathname: input.logoPathname } : {}),
         },
         create: {
           userId: ctx.user.userId,
           businessName: input.businessName,
           description: input.description,
-          serviceArea: input.serviceArea,
+          serviceAreaZips: input.serviceAreaZips,
           email,
+          logoUrl: input.logoUrl,
+          logoPathname: input.logoPathname,
         },
+      });
+
+      await ctx.db.providerService.deleteMany({
+        where: { providerId: profile.id },
+      });
+      await ctx.db.providerService.createMany({
+        data: serviceIds.map((serviceId) => ({
+          providerId: profile.id,
+          serviceId,
+        })),
       });
 
       return profile;

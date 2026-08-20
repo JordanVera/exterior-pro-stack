@@ -141,3 +141,10 @@
 .animate-scale-check {
   animation: scale-check 0.4s ease-out forwards;
 }
+
+@media print {
+  .bg-grid-fade,
+  [class*='bg-grid-fade'] {
+    background-image: none !important;
+  }
+}

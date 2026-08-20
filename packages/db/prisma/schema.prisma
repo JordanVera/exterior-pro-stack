@@ -160,6 +160,8 @@ model ProviderProfile {
   businessName           String
   description            String?   @db.Text
   email                  String?
+  logoUrl                String?   @db.VarChar(2048)
+  logoPathname           String?   @db.VarChar(1024)
   serviceArea            String?
   serviceAreaZips        String?
   verified               Boolean   @default(false)

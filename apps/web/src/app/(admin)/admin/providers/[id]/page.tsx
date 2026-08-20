@@ -22,6 +22,7 @@ type ProviderDetail = {
   email: string | null;
   serviceArea: string | null;
   serviceAreaZips: string | null;
+  logoUrl: string | null;
   verified: boolean;
   stripeAccountId: string | null;
   stripeTransfersEnabled: boolean;
@@ -32,9 +33,18 @@ type ProviderDetail = {
   services: {
     id: string;
     customPrice: unknown;
-    service: { name: string; basePrice: unknown; unit: string; category: { name: string } };
+    service: {
+      name: string;
+      basePrice: unknown;
+      unit: string;
+      category: { name: string };
+    };
   }[];
-  crews: { id: string; name: string; members: { id: string; name: string }[] }[];
+  crews: {
+    id: string;
+    name: string;
+    members: { id: string; name: string }[];
+  }[];
   transfers: {
     id: string;
     amountCents: number;
@@ -79,7 +89,9 @@ export default function AdminProviderDetailPage() {
         providerId: provider.id,
         verified: !provider.verified,
       });
-      toast.success(provider.verified ? 'Provider unverified' : 'Provider verified');
+      toast.success(
+        provider.verified ? 'Provider unverified' : 'Provider verified',
+      );
       load();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Update failed');
@@ -89,8 +101,8 @@ export default function AdminProviderDetailPage() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-36 w-full rounded-3xl" />
-        <Skeleton className="h-32 w-full rounded-2xl" />
+        <Skeleton className="w-full h-36 rounded-3xl" />
+        <Skeleton className="w-full h-32 rounded-2xl" />
       </div>
     );
   }
@@ -138,7 +150,18 @@ export default function AdminProviderDetailPage() {
     <div className="space-y-8">
       <DashboardHero
         eyebrow="Provider"
-        title={provider.businessName}
+        title={
+          <span className="flex gap-3 items-center">
+            {provider.logoUrl ? (
+              <img
+                src={provider.logoUrl}
+                alt=""
+                className="object-cover w-10 h-10 rounded-xl border border-border"
+              />
+            ) : null}
+            {provider.businessName}
+          </span>
+        }
         subtitle={provider.user.email}
         size="md"
         backHref={{ href: '/admin/providers', label: 'All providers' }}
@@ -170,29 +193,43 @@ export default function AdminProviderDetailPage() {
 
       <StatTiles tiles={tiles} className="lg:grid-cols-4" />
 
-      <div className="grid gap-4 sm:grid-cols-2 text-sm">
-        <Info label="Service area" value={provider.serviceArea || '—'} />
-        <Info label="ZIP codes" value={provider.serviceAreaZips || '—'} />
+      <div className="grid gap-4 text-sm sm:grid-cols-2">
+        <Info
+          label="ZIP codes"
+          value={
+            provider.serviceAreaZips
+              ? provider.serviceAreaZips.split(',').join(', ')
+              : '—'
+          }
+        />
         <Info label="Business email" value={provider.email || '—'} />
         <Info
           label="Contractor agreement"
-          value={provider.contractorAgreedAt ? formatDate(provider.contractorAgreedAt) : 'Not signed'}
+          value={
+            provider.contractorAgreedAt
+              ? formatDate(provider.contractorAgreedAt)
+              : 'Not signed'
+          }
         />
       </div>
 
       {provider.description ? (
         <SectionPanel title="About">
-          <p className="text-sm text-muted-foreground">{provider.description}</p>
+          <p className="text-sm text-muted-foreground">
+            {provider.description}
+          </p>
         </SectionPanel>
       ) : null}
 
       <SectionPanel title="Services offered" count={provider.services.length}>
         {provider.services.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No catalog services selected.</p>
+          <p className="text-sm text-muted-foreground">
+            No catalog services selected.
+          </p>
         ) : (
           <ul className="space-y-2 text-sm">
             {provider.services.map((item) => (
-              <li key={item.id} className="flex justify-between gap-3">
+              <li key={item.id} className="flex gap-3 justify-between">
                 <span>
                   {item.service.name}
                   <span className="ml-2 text-xs text-muted-foreground">
@@ -234,20 +271,30 @@ export default function AdminProviderDetailPage() {
         {provider.jobs.length === 0 ? (
           <EmptyState icon={Briefcase} title="No awarded jobs yet" />
         ) : (
-          <div className="overflow-x-auto rounded-2xl border border-border bg-background/70 backdrop-blur-xl">
+          <div className="overflow-x-auto rounded-2xl border backdrop-blur-xl border-border bg-background/70">
             <table className="w-full text-sm">
               <thead className="border-b border-border bg-muted/40">
                 <tr>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Service</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Property</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Price</th>
+                  <th className="px-4 py-3 font-medium text-left text-muted-foreground">
+                    Service
+                  </th>
+                  <th className="px-4 py-3 font-medium text-left text-muted-foreground">
+                    Property
+                  </th>
+                  <th className="px-4 py-3 font-medium text-left text-muted-foreground">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 font-medium text-left text-muted-foreground">
+                    Price
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
                 {provider.jobs.map((job) => (
                   <tr key={job.id}>
-                    <td className="px-4 py-3 font-medium">{job.service.name}</td>
+                    <td className="px-4 py-3 font-medium">
+                      {job.service.name}
+                    </td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {job.property.address}, {job.property.city}
                     </td>
@@ -255,7 +302,9 @@ export default function AdminProviderDetailPage() {
                       <StatusBadge value={job.status} kind="job" />
                     </td>
                     <td className="px-4 py-3">
-                      {job.acceptedBid ? `$${Number(job.acceptedBid.price).toFixed(2)}` : '—'}
+                      {job.acceptedBid
+                        ? `$${Number(job.acceptedBid.price).toFixed(2)}`
+                        : '—'}
                     </td>
                   </tr>
                 ))}
@@ -265,18 +314,30 @@ export default function AdminProviderDetailPage() {
         )}
       </SectionPanel>
 
-      <SectionPanel title="Payout history" count={provider.transfers.length} bare>
+      <SectionPanel
+        title="Payout history"
+        count={provider.transfers.length}
+        bare
+      >
         {provider.transfers.length === 0 ? (
           <EmptyState icon={Wallet} title="No transfers yet" />
         ) : (
-          <div className="overflow-x-auto rounded-2xl border border-border bg-background/70 backdrop-blur-xl">
+          <div className="overflow-x-auto rounded-2xl border backdrop-blur-xl border-border bg-background/70">
             <table className="w-full text-sm">
               <thead className="border-b border-border bg-muted/40">
                 <tr>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Job</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Amount</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
-                  <th className="px-4 py-3 text-left font-medium text-muted-foreground">Date</th>
+                  <th className="px-4 py-3 font-medium text-left text-muted-foreground">
+                    Job
+                  </th>
+                  <th className="px-4 py-3 font-medium text-left text-muted-foreground">
+                    Amount
+                  </th>
+                  <th className="px-4 py-3 font-medium text-left text-muted-foreground">
+                    Status
+                  </th>
+                  <th className="px-4 py-3 font-medium text-left text-muted-foreground">
+                    Date
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -285,7 +346,9 @@ export default function AdminProviderDetailPage() {
                     <td className="px-4 py-3">
                       {transfer.payment.job?.service.name ?? 'Subscription'}
                     </td>
-                    <td className="px-4 py-3 font-medium">{dollars(transfer.amountCents)}</td>
+                    <td className="px-4 py-3 font-medium">
+                      {dollars(transfer.amountCents)}
+                    </td>
                     <td className="px-4 py-3">
                       <StatusBadge value={transfer.status} kind="transfer" />
                     </td>
@@ -305,8 +368,10 @@ export default function AdminProviderDetailPage() {
 
 function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-border bg-background/70 p-4 backdrop-blur-xl">
-      <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">{label}</p>
+    <div className="p-4 rounded-2xl border backdrop-blur-xl border-border bg-background/70">
+      <p className="text-xs uppercase tracking-[0.12em] text-muted-foreground">
+        {label}
+      </p>
       <p className="mt-1 font-medium text-foreground">{value}</p>
     </div>
   );

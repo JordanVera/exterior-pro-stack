@@ -11,7 +11,8 @@
   "scripts": {
     "build": "tsc",
     "clean": "rm -rf dist node_modules",
-    "backfill:property-images": "tsx scripts/backfill-property-images.ts"
+    "backfill:property-images": "tsx scripts/backfill-property-images.ts",
+    "backfill:provider-logos": "tsx scripts/backfill-provider-logos.ts"
   },
   "dependencies": {
     "@repo/db": "*",

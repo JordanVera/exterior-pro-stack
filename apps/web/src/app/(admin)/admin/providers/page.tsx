@@ -24,6 +24,8 @@ type ProviderUser = {
     businessName: string;
     description: string | null;
     serviceArea: string | null;
+    serviceAreaZips: string | null;
+    logoUrl: string | null;
     verified: boolean;
     stripeAccountId: string | null;
     stripeTransfersEnabled: boolean;
@@ -110,29 +112,44 @@ export default function AdminProvidersPage() {
             return (
               <SectionPanel key={user.id} title={profile.businessName}>
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="space-y-1 text-sm text-muted-foreground">
-                    <p>{user.email}</p>
-                    {profile.serviceArea ? <p>Area: {profile.serviceArea}</p> : null}
-                    {profile.description ? <p>{profile.description}</p> : null}
-                    <p className="text-xs">
-                      Joined {formatDate(user.createdAt)} · Connect{' '}
-                      {profile.stripeTransfersEnabled
-                        ? 'payouts enabled'
-                        : profile.stripeAccountId
-                          ? 'onboarding incomplete'
-                          : 'not started'}
-                    </p>
-                    <p>
-                      <span
-                        className={
-                          profile.verified
-                            ? 'text-green-600 dark:text-green-400'
-                            : 'text-amber-600 dark:text-amber-400'
-                        }
-                      >
-                        {profile.verified ? 'Verified' : 'Pending verification'}
-                      </span>
-                    </p>
+                  <div className="flex gap-3">
+                    {profile.logoUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={profile.logoUrl}
+                        alt=""
+                        className="h-10 w-10 shrink-0 rounded-lg border border-border object-cover"
+                      />
+                    ) : null}
+                    <div className="space-y-1 text-sm text-muted-foreground">
+                      <p>{user.email}</p>
+                      {profile.serviceAreaZips ? (
+                        <p>
+                          ZIPs:{' '}
+                          {profile.serviceAreaZips.split(',').join(', ')}
+                        </p>
+                      ) : null}
+                      {profile.description ? <p>{profile.description}</p> : null}
+                      <p className="text-xs">
+                        Joined {formatDate(user.createdAt)} · Connect{' '}
+                        {profile.stripeTransfersEnabled
+                          ? 'payouts enabled'
+                          : profile.stripeAccountId
+                            ? 'onboarding incomplete'
+                            : 'not started'}
+                      </p>
+                      <p>
+                        <span
+                          className={
+                            profile.verified
+                              ? 'text-green-600 dark:text-green-400'
+                              : 'text-amber-600 dark:text-amber-400'
+                          }
+                        >
+                          {profile.verified ? 'Verified' : 'Pending verification'}
+                        </span>
+                      </p>
+                    </div>
                   </div>
                   <div className="flex shrink-0 gap-2">
                     <Button variant="outline" asChild>
