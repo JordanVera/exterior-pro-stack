@@ -235,11 +235,11 @@ function HeroPreview({ audience }: { audience: Audience }) {
         animate={{ y: [0, -8, 0] }}
         transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
       >
-        <div className="px-4 py-3 bg-white rounded-2xl border shadow-xl border-brand-lime/30">
-          <p className="text-[11px] font-medium uppercase tracking-wider text-brand-navy">
+        <div className="px-4 py-3 bg-white rounded-2xl border shadow-xl border-brand-lime/30 dark:border-brand-lime/25 dark:bg-brand-navy/95 dark:backdrop-blur-xl">
+          <p className="text-[11px] font-medium uppercase tracking-wider text-brand-navy dark:text-brand-lime">
             {audience === 'homeowner' ? 'New bid' : 'New job in your area'}
           </p>
-          <p className="mt-0.5 text-sm font-semibold text-brand-navy">
+          <p className="mt-0.5 text-sm font-semibold text-brand-navy dark:text-white">
             {audience === 'homeowner'
               ? 'Summit Lawn Co. · $118'
               : 'Gutter clean · 2.1 mi away'}
@@ -251,7 +251,7 @@ function HeroPreview({ audience }: { audience: Audience }) {
         animate={{ y: [0, 10, 0] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
       >
-        <div className="overflow-hidden relative p-5 bg-white rounded-3xl border shadow-2xl backdrop-blur-xl border-white/15">
+        <div className="overflow-hidden relative p-5 bg-white rounded-3xl border shadow-2xl backdrop-blur-xl border-white/15 dark:border-white/10 dark:bg-brand-navy/90">
           <GlowingEffect
             disabled={false}
             glow
@@ -287,31 +287,33 @@ function HomeownerPreview() {
     <>
       <div className="flex justify-between items-center mb-5">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-navy">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-navy dark:text-brand-lime">
             Live marketplace
           </p>
-          <p className="mt-1 text-lg font-semibold text-brand-ink">
+          <p className="mt-1 text-lg font-semibold text-brand-ink dark:text-white">
             Gutter cleaning
           </p>
         </div>
-        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-brand-lime/20 text-brand-navy">
+        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-brand-lime/20 text-brand-navy dark:text-brand-lime">
           3 bids
         </span>
       </div>
 
-      <div className="p-4 mb-4 rounded-2xl border border-brand-lime/30 bg-brand-lime/10">
+      <div className="mb-4 rounded-2xl border border-brand-lime/30 bg-brand-lime/10 dark:border-brand-lime/25 dark:bg-brand-lime/10">
         <div className="flex gap-3 justify-between items-center">
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-wider text-brand-navy/60">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-brand-navy/60 dark:text-white/50">
               Active plan
             </p>
-            <p className="mt-1 text-sm font-semibold text-brand-ink">
+            <p className="mt-1 text-sm font-semibold text-brand-ink dark:text-white">
               Standard Exterior
             </p>
           </div>
-          <p className="text-lg font-bold text-brand-navy">$179</p>
+          <p className="text-lg font-bold text-brand-navy dark:text-brand-lime">
+            $179
+          </p>
         </div>
-        <p className="mt-2 text-xs text-brand-navy/60">
+        <p className="mt-2 text-xs text-brand-navy/60 dark:text-white/50">
           Next visit Tuesday · Lawn, weeds, gutters
         </p>
       </div>
@@ -327,14 +329,14 @@ function HomeownerPreview() {
               'flex items-center justify-between rounded-xl border px-3.5 py-3',
               bid.highlight
                 ? 'border-brand-lime/40 bg-brand-lime/10'
-                : 'border-gray-100 bg-gray-50',
+                : 'border-gray-100 bg-gray-50 dark:border-white/10 dark:bg-white/5',
             )}
           >
             <div className="min-w-0">
-              <p className="text-sm font-medium truncate text-brand-ink">
+              <p className="text-sm font-medium truncate text-brand-ink dark:text-white">
                 {bid.name}
               </p>
-              <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-brand-navy/50">
+              <p className="mt-0.5 inline-flex items-center gap-1 text-xs text-brand-navy/50 dark:text-white/45">
                 <Star className="w-3 h-3 fill-brand-lime text-brand-lime" />
                 {bid.rating} · verified
               </p>
@@ -342,7 +344,9 @@ function HomeownerPreview() {
             <p
               className={cn(
                 'text-sm font-semibold',
-                bid.highlight ? 'text-brand-navy' : 'text-brand-ink/70',
+                bid.highlight
+                  ? 'text-brand-navy dark:text-brand-lime'
+                  : 'text-brand-ink/70 dark:text-white/80',
               )}
             >
               {bid.amount}
@@ -366,31 +370,33 @@ function ProviderPreview() {
     <>
       <div className="flex justify-between items-center mb-5">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-navy">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-navy dark:text-brand-lime">
             Today · Crew A
           </p>
-          <p className="mt-1 text-lg font-semibold text-brand-ink">
+          <p className="mt-1 text-lg font-semibold text-brand-ink dark:text-white">
             3 jobs · 11.4 miles
           </p>
         </div>
-        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-brand-lime/20 text-brand-navy">
+        <span className="px-3 py-1 text-xs font-semibold rounded-full bg-brand-lime/20 text-brand-navy dark:text-brand-lime">
           On track
         </span>
       </div>
 
-      <div className="p-4 mb-4 rounded-2xl border border-brand-lime/30 bg-brand-lime/10">
+      <div className="mb-4 rounded-2xl border border-brand-lime/30 bg-brand-lime/10 dark:border-brand-lime/25 dark:bg-brand-lime/10">
         <div className="flex gap-3 justify-between items-center">
           <div>
-            <p className="text-[11px] font-medium uppercase tracking-wider text-brand-navy/60">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-brand-navy/60 dark:text-white/50">
               Recurring book
             </p>
-            <p className="mt-1 text-sm font-semibold text-brand-ink">
+            <p className="mt-1 text-sm font-semibold text-brand-ink dark:text-white">
               22 subscription properties
             </p>
           </div>
-          <p className="text-lg font-bold text-brand-navy">$4,180</p>
+          <p className="text-lg font-bold text-brand-navy dark:text-brand-lime">
+            $4,180
+          </p>
         </div>
-        <p className="mt-2 text-xs text-brand-navy/60">
+        <p className="mt-2 text-xs text-brand-navy/60 dark:text-white/50">
           Expected this month · no re-bidding
         </p>
       </div>
@@ -406,16 +412,18 @@ function ProviderPreview() {
               'flex items-center justify-between gap-3 rounded-xl border px-3.5 py-3',
               item.status === 'In progress'
                 ? 'border-brand-lime/40 bg-brand-lime/10'
-                : 'border-gray-100 bg-gray-50',
+                : 'border-gray-100 bg-gray-50 dark:border-white/10 dark:bg-white/5',
             )}
           >
             <div className="min-w-0">
-              <p className="text-sm font-medium truncate text-brand-ink">
+              <p className="text-sm font-medium truncate text-brand-ink dark:text-white">
                 {item.job}
               </p>
-              <p className="mt-0.5 text-xs text-brand-navy/50">{item.time}</p>
+              <p className="mt-0.5 text-xs text-brand-navy/50 dark:text-white/45">
+                {item.time}
+              </p>
             </div>
-            <p className="text-xs font-semibold shrink-0 text-brand-navy/60">
+            <p className="text-xs font-semibold shrink-0 text-brand-navy/60 dark:text-white/50">
               {item.status}
             </p>
           </motion.div>

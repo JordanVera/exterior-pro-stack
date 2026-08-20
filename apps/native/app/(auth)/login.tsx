@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import {
   Image,
   KeyboardAvoidingView,
@@ -154,7 +155,10 @@ export default function LoginScreen() {
                       </Text>
                       <TextInput
                         value={email}
-                        onChangeText={setEmail}
+                        onChangeText={(value) => {
+                          tickHaptic();
+                          setEmail(value);
+                        }}
                         keyboardType="email-address"
                         autoCapitalize="none"
                         autoCorrect={false}
@@ -186,8 +190,16 @@ export default function LoginScreen() {
                         type="numeric"
                         autoFocus
                         focusColor={colors.lime}
-                        onTextChange={setCode}
+                        onTextChange={(text) => {
+                          if (text.length < 6) {
+                            tickHaptic();
+                          }
+                          setCode(text);
+                        }}
                         onFilled={(text) => {
+                          Haptics.notificationAsync(
+                            Haptics.NotificationFeedbackType.Success,
+                          ).catch(() => undefined);
                           setCode(text);
                           void verifyCode(text);
                         }}
@@ -244,6 +256,16 @@ export default function LoginScreen() {
       </KeyboardAvoidingView>
     </View>
   );
+}
+
+function tickHaptic() {
+  const haptic =
+    Platform.OS === 'android'
+      ? Haptics.performAndroidHapticsAsync(
+          Haptics.AndroidHaptics.Keyboard_Press,
+        )
+      : Haptics.selectionAsync();
+  haptic.catch(() => undefined);
 }
 
 function TrustChip({

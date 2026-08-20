@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "expo start --dev-client",
     "android": "expo run:android",
-    "ios": "expo run:ios",
+    "ios": "expo run:ios --device \"iPhone 17\"",
     "web": "expo start --web",
     "eject": "expo eject"
   },
@@ -31,6 +31,7 @@
     "expo-image-picker": "~57.0.11",
     "expo-linear-gradient": "~57.0.1",
     "expo-linking": "~57.0.6",
+    "expo-maps": "~57.0.1",
     "expo-modules-core": "~57.0.11",
     "expo-notifications": "^57.0.12",
     "expo-router": "~57.0.13",

@@ -531,6 +531,8 @@ async function main() {
           state: 'TX',
           zip: '75201',
           notes: 'Main residence, large front yard. Gate code: 4521',
+          latitude: 32.7871,
+          longitude: -96.7989,
         },
         {
           address: '8800 Maple Ridge Dr',
@@ -538,6 +540,8 @@ async function main() {
           state: 'TX',
           zip: '75024',
           notes: 'Rental property, contact tenant before arrival',
+          latitude: 33.0754,
+          longitude: -96.8218,
         },
       ],
     },
@@ -553,6 +557,8 @@ async function main() {
           state: 'TX',
           zip: '76102',
           notes: 'Two-story, back gate is unlocked',
+          latitude: 32.7555,
+          longitude: -97.3308,
         },
       ],
     },
@@ -568,6 +574,8 @@ async function main() {
           state: 'TX',
           zip: '76013',
           notes: 'Lakefront property, be careful near the dock',
+          latitude: 32.7079,
+          longitude: -97.1228,
         },
         {
           address: '509 W Commerce St',
@@ -575,6 +583,8 @@ async function main() {
           state: 'TX',
           zip: '75208',
           notes: 'Commercial storefront, after-hours access only',
+          latitude: 32.7764,
+          longitude: -96.8102,
         },
         {
           address: '2211 Preston Rd',
@@ -582,6 +592,8 @@ async function main() {
           state: 'TX',
           zip: '75034',
           notes: 'New construction, no landscaping yet',
+          latitude: 33.1507,
+          longitude: -96.8055,
         },
       ],
     },
@@ -597,6 +609,8 @@ async function main() {
           state: 'TX',
           zip: '75219',
           notes: 'Corner lot with large trees',
+          latitude: 32.8137,
+          longitude: -96.8125,
         },
       ],
     },
@@ -612,6 +626,8 @@ async function main() {
           state: 'TX',
           zip: '76092',
           notes: 'HOA requires 48hr notice for exterior work',
+          latitude: 32.9412,
+          longitude: -97.1344,
         },
         {
           address: '900 Main St Apt 12B',
@@ -619,6 +635,8 @@ async function main() {
           state: 'TX',
           zip: '76051',
           notes: 'Apartment — parking lot cleaning only',
+          latitude: 32.934,
+          longitude: -97.0781,
         },
       ],
     },
@@ -643,12 +661,15 @@ async function main() {
     });
 
     for (const prop of cust.properties) {
+      const id = `seed-prop-${cust.phone}-${prop.address.slice(0, 20).replace(/\s/g, '-')}`;
       await prisma.property.upsert({
-        where: {
-          id: `seed-prop-${cust.phone}-${prop.address.slice(0, 20).replace(/\s/g, '-')}`,
+        where: { id },
+        update: {
+          latitude: prop.latitude,
+          longitude: prop.longitude,
         },
-        update: {},
         create: {
+          id,
           customerId: profile.id,
           ...prop,
         },
@@ -689,7 +710,12 @@ async function main() {
     serviceNames: string[];
     crews: {
       name: string;
-      members: { name: string; phone?: string; role?: string }[];
+      members: {
+        name: string;
+        phone?: string;
+        role?: string;
+        email?: string;
+      }[];
     }[];
   }[] = [
     {
@@ -715,7 +741,12 @@ async function main() {
         {
           name: 'Alpha Team',
           members: [
-            { name: 'Carlos Rivera', phone: '+15559001001', role: 'Lead' },
+            {
+              name: 'Jojo Vera',
+              phone: '+15559001001',
+              email: 'vera.jojo96@gmail.com',
+              role: 'Lead',
+            },
             { name: 'David Kim', phone: '+15559001002', role: 'Technician' },
             { name: 'Marcus Johnson', role: 'Helper' },
           ],
@@ -1095,8 +1126,10 @@ async function main() {
 
       for (const member of crewData.members) {
         let userId: string | undefined;
-        const email = member.phone ? crewLoginEmail(member.name) : undefined;
-        if (member.phone && email) {
+        const email =
+          member.email ??
+          (member.phone ? crewLoginEmail(member.name) : undefined);
+        if (email) {
           const crewUser = await upsertLoginUser({
             email,
             phone: member.phone,
@@ -1270,6 +1303,7 @@ async function main() {
     scheduledOffsetDays?: number;
     scheduledTime?: string;
     pendingTransfer?: boolean;
+    crewName?: string;
   }[] = [
     // OPEN — no bids (Available board)
     {
@@ -1539,10 +1573,86 @@ async function main() {
       status: 'IN_PROGRESS',
       scheduledOffsetDays: 0,
       scheduledTime: '08:00',
+      crewName: 'Bravo Team',
       bids: [
         {
           providerBusiness: 'DFW Power Wash Pros',
           price: 160,
+          status: 'ACCEPTED',
+        },
+      ],
+    },
+    // Alpha Team (Jojo Vera) — 4 jobs on the current calendar day, 8am onward
+    {
+      customerPhone: '+15551005005',
+      propertyIndex: 0,
+      serviceName: 'Driveway Pressure Wash',
+      customerNotes:
+        'Stamped concrete driveway. Soft wash near the garage door.',
+      status: 'SCHEDULED',
+      scheduledOffsetDays: 0,
+      scheduledTime: '08:00',
+      crewName: 'Alpha Team',
+      bids: [
+        {
+          providerBusiness: 'DFW Power Wash Pros',
+          price: 185,
+          notes: 'Oil-stain pretreatment included.',
+          status: 'ACCEPTED',
+        },
+      ],
+    },
+    {
+      customerPhone: '+15551002002',
+      propertyIndex: 0,
+      serviceName: 'House Siding Wash',
+      customerNotes:
+        'Two-story vinyl. Dog in backyard — please close the gate.',
+      status: 'SCHEDULED',
+      scheduledOffsetDays: 0,
+      scheduledTime: '10:00',
+      crewName: 'Alpha Team',
+      bids: [
+        {
+          providerBusiness: 'DFW Power Wash Pros',
+          price: 275,
+          notes: 'Soft wash, includes patio doors.',
+          status: 'ACCEPTED',
+        },
+      ],
+    },
+    {
+      customerPhone: '+15551003003',
+      propertyIndex: 0,
+      serviceName: 'Deck / Patio Wash',
+      customerNotes:
+        'Composite deck off the kitchen. Rinse furniture in place.',
+      status: 'SCHEDULED',
+      scheduledOffsetDays: 0,
+      scheduledTime: '12:00',
+      crewName: 'Alpha Team',
+      bids: [
+        {
+          providerBusiness: 'DFW Power Wash Pros',
+          price: 190,
+          status: 'ACCEPTED',
+        },
+      ],
+    },
+    {
+      customerPhone: '+18325428743',
+      propertyIndex: 1,
+      serviceName: 'Sidewalk & Walkway Wash',
+      customerNotes:
+        'Front walk and side path at the Plano rental. Tenant on site.',
+      status: 'SCHEDULED',
+      scheduledOffsetDays: 0,
+      scheduledTime: '14:00',
+      crewName: 'Alpha Team',
+      bids: [
+        {
+          providerBusiness: 'DFW Power Wash Pros',
+          price: 110,
           status: 'ACCEPTED',
         },
       ],
@@ -1754,7 +1864,10 @@ async function main() {
       );
       if (provProfile) {
         const crew = await prisma.crew.findFirst({
-          where: { providerId: provProfile.id },
+          where: {
+            providerId: provProfile.id,
+            ...(scenario.crewName ? { name: scenario.crewName } : {}),
+          },
         });
         if (crew) {
           await prisma.jobAssignment.create({
@@ -2047,7 +2160,7 @@ async function main() {
   console.log(chalk.dim('    Customer: jordan.vera96@gmail.com'));
   console.log(chalk.dim('    Provider: payouts@dfwpowerwash.example.com'));
   console.log(
-    chalk.dim('    Crew:     carlos.rivera@crew.example.com (DFW Alpha Team)'),
+    chalk.dim('    Crew:     vera.jojo96@gmail.com (DFW Alpha Team)'),
   );
   console.log(
     chalk.dim(
