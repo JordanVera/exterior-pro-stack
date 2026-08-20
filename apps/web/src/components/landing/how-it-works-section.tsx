@@ -128,7 +128,7 @@ function ClosingPanel({
       <p className="relative mt-4 text-base leading-relaxed text-white/70">
         {audience === 'provider'
           ? 'No monthly software fee, no lead purchases, no long onboarding. Build the profile and start bidding.'
-          : 'Sign up with your phone number, add your property, and pick a plan or post a job. No sales call, ever.'}
+          : 'Sign up with your email, add your property, and pick a plan or post a job. No sales call, ever.'}
       </p>
       <Link
         href={loginPath(intent)}

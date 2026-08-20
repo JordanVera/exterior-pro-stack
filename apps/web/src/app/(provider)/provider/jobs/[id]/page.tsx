@@ -325,12 +325,14 @@ export default function ProviderJobDetailPage() {
                       {customer.email}
                     </p>
                   )}
-                  <a
-                    href={`tel:${job.property.customer.user.phone}`}
-                    className="text-sm text-brand-lime hover:underline"
-                  >
-                    {job.property.customer.user.phone}
-                  </a>
+                  {job.property.customer.user.phone ? (
+                    <a
+                      href={`tel:${job.property.customer.user.phone}`}
+                      className="text-sm text-brand-lime hover:underline"
+                    >
+                      {job.property.customer.user.phone}
+                    </a>
+                  ) : null}
                 </div>
               </div>
 

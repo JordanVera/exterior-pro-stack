@@ -1,4 +1,5 @@
-import { Resend } from "resend";
+import { Resend } from 'resend';
+import chalk from 'chalk';
 
 const resend = process.env.RESEND_API_KEY
   ? new Resend(process.env.RESEND_API_KEY)
@@ -7,7 +8,7 @@ const resend = process.env.RESEND_API_KEY
 const fromAddress =
   process.env.RESEND_FROM ||
   process.env.RESEND_FROM_EMAIL ||
-  "Exterior Pro <noreply@exteriorpro.app>";
+  'Exterior Pro <noreply@exteriorpro.app>';
 
 export async function sendEmail(opts: {
   to: string;
@@ -16,9 +17,12 @@ export async function sendEmail(opts: {
   html?: string;
 }) {
   if (!resend || !opts.to) {
-    if (!resend) {
-      console.log(`[email:skipped] ${opts.subject} → ${opts.to}`);
-    }
+    console.log(
+      chalk.cyan(
+        `${chalk.red('[email:skipped]')} ${chalk.yellow(opts.subject)} → ${opts.to}`,
+      ),
+    );
+    if (opts.text) console.log(opts.text);
     return;
   }
 
@@ -31,7 +35,7 @@ export async function sendEmail(opts: {
       html: opts.html ?? `<p>${opts.text}</p>`,
     });
   } catch (err) {
-    console.error("Failed to send email:", err);
+    console.error('Failed to send email:', err);
   }
 }
 
@@ -43,13 +47,26 @@ export async function sendPaymentReceiptEmail(opts: {
   receiptUrl?: string | null;
 }) {
   const amount = `$${(opts.amountCents / 100).toFixed(2)}`;
-  const receiptLine = opts.receiptUrl
-    ? `\nReceipt: ${opts.receiptUrl}`
-    : "";
+  const receiptLine = opts.receiptUrl ? `\nReceipt: ${opts.receiptUrl}` : '';
   await sendEmail({
     to: opts.to,
     subject: `Payment received — ${opts.description}`,
     text: `Hi ${opts.name},\n\nWe received your payment of ${amount} for ${opts.description}.${receiptLine}\n\nThank you,\nExterior Pro`,
+  });
+}
+
+export async function sendVerificationEmail(opts: {
+  to: string;
+  code: string;
+  ttlMinutes: number;
+}) {
+  await sendEmail({
+    to: opts.to,
+    subject: `${opts.code} is your Exterior Pro verification code`,
+    text: `${opts.code} is your Exterior Pro verification code. It expires in ${opts.ttlMinutes} minutes. If you didn't request this, you can ignore this email.`,
+    html: `<p>Your Exterior Pro verification code is:</p>
+<p style="font-size:28px;font-weight:700;letter-spacing:0.2em">${opts.code}</p>
+<p>It expires in ${opts.ttlMinutes} minutes. If you didn't request this, you can ignore this email.</p>`,
   });
 }
 

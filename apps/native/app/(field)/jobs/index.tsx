@@ -128,7 +128,7 @@ export default function JobsScreen() {
             title={empty.title}
             body={
               filter === "all" && user?.role === "CREW"
-                ? "Ask your owner to add your phone to a crew and assign work."
+                ? "Ask your owner to add your email to a crew and assign work."
                 : empty.body
             }
             actionLabel={filter === "all" ? undefined : "Show all jobs"}

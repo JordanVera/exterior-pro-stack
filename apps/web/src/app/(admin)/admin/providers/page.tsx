@@ -46,7 +46,7 @@ export default function AdminProvidersPage() {
                       <span className="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded text-xs font-medium">Pending</span>
                     )}
                   </div>
-                  <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">Phone: {user.phone}</p>
+                  <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">Email: {user.email}</p>
                   {profile.serviceArea && <p className="text-sm text-gray-500 dark:text-neutral-400">Area: {profile.serviceArea}</p>}
                   {profile.description && <p className="text-sm text-gray-400 dark:text-neutral-500 mt-2">{profile.description}</p>}
                   <p className="text-xs text-gray-400 dark:text-neutral-500 mt-2">Joined: {new Date(user.createdAt).toLocaleDateString()}</p>

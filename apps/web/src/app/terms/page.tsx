@@ -30,7 +30,7 @@ export default function TermsPage() {
           Accounts
         </h2>
         <p>
-          You must provide accurate information and keep your phone number current.
+          You must provide accurate information and keep your email current.
           You are responsible for activity on your account.
         </p>
         <h2 className="pt-4 text-lg font-semibold text-neutral-900 dark:text-white">

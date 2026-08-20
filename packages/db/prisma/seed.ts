@@ -31,6 +31,50 @@ function toCents(amount: number) {
   return Math.round(amount * 100);
 }
 
+function crewLoginEmail(name: string) {
+  const slug = name
+    .toLowerCase()
+    .replace(/['’]/g, '')
+    .replace(/[^a-z0-9]+/g, '.')
+    .replace(/^\.|\.$/g, '');
+  return `${slug}@crew.example.com`;
+}
+
+async function upsertLoginUser(data: {
+  email: string;
+  phone?: string;
+  role: 'ADMIN' | 'CUSTOMER' | 'PROVIDER' | 'CREW';
+  verified?: boolean;
+}) {
+  const existing = await prisma.user.findFirst({
+    where: {
+      OR: [
+        { email: data.email },
+        ...(data.phone ? [{ phone: data.phone }] : []),
+      ],
+    },
+  });
+  if (existing) {
+    return prisma.user.update({
+      where: { id: existing.id },
+      data: {
+        email: data.email,
+        phone: data.phone ?? existing.phone,
+        role: data.role,
+        verified: data.verified ?? true,
+      },
+    });
+  }
+  return prisma.user.create({
+    data: {
+      email: data.email,
+      phone: data.phone,
+      role: data.role,
+      verified: data.verified ?? true,
+    },
+  });
+}
+
 /** Local copy of platform fee split (18% + 2.9% + 30¢). Do not import from @repo/api. */
 function splitCharge(amountCents: number) {
   const stripeFeeCents = Math.round(amountCents * 0.029) + 30;
@@ -458,18 +502,14 @@ async function main() {
 
   header('Admin User');
 
-  const adminUser = await prisma.user.upsert({
-    where: { phone: '+10000000000' },
-    update: {},
-    create: {
-      phone: '+10000000000',
-      role: 'ADMIN',
-      verified: true,
-    },
+  const adminUser = await upsertLoginUser({
+    email: 'admin@example.com',
+    phone: '+10000000000',
+    role: 'ADMIN',
   });
 
   success(
-    `Admin — ${chalk.white(adminUser.phone)} (${chalk.dim(adminUser.id)})`,
+    `Admin — ${chalk.white(adminUser.email)} (${chalk.dim(adminUser.id)})`,
   );
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -480,10 +520,10 @@ async function main() {
 
   const customerData = [
     {
-      phone: '+15551001001',
-      firstName: 'Sarah',
-      lastName: 'Johnson',
-      email: 'sarah.johnson@example.com',
+      phone: '+18325428743',
+      firstName: 'jordan',
+      lastName: 'vera',
+      email: 'jordan.vera96@gmail.com',
       properties: [
         {
           address: '742 Evergreen Terrace',
@@ -564,7 +604,7 @@ async function main() {
       phone: '+15551005005',
       firstName: 'Lisa',
       lastName: 'Park',
-      email: '',
+      email: 'lisa.park@example.com',
       properties: [
         {
           address: '777 Southlake Blvd',
@@ -585,14 +625,10 @@ async function main() {
   ];
 
   for (const cust of customerData) {
-    const user = await prisma.user.upsert({
-      where: { phone: cust.phone },
-      update: {},
-      create: {
-        phone: cust.phone,
-        role: 'CUSTOMER',
-        verified: true,
-      },
+    const user = await upsertLoginUser({
+      email: cust.email,
+      phone: cust.phone,
+      role: 'CUSTOMER',
     });
 
     const profile = await prisma.customerProfile.upsert({
@@ -621,7 +657,7 @@ async function main() {
 
     const propCount = cust.properties.length;
     success(
-      `${cust.firstName} ${cust.lastName} ${chalk.gray(`(${cust.phone})`)} — ${chalk.yellow(propCount)} ${propCount === 1 ? 'property' : 'properties'}`,
+      `${cust.firstName} ${cust.lastName} ${chalk.gray(`(${cust.email})`)} — ${chalk.yellow(propCount)} ${propCount === 1 ? 'property' : 'properties'}`,
     );
   }
 
@@ -643,7 +679,7 @@ async function main() {
     phone: string;
     businessName: string;
     description: string;
-    email?: string;
+    email: string;
     serviceArea: string;
     serviceAreaZips: string;
     verified: boolean;
@@ -817,6 +853,7 @@ async function main() {
       businessName: 'Lone Star Roof & Exterior',
       description:
         'Roof cleaning specialists. Soft wash experts. Also offering pressure washing and holiday lighting.',
+      email: 'office@lonestar.example.com',
       serviceArea: 'North Texas — 50-mile radius from Dallas',
       serviceAreaZips: '75201,75208,75219,75024,75034,76102,76013,76092,76051',
       verified: true,
@@ -906,6 +943,7 @@ async function main() {
       businessName: 'All-Seasons Gutters DFW',
       description:
         'Gutter cleaning, flushing, and guard installation. Same-week residential appointments.',
+      email: 'hello@allseasonsgutters.example.com',
       serviceArea: 'Dallas, Arlington, Grand Prairie, Irving',
       serviceAreaZips: '75201,75208,75219,76102,76013',
       verified: true,
@@ -929,6 +967,7 @@ async function main() {
       businessName: 'Prairie View Land Care',
       description:
         'New lawn-care outfit covering Frisco and McKinney. Awaiting admin verification.',
+      email: 'jordan@prairieview.example.com',
       serviceArea: 'Frisco, McKinney, Allen',
       serviceAreaZips: '75034,75024',
       verified: false,
@@ -952,6 +991,7 @@ async function main() {
       businessName: 'Sparkle Soft Wash Co.',
       description:
         'Residential soft wash for siding, driveways, and roofs. Family-owned in Arlington.',
+      email: 'hello@sparklesoftwash.example.com',
       serviceArea: 'Arlington, Fort Worth, Mansfield',
       serviceAreaZips: '76013,76102,75201',
       verified: true,
@@ -983,14 +1023,10 @@ async function main() {
   }
 
   for (const prov of providerData) {
-    const user = await prisma.user.upsert({
-      where: { phone: prov.phone },
-      update: {},
-      create: {
-        phone: prov.phone,
-        role: 'PROVIDER',
-        verified: true,
-      },
+    const user = await upsertLoginUser({
+      email: prov.email,
+      phone: prov.phone,
+      role: 'PROVIDER',
     });
 
     const profile = await prisma.providerProfile.upsert({
@@ -1059,15 +1095,12 @@ async function main() {
 
       for (const member of crewData.members) {
         let userId: string | undefined;
-        if (member.phone) {
-          const crewUser = await prisma.user.upsert({
-            where: { phone: member.phone },
-            update: { role: 'CREW', verified: true },
-            create: {
-              phone: member.phone,
-              role: 'CREW',
-              verified: true,
-            },
+        const email = member.phone ? crewLoginEmail(member.name) : undefined;
+        if (member.phone && email) {
+          const crewUser = await upsertLoginUser({
+            email,
+            phone: member.phone,
+            role: 'CREW',
           });
           userId = crewUser.id;
         }
@@ -1076,6 +1109,7 @@ async function main() {
           data: {
             crewId: crew.id,
             name: member.name,
+            email: email || null,
             phone: member.phone || null,
             role: member.role || null,
             userId,
@@ -2004,12 +2038,12 @@ async function main() {
   console.log(`    Payout-ready ...... ${chalk.cyan(payoutReady)} providers`);
   console.log();
 
-  console.log(chalk.dim('  Test login phones:'));
-  console.log(chalk.dim('    Admin:    +10000000000'));
-  console.log(chalk.dim('    Customer: +15551001001 through +15551005005'));
-  console.log(chalk.dim('    Provider: +15552001001 through +15552010010'));
+  console.log(chalk.dim('  Test login emails:'));
+  console.log(chalk.dim('    Admin:    admin@example.com'));
+  console.log(chalk.dim('    Customer: sarah.johnson@example.com'));
+  console.log(chalk.dim('    Provider: payouts@dfwpowerwash.example.com'));
   console.log(
-    chalk.dim('    Crew:     +15559001001 (Carlos Rivera, DFW Alpha Team)'),
+    chalk.dim('    Crew:     carlos.rivera@crew.example.com (DFW Alpha Team)'),
   );
   console.log(
     chalk.dim(

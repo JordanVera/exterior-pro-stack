@@ -23,15 +23,16 @@ export default function PrivacyPage() {
         </h2>
         <p>
           We use this data to authenticate you, match jobs with providers, process
-          payments through Stripe, send SMS and email about jobs, and improve the
-          product. We do not sell personal information.
+          payments through Stripe, send email (and optional SMS) about jobs, and
+          improve the product. We do not sell personal information.
         </p>
         <h2 className="pt-4 text-lg font-semibold text-neutral-900 dark:text-white">
           Processors
         </h2>
         <p>
-          Payment data is processed by Stripe. SMS is sent via Twilio. Email may be
-          sent via Resend. Hosting and logs may be processed by Vercel.
+          Payment data is processed by Stripe. Login codes and email are sent via
+          Resend. Job SMS may be sent via Twilio when a phone number is on file.
+          Hosting and logs may be processed by Vercel.
         </p>
         <h2 className="pt-4 text-lg font-semibold text-neutral-900 dark:text-white">
           Retention

@@ -105,7 +105,7 @@ export default function CrewsIndexScreen() {
         <ScreenHeader
           eyebrow="Field"
           title="Crews"
-          subtitle="Create teams and add phone numbers so they can sign in on the app."
+          subtitle="Create teams and add emails so they can sign in on the app."
         />
 
         <View className="mt-6">
@@ -121,7 +121,7 @@ export default function CrewsIndexScreen() {
             <EmptyState
               icon="people-outline"
               title="No crews yet"
-              body="Add a crew, then give each member a phone number so they can log in and see assigned jobs."
+              body="Add a crew, then give each member an email so they can log in and see assigned jobs."
               actionLabel="Create your first crew"
               onAction={() => setCreateOpen(true)}
             />

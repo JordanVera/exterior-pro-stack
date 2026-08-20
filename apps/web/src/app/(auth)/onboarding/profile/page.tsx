@@ -64,6 +64,7 @@ export default function ProfileOnboardingPage() {
       .query()
       .then((user) => {
         setRole(user.role);
+        if (user.email) setEmail(user.email);
         if (user.hasProfile) {
           if (user.role === 'CUSTOMER') router.push('/onboarding/property');
           else if (user.role === 'PROVIDER') router.push('/provider');

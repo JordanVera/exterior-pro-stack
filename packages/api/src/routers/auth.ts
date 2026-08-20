@@ -14,34 +14,35 @@ import {
   updateCustomerProfileInput,
 } from '@repo/validators';
 import { signToken } from '../lib/jwt';
-import { sendSMS, generateVerificationCode } from '../lib/sms';
+import { generateVerificationCode } from '../lib/otp';
+import { sendVerificationEmail } from '../lib/email';
 
 const CODE_TTL_MINUTES = 10;
-/** Minimum gap between two codes for the same number. */
+/** Minimum gap between two codes for the same email. */
 const RESEND_COOLDOWN_SECONDS = 30;
-const SENDS_PER_PHONE_PER_HOUR = 5;
+const SENDS_PER_EMAIL_PER_HOUR = 5;
 const SENDS_PER_IP_PER_HOUR = 15;
 /** Wrong guesses allowed against a single code before it is burned. */
 const MAX_VERIFY_ATTEMPTS = 5;
 
 export const authRouter = router({
-  /** Send a 6-digit verification code via SMS */
+  /** Send a 6-digit verification code via email */
   sendCode: publicProcedure
     .input(sendCodeInput)
     .mutation(async ({ ctx, input }) => {
       const now = Date.now();
       const oneHourAgo = new Date(now - 60 * 60 * 1000);
 
-      // Throttle by phone. Each SMS costs money and lands on someone's device,
-      // so an unthrottled endpoint is both a spam vector and a billing risk.
+      // Throttle by email. An unthrottled endpoint is both a spam vector
+      // and a way to burn through the Resend quota.
       const [recent, sendsThisHour] = await Promise.all([
         ctx.db.verificationCode.findFirst({
-          where: { phone: input.phone },
+          where: { email: input.email },
           orderBy: { createdAt: 'desc' },
           select: { createdAt: true },
         }),
         ctx.db.verificationCode.count({
-          where: { phone: input.phone, createdAt: { gt: oneHourAgo } },
+          where: { email: input.email, createdAt: { gt: oneHourAgo } },
         }),
       ]);
 
@@ -57,11 +58,11 @@ export const authRouter = router({
         }
       }
 
-      if (sendsThisHour >= SENDS_PER_PHONE_PER_HOUR) {
+      if (sendsThisHour >= SENDS_PER_EMAIL_PER_HOUR) {
         throw new TRPCError({
           code: 'TOO_MANY_REQUESTS',
           message:
-            'Too many verification codes requested for this number. Try again in an hour.',
+            'Too many verification codes requested for this email. Try again in an hour.',
         });
       }
 
@@ -80,25 +81,25 @@ export const authRouter = router({
       const code = generateVerificationCode();
       const expiresAt = new Date(now + CODE_TTL_MINUTES * 60 * 1000);
 
-      // Invalidate previous unused codes for this phone
       await ctx.db.verificationCode.updateMany({
-        where: { phone: input.phone, used: false },
+        where: { email: input.email, used: false },
         data: { used: true },
       });
 
       await ctx.db.verificationCode.create({
         data: {
-          phone: input.phone,
+          email: input.email,
           code,
           expiresAt,
           ip: ctx.ip,
         },
       });
 
-      await sendSMS(
-        input.phone,
-        `${code} is your Exterior Pro verification code. It expires in ${CODE_TTL_MINUTES} minutes.`,
-      );
+      await sendVerificationEmail({
+        to: input.email,
+        code,
+        ttlMinutes: CODE_TTL_MINUTES,
+      });
 
       return { success: true };
     }),
@@ -107,12 +108,12 @@ export const authRouter = router({
   verifyCode: publicProcedure
     .input(verifyCodeInput)
     .mutation(async ({ ctx, input }) => {
-      // Look the code up by phone rather than by phone + code, so a wrong guess
+      // Look the code up by email rather than by email + code, so a wrong guess
       // still resolves to a row we can count attempts against. sendCode
-      // invalidates prior codes, so at most one unused code exists per number.
+      // invalidates prior codes, so at most one unused code exists per address.
       const verification = await ctx.db.verificationCode.findFirst({
         where: {
-          phone: input.phone,
+          email: input.email,
           used: false,
           expiresAt: { gt: new Date() },
         },
@@ -148,15 +149,13 @@ export const authRouter = router({
         });
       }
 
-      // Mark code as used
       await ctx.db.verificationCode.update({
         where: { id: verification.id },
         data: { used: true },
       });
 
-      // Find or create user
       let user = await ctx.db.user.findUnique({
-        where: { phone: input.phone },
+        where: { email: input.email },
         include: { customerProfile: true, providerProfile: true },
       });
 
@@ -165,7 +164,7 @@ export const authRouter = router({
       if (!user) {
         user = await ctx.db.user.create({
           data: {
-            phone: input.phone,
+            email: input.email,
             verified: true,
           },
           include: { customerProfile: true, providerProfile: true },
@@ -180,7 +179,7 @@ export const authRouter = router({
       }
 
       const crewMember = await ctx.db.crewMember.findFirst({
-        where: { phone: input.phone },
+        where: { email: input.email },
       });
 
       if (crewMember && (user.role == null || user.role === 'CREW')) {
@@ -206,6 +205,7 @@ export const authRouter = router({
         token,
         user: {
           id: user.id,
+          email: user.email,
           phone: user.phone,
           role: user.role,
           verified: user.verified,
@@ -242,6 +242,7 @@ export const authRouter = router({
 
     return {
       id: user.id,
+      email: user.email,
       phone: user.phone,
       role: user.role,
       verified: user.verified,
@@ -301,18 +302,24 @@ export const authRouter = router({
   completeCustomerOnboarding: protectedProcedure
     .input(customerOnboardingInput)
     .mutation(async ({ ctx, input }) => {
+      const user = await ctx.db.user.findUnique({
+        where: { id: ctx.user.userId },
+        select: { email: true },
+      });
+      const email = input.email || user?.email || undefined;
+
       const profile = await ctx.db.customerProfile.upsert({
         where: { userId: ctx.user.userId },
         update: {
           firstName: input.firstName,
           lastName: input.lastName,
-          email: input.email || undefined,
+          email,
         },
         create: {
           userId: ctx.user.userId,
           firstName: input.firstName,
           lastName: input.lastName,
-          email: input.email || undefined,
+          email,
         },
       });
 
@@ -350,20 +357,26 @@ export const authRouter = router({
   completeProviderOnboarding: protectedProcedure
     .input(providerOnboardingInput)
     .mutation(async ({ ctx, input }) => {
+      const user = await ctx.db.user.findUnique({
+        where: { id: ctx.user.userId },
+        select: { email: true },
+      });
+      const email = input.email || user?.email || undefined;
+
       const profile = await ctx.db.providerProfile.upsert({
         where: { userId: ctx.user.userId },
         update: {
           businessName: input.businessName,
           description: input.description,
           serviceArea: input.serviceArea,
-          email: input.email || undefined,
+          email,
         },
         create: {
           userId: ctx.user.userId,
           businessName: input.businessName,
           description: input.description,
           serviceArea: input.serviceArea,
-          email: input.email || undefined,
+          email,
         },
       });
 

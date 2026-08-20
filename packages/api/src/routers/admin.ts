@@ -18,7 +18,14 @@ export const adminRouter = router({
       const items = await ctx.db.user.findMany({
         where: {
           ...(input?.role ? { role: input.role } : {}),
-          ...(input?.search ? { phone: { contains: input.search } } : {}),
+          ...(input?.search
+            ? {
+                OR: [
+                  { email: { contains: input.search } },
+                  { phone: { contains: input.search } },
+                ],
+              }
+            : {}),
         },
         include: { customerProfile: true, providerProfile: true },
         take: limit + 1,

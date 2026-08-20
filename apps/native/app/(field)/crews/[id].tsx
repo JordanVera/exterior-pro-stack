@@ -50,11 +50,13 @@ export default function CrewDetailScreen() {
   const [editMember, setEditMember] = useState<Member | null>(null);
 
   const [memberName, setMemberName] = useState('');
+  const [memberEmail, setMemberEmail] = useState('');
   const [memberPhone, setMemberPhone] = useState('');
   const [memberRole, setMemberRole] = useState('');
 
   const resetMemberForm = () => {
     setMemberName('');
+    setMemberEmail('');
     setMemberPhone('');
     setMemberRole('');
   };
@@ -80,13 +82,16 @@ export default function CrewDetailScreen() {
   });
 
   const addMemberMutation = useMutation({
-    mutationFn: () =>
-      trpc.crew.addMember.mutate({
+    mutationFn: () => {
+      const digits = memberPhone.replace(/\D/g, '');
+      return trpc.crew.addMember.mutate({
         crewId: id!,
         name: memberName.trim(),
-        phone: digitsToE164(memberPhone),
+        email: memberEmail.trim().toLowerCase(),
+        phone: digits.length === 10 ? digitsToE164(memberPhone) : undefined,
         role: memberRole.trim() || undefined,
-      }),
+      });
+    },
     onSuccess: () => {
       invalidateCrews();
       resetMemberForm();
@@ -95,13 +100,16 @@ export default function CrewDetailScreen() {
   });
 
   const updateMemberMutation = useMutation({
-    mutationFn: () =>
-      trpc.crew.updateMember.mutate({
+    mutationFn: () => {
+      const digits = memberPhone.replace(/\D/g, '');
+      return trpc.crew.updateMember.mutate({
         id: editMember!.id,
         name: memberName.trim(),
-        phone: digitsToE164(memberPhone),
+        email: memberEmail.trim().toLowerCase(),
+        phone: digits.length === 10 ? digitsToE164(memberPhone) : undefined,
         role: memberRole.trim() || undefined,
-      }),
+      });
+    },
     onSuccess: () => {
       invalidateCrews();
       resetMemberForm();
@@ -147,6 +155,7 @@ export default function CrewDetailScreen() {
 
   const openEditMember = (member: Member) => {
     setMemberName(member.name);
+    setMemberEmail(member.email ?? '');
     setMemberPhone(phoneToDigits(member.phone));
     setMemberRole(member.role ?? '');
     setEditMember(member);
@@ -168,10 +177,10 @@ export default function CrewDetailScreen() {
       Alert.alert('Name required', 'Enter the member name.');
       return;
     }
-    if (memberPhone.replace(/\D/g, '').length !== 10) {
+    if (!memberEmail.trim().includes('@')) {
       Alert.alert(
-        'Phone required',
-        'Enter a 10-digit phone number so they can sign in on the app.',
+        'Email required',
+        'Enter an email address so they can sign in on the app.',
       );
       return;
     }
@@ -266,7 +275,7 @@ export default function CrewDetailScreen() {
               <EmptyState
                 icon="person-add-outline"
                 title="No members yet"
-                body="Add a phone number for each person who should see jobs on this crew."
+                body="Add an email for each person who should see jobs on this crew."
                 actionLabel="Add member"
                 onAction={openAddMember}
               />
@@ -328,7 +337,7 @@ export default function CrewDetailScreen() {
           resetMemberForm();
         }}
         title={editMember ? 'Edit member' : 'Add member'}
-        subtitle="They sign in to this app with this phone number."
+        subtitle="They sign in to this app with this email."
       >
         <Text className="mb-2 text-sm font-medium text-slate-300">Name</Text>
         <TextInput
@@ -340,13 +349,26 @@ export default function CrewDetailScreen() {
           autoFocus={!editMember}
         />
 
+        <Text className="mb-2 text-sm font-medium text-slate-300">Email</Text>
+        <TextInput
+          value={memberEmail}
+          onChangeText={setMemberEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+          autoCorrect={false}
+          autoComplete="email"
+          placeholder="carlos@crew.com"
+          placeholderTextColor="#64748b"
+          className="px-4 mb-4 h-14 text-lg text-white rounded-2xl border border-line-strong bg-surface-sunken"
+          autoFocus={Boolean(editMember)}
+        />
+
         <Text className="mb-2 text-sm font-medium text-slate-300">
-          Phone number
+          Phone (optional)
         </Text>
         <PhoneField
           value={memberPhone}
           onChange={setMemberPhone}
-          autoFocus={Boolean(editMember)}
         />
 
         <Text className="mt-4 mb-2 text-sm font-medium text-slate-300">

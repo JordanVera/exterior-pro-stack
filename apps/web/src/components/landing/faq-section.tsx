@@ -20,7 +20,7 @@ export function FaqSection() {
             Questions, answered.
           </h2>
           <p className="mt-4 leading-relaxed text-muted-foreground">
-            Still not sure? Signing up takes a phone number and about two
+            Still not sure? Signing up takes an email address and about two
             minutes, and there is nothing to cancel if you change your mind.
           </p>
           <Link

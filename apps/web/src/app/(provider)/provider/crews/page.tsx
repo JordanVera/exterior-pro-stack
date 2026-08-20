@@ -12,6 +12,7 @@ export default function CrewsPage() {
     null,
   );
   const [memberName, setMemberName] = useState('');
+  const [memberEmail, setMemberEmail] = useState('');
   const [memberPhone, setMemberPhone] = useState('');
   const [memberRole, setMemberRole] = useState('');
 
@@ -52,20 +53,23 @@ export default function CrewsPage() {
 
   const handleAddMember = async (crewId: string) => {
     if (!memberName) return;
-    const digits = memberPhone.replace(/\D/g, '').slice(-10);
-    if (digits.length !== 10) {
-      alert('Enter a 10-digit phone number so they can log in on the app');
+    const email = memberEmail.trim().toLowerCase();
+    if (!email.includes('@')) {
+      alert('Enter an email so they can log in on the app');
       return;
     }
+    const digits = memberPhone.replace(/\D/g, '').slice(-10);
     try {
       await trpc.crew.addMember.mutate({
         crewId,
         name: memberName,
-        phone: `+1${digits}`,
+        email,
+        phone: digits.length === 10 ? `+1${digits}` : undefined,
         role: memberRole || undefined,
       });
       setAddingMemberCrewId(null);
       setMemberName('');
+      setMemberEmail('');
       setMemberPhone('');
       setMemberRole('');
       fetchCrews();
@@ -177,6 +181,11 @@ export default function CrewsPage() {
                           ({member.role})
                         </span>
                       )}
+                      {member.email && (
+                        <span className="ml-2 text-sm text-gray-400 dark:text-neutral-500">
+                          {member.email}
+                        </span>
+                      )}
                       {member.phone && (
                         <span className="ml-2 text-sm text-gray-400 dark:text-neutral-500">
                           {member.phone}
@@ -207,6 +216,13 @@ export default function CrewsPage() {
                   placeholder="Name *"
                   className={inputClass}
                 />
+                <input
+                  type="email"
+                  value={memberEmail}
+                  onChange={(e) => setMemberEmail(e.target.value)}
+                  placeholder="Email * (they log in with this)"
+                  className={inputClass}
+                />
                 <div className="flex gap-2">
                   <input
                     type="tel"
@@ -214,7 +230,7 @@ export default function CrewsPage() {
                     onChange={(e) =>
                       setMemberPhone(e.target.value.replace(/\D/g, '').slice(0, 10))
                     }
-                    placeholder="Phone * (they log in with this)"
+                    placeholder="Phone (optional)"
                     className={`flex-1 ${inputClass}`}
                   />
                   <input

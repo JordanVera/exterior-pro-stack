@@ -48,7 +48,7 @@ export default function AdminUsersPage() {
         <table className="w-full text-sm">
           <thead className="bg-gray-50 dark:bg-neutral-950 border-b border-gray-200 dark:border-neutral-800">
             <tr>
-              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-neutral-400">Phone</th>
+              <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-neutral-400">Email</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-neutral-400">Role</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-neutral-400">Name / Business</th>
               <th className="text-left px-4 py-3 font-medium text-gray-500 dark:text-neutral-400">Verified</th>
@@ -59,7 +59,7 @@ export default function AdminUsersPage() {
           <tbody className="divide-y divide-gray-100 dark:divide-neutral-800">
             {data.items.map((user) => (
               <tr key={user.id} className="hover:bg-gray-50 dark:hover:bg-neutral-950">
-                <td className="px-4 py-3 font-mono text-gray-900 dark:text-white">{user.phone}</td>
+                <td className="px-4 py-3 font-mono text-gray-900 dark:text-white">{user.email}</td>
                 <td className="px-4 py-3">
                   <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                     user.role === "ADMIN" ? "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400"

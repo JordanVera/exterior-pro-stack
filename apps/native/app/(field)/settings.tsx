@@ -164,7 +164,7 @@ export default function SettingsScreen() {
                     {!isProvider && !isCrew && 'Not set'}
                   </Text>
                   <Text className="mt-1 text-sm text-slate-400">
-                    {user?.phone}
+                    {user?.email}
                   </Text>
                 </View>
                 <Pressable

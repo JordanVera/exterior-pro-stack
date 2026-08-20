@@ -41,7 +41,7 @@ export function MemberRow({
           ) : null}
         </View>
         <Text className="mt-0.5 text-sm text-slate-400">
-          {formatPhoneDisplay(member.phone)}
+          {member.email || formatPhoneDisplay(member.phone)}
         </Text>
       </View>
 
