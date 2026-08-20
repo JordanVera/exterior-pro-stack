@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'motion/react';
 import { ArrowRight, Home, Wrench } from 'lucide-react';
@@ -7,35 +8,49 @@ import { loginPath } from '@/lib/auth-intent';
 
 export function CtaSection() {
   return (
-    <section className="relative overflow-hidden px-4 py-20 sm:px-6">
-      {/* Lamp glow */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center">
+    <section className="overflow-hidden relative px-4 py-24 sm:px-6">
+      {/* Full-bleed background photo */}
+      <div className="absolute inset-0 pointer-events-none -z-10">
+        <Image
+          src="/services/lawn-maintenance.jpg"
+          alt=""
+          fill
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+        {/* Deep navy overlay so text pops */}
+        <div className="absolute inset-0 bg-brand-navy/85" />
+        {/* Subtle lime glow from above */}
+        <div className="absolute inset-x-0 -top-20 mx-auto h-72 w-[42rem] max-w-full rounded-full bg-brand-lime/15 blur-[100px]" />
+      </div>
+
+      {/* Animated top line */}
+      <div className="flex absolute inset-x-0 top-0 justify-center pointer-events-none">
         <motion.div
           initial={{ opacity: 0, width: '8rem' }}
           whileInView={{ opacity: 1, width: '36rem' }}
           viewport={{ once: true }}
           transition={{ duration: 0.9, ease: 'easeOut' }}
-          className="h-px bg-gradient-to-r from-transparent via-brand-lime to-transparent"
+          className="h-px bg-gradient-to-r from-transparent to-transparent via-brand-lime"
         />
       </div>
-      <div className="pointer-events-none absolute inset-x-0 -top-24 mx-auto h-64 w-[38rem] max-w-full rounded-full bg-brand-lime/20 blur-[120px]" />
 
       <div className="relative mx-auto max-w-4xl text-center">
-        <h2 className="text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-5xl">
+        <h2 className="text-3xl font-bold tracking-tight leading-tight text-white sm:text-5xl">
           Your property is not going to
-          <span className="block text-brand-navy dark:text-brand-lime">
+          <span className="block mt-2 text-brand-lime">
             take care of itself.
           </span>
         </h2>
-        <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+        <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/70">
           Two minutes to sign up. No contract, no sales call, no credit card
           until you accept a price you picked.
         </p>
 
-        <div className="mt-12 grid gap-4 text-left sm:grid-cols-2">
+        <div className="grid gap-4 mt-12 text-left sm:grid-cols-2">
           <Link
             href={loginPath('customer')}
-            className="group relative overflow-hidden rounded-3xl border border-brand-lime/40 bg-brand-lime p-7 text-brand-ink transition hover:shadow-xl hover:shadow-brand-lime/20"
+            className="overflow-hidden relative p-7 rounded-3xl border transition group border-brand-lime/40 bg-brand-lime text-brand-ink hover:shadow-xl hover:shadow-brand-lime/25"
           >
             <span className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em]">
               <Home className="h-3.5 w-3.5" />
@@ -49,15 +64,15 @@ export function CtaSection() {
             </p>
             <span className="mt-6 inline-flex items-center gap-1.5 text-sm font-bold">
               Get started free
-              <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+              <ArrowRight className="w-4 h-4 transition group-hover:translate-x-1" />
             </span>
           </Link>
 
           <Link
             href={loginPath('provider')}
-            className="group relative overflow-hidden rounded-3xl border border-white/10 bg-brand-navy p-7 text-white transition hover:border-brand-lime/50"
+            className="overflow-hidden relative p-7 text-white rounded-3xl border backdrop-blur-sm transition group border-white/15 bg-white/10 hover:border-brand-lime/40 hover:bg-white/15"
           >
-            <div className="pointer-events-none absolute -right-12 -top-12 h-40 w-40 rounded-full bg-brand-lime/20 blur-3xl" />
+            <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full blur-3xl pointer-events-none bg-brand-lime/15" />
             <span className="relative inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-brand-lime">
               <Wrench className="h-3.5 w-3.5" />
               Providers
@@ -65,12 +80,12 @@ export function CtaSection() {
             <p className="relative mt-3 text-2xl font-bold leading-snug">
               Fill my crew&apos;s calendar
             </p>
-            <p className="relative mt-2 text-sm text-white/70">
+            <p className="relative mt-2 text-sm text-white/65">
               Bid on open jobs, dispatch crews, and hold recurring customers.
             </p>
             <span className="relative mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-brand-lime">
               Join as a provider
-              <ArrowRight className="h-4 w-4 transition group-hover:translate-x-1" />
+              <ArrowRight className="w-4 h-4 transition group-hover:translate-x-1" />
             </span>
           </Link>
         </div>
