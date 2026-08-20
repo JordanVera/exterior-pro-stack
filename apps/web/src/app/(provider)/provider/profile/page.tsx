@@ -105,15 +105,15 @@ export default function ProviderProfilePage() {
 
   if (loading) {
     return (
-      <div className="max-w-3xl space-y-6">
-        <Skeleton className="h-8 w-48" />
+      <div className="space-y-6 max-w-3xl">
+        <Skeleton className="w-48 h-8" />
         <Skeleton className="h-64 rounded-xl" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl space-y-8">
+    <div className="space-y-8 max-w-3xl">
       <div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
           Business profile
@@ -131,12 +131,16 @@ export default function ProviderProfilePage() {
         </p>
       </div>
 
-      <Card className="border-border bg-background/80 shadow-none">
+      <Card className="shadow-none border-border bg-background/80">
         <CardHeader className="p-5 pb-0">
           <CardTitle className="text-base">Business information</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 p-5">
-          <ProviderLogoUpload value={logo} onChange={setLogo} disabled={saving} />
+        <CardContent className="p-5 space-y-4">
+          <ProviderLogoUpload
+            value={logo}
+            onChange={setLogo}
+            disabled={saving}
+          />
           <div className="space-y-2">
             <Label htmlFor="businessName">Business name</Label>
             <Input
@@ -164,24 +168,25 @@ export default function ProviderProfilePage() {
               disabled={saving}
             />
             <p className="text-xs text-muted-foreground">
-              Jobs in these ZIP codes will show up in your available list.
+              Select Greater Houston ZIPs you serve. Jobs in those areas show up
+              in your available list.
             </p>
           </div>
           <Button
             onClick={handleSaveProfile}
-            disabled={saving}
-            className="rounded-full bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
+            disabled={saving || !businessName || !serviceAreaZips}
+            className="font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
           >
             {saving ? 'Saving...' : 'Save profile'}
           </Button>
         </CardContent>
       </Card>
 
-      <Card className="border-border bg-background/80 shadow-none">
+      <Card className="shadow-none border-border bg-background/80">
         <CardHeader className="p-5 pb-0">
           <CardTitle className="text-base">Services you offer</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4 p-5">
+        <CardContent className="p-5 space-y-4">
           <p className="text-sm text-muted-foreground">
             Select the services you provide. Optional custom prices override the
             base rate.
@@ -193,7 +198,7 @@ export default function ProviderProfilePage() {
                 <div
                   key={service.id}
                   className={cn(
-                    'flex items-center gap-3 rounded-xl border p-3 transition-colors',
+                    'flex gap-3 items-center p-3 rounded-xl border transition-colors',
                     isSelected
                       ? 'border-brand-lime/40 bg-brand-lime/5'
                       : 'border-border',
@@ -203,9 +208,9 @@ export default function ProviderProfilePage() {
                     type="checkbox"
                     checked={isSelected}
                     onChange={() => toggleService(service.id)}
-                    className="h-4 w-4 accent-brand-lime"
+                    className="w-4 h-4 accent-brand-lime"
                   />
-                  <div className="min-w-0 flex-1">
+                  <div className="flex-1 min-w-0">
                     <span className="text-sm font-medium text-foreground">
                       {service.name}
                     </span>
@@ -231,7 +236,7 @@ export default function ProviderProfilePage() {
                         );
                         setSelectedServices(next);
                       }}
-                      className="h-8 w-24"
+                      className="w-24 h-8"
                     />
                   )}
                 </div>
@@ -241,7 +246,7 @@ export default function ProviderProfilePage() {
           <Button
             onClick={handleSaveServices}
             disabled={saving}
-            className="rounded-full bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
+            className="font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
           >
             {saving ? 'Saving...' : 'Save services'}
           </Button>
@@ -251,13 +256,13 @@ export default function ProviderProfilePage() {
       <Button
         variant="outline"
         onClick={handleSignOut}
-        className="w-full justify-between border-border text-red-500 hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/20"
+        className="justify-between w-full text-red-500 border-border hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-950/20"
       >
-        <div className="flex items-center gap-3">
-          <LogOut className="h-4 w-4" />
+        <div className="flex gap-3 items-center">
+          <LogOut className="w-4 h-4" />
           <span className="text-sm font-medium">Sign out</span>
         </div>
-        <ChevronRight className="h-4 w-4 text-muted-foreground" />
+        <ChevronRight className="w-4 h-4 text-muted-foreground" />
       </Button>
     </div>
   );

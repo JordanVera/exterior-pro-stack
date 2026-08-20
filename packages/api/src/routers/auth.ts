@@ -370,6 +370,18 @@ export const authRouter = router({
       const email = input.email || user?.email || undefined;
       assertOwnedLogoPath(ctx.user.userId, input.logoPathname);
 
+      const serviceIds = [...new Set(input.serviceIds)];
+      const activeServices = await ctx.db.service.findMany({
+        where: { id: { in: serviceIds }, active: true },
+        select: { id: true },
+      });
+      if (activeServices.length !== serviceIds.length) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'One or more selected services are invalid',
+        });
+      }
+
       const profile = await ctx.db.providerProfile.upsert({
         where: { userId: ctx.user.userId },
         update: {
@@ -389,6 +401,16 @@ export const authRouter = router({
           logoUrl: input.logoUrl,
           logoPathname: input.logoPathname,
         },
+      });
+
+      await ctx.db.providerService.deleteMany({
+        where: { providerId: profile.id },
+      });
+      await ctx.db.providerService.createMany({
+        data: serviceIds.map((serviceId) => ({
+          providerId: profile.id,
+          serviceId,
+        })),
       });
 
       return profile;

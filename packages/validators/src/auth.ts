@@ -44,6 +44,10 @@ export const providerOnboardingInput = z
     serviceAreaZips: requiredServiceAreaZipsSchema,
     logoUrl: z.string().url().max(2048).optional(),
     logoPathname: z.string().max(1024).optional(),
+    serviceIds: z
+      .array(z.string().cuid())
+      .min(1, "Select at least one service")
+      .max(50),
     email: z.string().email("Invalid email").optional().or(z.literal("")),
   })
   .refine((value) => Boolean(value.logoUrl) === Boolean(value.logoPathname), {

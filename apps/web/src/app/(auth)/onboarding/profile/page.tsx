@@ -23,6 +23,10 @@ import {
   ProviderLogoUpload,
   type ProviderLogoValue,
 } from '@/components/provider-logo-upload';
+import {
+  ProviderServicePicker,
+  type CatalogCategory,
+} from '@/components/provider-service-picker';
 
 function AuthShell({ children }: { children: ReactNode }) {
   return (
@@ -65,6 +69,8 @@ export default function ProfileOnboardingPage() {
   const [serviceAreaZips, setServiceAreaZips] = useState('');
   const [logo, setLogo] = useState<ProviderLogoValue | null>(null);
   const [logoBusy, setLogoBusy] = useState(false);
+  const [categories, setCategories] = useState<CatalogCategory[]>([]);
+  const [serviceIds, setServiceIds] = useState<string[]>([]);
 
   useEffect(() => {
     trpc.auth.me
@@ -78,6 +84,11 @@ export default function ProfileOnboardingPage() {
         }
       })
       .catch(() => router.push('/login'));
+
+    trpc.service.listCategories
+      .query()
+      .then((data) => setCategories(data as CatalogCategory[]))
+      .catch(() => undefined);
   }, [router]);
 
   const handleCustomerSubmit = async (e: React.FormEvent) => {
@@ -110,6 +121,7 @@ export default function ProfileOnboardingPage() {
         email: email || undefined,
         logoUrl: logo?.url,
         logoPathname: logo?.pathname,
+        serviceIds,
       });
       router.push('/provider');
     } catch (err: any) {
@@ -132,7 +144,7 @@ export default function ProfileOnboardingPage() {
 
   return (
     <AuthShell>
-      <div className="w-full max-w-md">
+      <div className="w-full max-w-lg">
         <Card className="relative p-8 rounded-2xl border shadow-lg backdrop-blur-xl border-border bg-background/80">
           <CardHeader className="p-0 mb-6 space-y-3 text-center">
             <p className="inline-flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-brand-navy dark:text-brand-lime">
@@ -243,6 +255,19 @@ export default function ProfileOnboardingPage() {
                   />
                 </div>
                 <div className="space-y-2">
+                  <Label>Services you offer</Label>
+                  <ProviderServicePicker
+                    categories={categories}
+                    value={serviceIds}
+                    onChange={setServiceIds}
+                    disabled={loading}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Choose at least one. You can set custom prices later in your
+                    profile.
+                  </p>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="serviceAreaZips">Service ZIP codes</Label>
                   <ZipCodeInput
                     id="serviceAreaZips"
@@ -252,13 +277,19 @@ export default function ProfileOnboardingPage() {
                     placeholder="77008"
                   />
                   <p className="text-xs text-muted-foreground">
-                    Add the ZIP codes you serve. Customers in these areas will
-                    see your bids.
+                    Select Greater Houston ZIPs you serve. Add any others one at
+                    a time at the bottom.
                   </p>
                 </div>
                 <Button
                   type="submit"
-                  disabled={loading || logoBusy || !businessName || !serviceAreaZips}
+                  disabled={
+                    loading ||
+                    logoBusy ||
+                    !businessName ||
+                    !serviceAreaZips ||
+                    serviceIds.length === 0
+                  }
                   size="lg"
                   className="mt-2 w-full font-semibold rounded-xl bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
                 >

@@ -1,7 +1,12 @@
 import { PrismaClient, PriceUnit } from '@prisma/client';
 import chalk from 'chalk';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { PROVIDER_LOGO_FILES } from './seed-assets/logos';
 
 const prisma = new PrismaClient();
+const SEED_DIR = dirname(fileURLToPath(import.meta.url));
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -38,6 +43,37 @@ function crewLoginEmail(name: string) {
     .replace(/[^a-z0-9]+/g, '.')
     .replace(/^\.|\.$/g, '');
   return `${slug}@crew.example.com`;
+}
+
+async function attachProviderLogo(userId: string, businessName: string) {
+  if (!process.env.BLOB_READ_WRITE_TOKEN) return;
+  const filename = PROVIDER_LOGO_FILES[businessName];
+  if (!filename) return;
+  const filePath = resolve(SEED_DIR, 'seed-assets/logos', filename);
+  if (!existsSync(filePath)) {
+    warn(`Logo file missing: ${filename}`);
+    return;
+  }
+  try {
+    const { del, list, put } = await import('@vercel/blob');
+    const prefix = `providers/${userId}/logo`;
+    const { blobs } = await list({ prefix });
+    if (blobs.length > 0) {
+      await del(blobs.map((blob) => blob.url));
+    }
+    const blob = await put(`${prefix}.png`, readFileSync(filePath), {
+      access: 'public',
+      addRandomSuffix: true,
+      contentType: 'image/png',
+    });
+    await prisma.providerProfile.update({
+      where: { userId },
+      data: { logoUrl: blob.url, logoPathname: blob.pathname },
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    warn(`Logo upload failed for ${businessName}: ${message}`);
+  }
 }
 
 async function upsertLoginUser(data: {
@@ -1088,6 +1124,8 @@ async function main() {
         contractorAgreedAt: prov.contractorAgreedAt,
       },
     });
+
+    await attachProviderLogo(user.id, prov.businessName);
 
     // Assign services with slight custom pricing variation
     for (const svcName of prov.serviceNames) {
