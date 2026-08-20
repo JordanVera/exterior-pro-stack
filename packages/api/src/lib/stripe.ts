@@ -56,7 +56,7 @@ export const stripe: Stripe = new Proxy({} as Stripe, {
   },
 });
 
-export const PLATFORM_FEE_BPS = Number(process.env.PLATFORM_FEE_BPS ?? "1800");
+export const PLATFORM_FEE_BPS = Number(process.env.PLATFORM_FEE_BPS ?? "1000");
 
 export function getAppUrl() {
   return (

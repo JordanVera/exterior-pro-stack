@@ -16,6 +16,7 @@ import {
 import { signToken } from '../lib/jwt';
 import { generateVerificationCode } from '../lib/otp';
 import { sendVerificationEmail } from '../lib/email';
+import { assertOwnedLogoPath } from '../lib/provider-logo';
 
 const CODE_TTL_MINUTES = 10;
 /** Minimum gap between two codes for the same email. */
@@ -367,21 +368,26 @@ export const authRouter = router({
         select: { email: true },
       });
       const email = input.email || user?.email || undefined;
+      assertOwnedLogoPath(ctx.user.userId, input.logoPathname);
 
       const profile = await ctx.db.providerProfile.upsert({
         where: { userId: ctx.user.userId },
         update: {
           businessName: input.businessName,
           description: input.description,
-          serviceArea: input.serviceArea,
+          serviceAreaZips: input.serviceAreaZips,
           email,
+          ...(input.logoUrl ? { logoUrl: input.logoUrl } : {}),
+          ...(input.logoPathname ? { logoPathname: input.logoPathname } : {}),
         },
         create: {
           userId: ctx.user.userId,
           businessName: input.businessName,
           description: input.description,
-          serviceArea: input.serviceArea,
+          serviceAreaZips: input.serviceAreaZips,
           email,
+          logoUrl: input.logoUrl,
+          logoPathname: input.logoPathname,
         },
       });
 

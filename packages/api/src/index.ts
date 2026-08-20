@@ -9,6 +9,11 @@ export {
   MAX_JOB_PHOTO_BYTES,
 } from "./lib/job-photos";
 export {
+  uploadProviderLogo,
+  deleteProviderLogo,
+  MAX_PROVIDER_LOGO_BYTES,
+} from "./lib/provider-logo";
+export {
   refreshPropertyImage,
   propertyImagesEnabled,
   formatPropertyAddress,

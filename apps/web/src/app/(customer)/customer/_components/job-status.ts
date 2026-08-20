@@ -30,6 +30,7 @@ export type CustomerJob = {
       businessName: string;
       verified?: boolean;
       description?: string | null;
+      logoUrl?: string | null;
     };
   } | null;
   bids?: {
@@ -41,6 +42,7 @@ export type CustomerJob = {
       businessName: string;
       verified?: boolean;
       description?: string | null;
+      logoUrl?: string | null;
     };
   }[];
   assignments?: { crew: { name: string } }[];

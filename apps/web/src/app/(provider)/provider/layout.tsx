@@ -10,7 +10,7 @@ import { isAuthenticated } from '../../../lib/auth';
 import { NotificationBell } from '../../../components/NotificationBell';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
@@ -121,6 +121,12 @@ export default function ProviderLayout({
                 <NotificationBell />
                 <Link href="/provider/profile">
                   <Avatar className="w-8 h-8">
+                    {user?.providerProfile?.logoUrl ? (
+                      <AvatarImage
+                        src={user.providerProfile.logoUrl}
+                        alt={businessName}
+                      />
+                    ) : null}
                     <AvatarFallback className="bg-gradient-to-br from-brand-navy to-brand-lime text-[11px] font-semibold text-white">
                       {initials}
                     </AvatarFallback>

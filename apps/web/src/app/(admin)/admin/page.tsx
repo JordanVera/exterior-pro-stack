@@ -17,6 +17,7 @@ import {
   Briefcase,
   Building2,
   CreditCard,
+  FileText,
   Layers,
   RefreshCw,
   Users,
@@ -262,6 +263,13 @@ export default function AdminDashboard() {
                 description: 'Receipts, fees, and transfers',
                 href: '/admin/payments',
                 icon: Wallet,
+              },
+              {
+                id: 'plan',
+                label: 'Business plan',
+                description: 'Operating plan, unit economics, and targets',
+                href: '/admin/business-plan',
+                icon: FileText,
               },
             ]}
           />

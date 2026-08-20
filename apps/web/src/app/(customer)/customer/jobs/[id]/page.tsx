@@ -354,8 +354,17 @@ export default function JobDetailPage() {
 
                     <div className="flex relative gap-3 justify-between items-start">
                       <div className="flex gap-3 items-start min-w-0">
-                        <span className="flex justify-center items-center w-9 h-9 rounded-lg border shrink-0 border-border bg-muted">
-                          <Building2 className="w-4 h-4 text-muted-foreground" />
+                        <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted">
+                          {bid.provider.logoUrl ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={bid.provider.logoUrl}
+                              alt=""
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <Building2 className="w-4 h-4 text-muted-foreground" />
+                          )}
                         </span>
                         <div className="min-w-0">
                           <span className="flex items-center gap-1.5">
@@ -422,7 +431,16 @@ export default function JobDetailPage() {
       <SectionPanel title="Details" bodyClassName="space-y-3 p-5">
         {job.acceptedBid && (
           <div className="flex gap-2 items-start text-sm text-muted-foreground">
-            <Building2 className="mt-0.5 h-4 w-4 flex-shrink-0" />
+            {job.acceptedBid.provider.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={job.acceptedBid.provider.logoUrl}
+                alt=""
+                className="mt-0.5 h-4 w-4 flex-shrink-0 rounded-sm object-cover"
+              />
+            ) : (
+              <Building2 className="mt-0.5 h-4 w-4 flex-shrink-0" />
+            )}
             <span>
               {job.acceptedBid.provider.businessName}
               <span className="ml-1 font-semibold text-foreground">

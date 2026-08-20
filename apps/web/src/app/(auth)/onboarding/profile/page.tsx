@@ -18,6 +18,11 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { BackgroundBeams } from '@/components/ui/background-beams';
+import { ZipCodeInput } from '@/components/zip-code-input';
+import {
+  ProviderLogoUpload,
+  type ProviderLogoValue,
+} from '@/components/provider-logo-upload';
 
 function AuthShell({ children }: { children: ReactNode }) {
   return (
@@ -57,7 +62,9 @@ export default function ProfileOnboardingPage() {
   const [email, setEmail] = useState('');
   const [businessName, setBusinessName] = useState('');
   const [description, setDescription] = useState('');
-  const [serviceArea, setServiceArea] = useState('');
+  const [serviceAreaZips, setServiceAreaZips] = useState('');
+  const [logo, setLogo] = useState<ProviderLogoValue | null>(null);
+  const [logoBusy, setLogoBusy] = useState(false);
 
   useEffect(() => {
     trpc.auth.me
@@ -99,8 +106,10 @@ export default function ProfileOnboardingPage() {
       await trpc.auth.completeProviderOnboarding.mutate({
         businessName,
         description: description || undefined,
-        serviceArea: serviceArea || undefined,
+        serviceAreaZips,
         email: email || undefined,
+        logoUrl: logo?.url,
+        logoPathname: logo?.pathname,
       });
       router.push('/provider');
     } catch (err: any) {
@@ -194,6 +203,12 @@ export default function ProfileOnboardingPage() {
 
             {role === 'PROVIDER' ? (
               <form onSubmit={handleProviderSubmit} className="space-y-4">
+                <ProviderLogoUpload
+                  value={logo}
+                  onChange={setLogo}
+                  disabled={loading}
+                  onBusyChange={setLogoBusy}
+                />
                 <div className="space-y-2">
                   <Label htmlFor="businessName">Business name</Label>
                   <Input
@@ -228,19 +243,22 @@ export default function ProfileOnboardingPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="serviceArea">Service area</Label>
-                  <Input
-                    id="serviceArea"
-                    type="text"
-                    value={serviceArea}
-                    onChange={(e) => setServiceArea(e.target.value)}
-                    className="focus-visible:ring-brand-lime"
-                    placeholder="e.g., Dallas-Fort Worth metro area"
+                  <Label htmlFor="serviceAreaZips">Service ZIP codes</Label>
+                  <ZipCodeInput
+                    id="serviceAreaZips"
+                    value={serviceAreaZips}
+                    onChange={setServiceAreaZips}
+                    disabled={loading}
+                    placeholder="77008"
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Add the ZIP codes you serve. Customers in these areas will
+                    see your bids.
+                  </p>
                 </div>
                 <Button
                   type="submit"
-                  disabled={loading || !businessName}
+                  disabled={loading || logoBusy || !businessName || !serviceAreaZips}
                   size="lg"
                   className="mt-2 w-full font-semibold rounded-xl bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
                 >

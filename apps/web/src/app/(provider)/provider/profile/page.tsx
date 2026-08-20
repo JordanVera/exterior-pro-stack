@@ -14,6 +14,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { ZipCodeInput } from '@/components/zip-code-input';
+import {
+  ProviderLogoUpload,
+  type ProviderLogoValue,
+} from '@/components/provider-logo-upload';
 
 export default function ProviderProfilePage() {
   const router = useRouter();
@@ -23,8 +28,8 @@ export default function ProviderProfilePage() {
   const [saving, setSaving] = useState(false);
   const [businessName, setBusinessName] = useState('');
   const [description, setDescription] = useState('');
-  const [serviceArea, setServiceArea] = useState('');
   const [serviceAreaZips, setServiceAreaZips] = useState('');
+  const [logo, setLogo] = useState<ProviderLogoValue | null>(null);
   const [selectedServices, setSelectedServices] = useState<
     Map<string, number | undefined>
   >(new Map());
@@ -36,8 +41,12 @@ export default function ProviderProfilePage() {
         setAllServices(s);
         setBusinessName(p.businessName);
         setDescription(p.description || '');
-        setServiceArea(p.serviceArea || '');
         setServiceAreaZips(p.serviceAreaZips || '');
+        setLogo(
+          p.logoUrl && p.logoPathname
+            ? { url: p.logoUrl, pathname: p.logoPathname }
+            : null,
+        );
         const selected = new Map<string, number | undefined>();
         p.services.forEach((ps: any) => {
           selected.set(
@@ -57,7 +66,6 @@ export default function ProviderProfilePage() {
       await trpc.provider.updateProfile.mutate({
         businessName,
         description: description || undefined,
-        serviceArea: serviceArea || undefined,
         serviceAreaZips: serviceAreaZips || undefined,
       });
       toast.success('Profile updated');
@@ -128,6 +136,7 @@ export default function ProviderProfilePage() {
           <CardTitle className="text-base">Business information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 p-5">
+          <ProviderLogoUpload value={logo} onChange={setLogo} disabled={saving} />
           <div className="space-y-2">
             <Label htmlFor="businessName">Business name</Label>
             <Input
@@ -147,24 +156,15 @@ export default function ProviderProfilePage() {
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="serviceArea">Service area</Label>
-            <Input
-              id="serviceArea"
-              value={serviceArea}
-              onChange={(e) => setServiceArea(e.target.value)}
-              placeholder="e.g. Dallas-Fort Worth metro"
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="zips">Service area zip codes</Label>
-            <Input
+            <Label htmlFor="zips">Service ZIP codes</Label>
+            <ZipCodeInput
               id="zips"
               value={serviceAreaZips}
-              onChange={(e) => setServiceAreaZips(e.target.value)}
-              placeholder="e.g. 75201,75208,75219"
+              onChange={setServiceAreaZips}
+              disabled={saving}
             />
             <p className="text-xs text-muted-foreground">
-              Comma-separated zips used to match nearby job requests.
+              Jobs in these ZIP codes will show up in your available list.
             </p>
           </div>
           <Button

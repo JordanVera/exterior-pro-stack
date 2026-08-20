@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { requiredServiceAreaZipsSchema } from "./zips";
 
 export const phoneSchema = z
   .string()
@@ -36,12 +37,19 @@ export const updateCustomerProfileInput = z.object({
   email: z.string().email("Invalid email").optional().or(z.literal("")),
 });
 
-export const providerOnboardingInput = z.object({
-  businessName: z.string().min(1, "Business name is required").max(200),
-  description: z.string().max(2000).optional(),
-  serviceArea: z.string().max(500).optional(),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
-});
+export const providerOnboardingInput = z
+  .object({
+    businessName: z.string().min(1, "Business name is required").max(200),
+    description: z.string().max(2000).optional(),
+    serviceAreaZips: requiredServiceAreaZipsSchema,
+    logoUrl: z.string().url().max(2048).optional(),
+    logoPathname: z.string().max(1024).optional(),
+    email: z.string().email("Invalid email").optional().or(z.literal("")),
+  })
+  .refine((value) => Boolean(value.logoUrl) === Boolean(value.logoPathname), {
+    message: "Logo upload is incomplete",
+    path: ["logoUrl"],
+  });
 
 export type SendCodeInput = z.infer<typeof sendCodeInput>;
 export type VerifyCodeInput = z.infer<typeof verifyCodeInput>;
