@@ -14,7 +14,6 @@ import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { Redirect, useRouter } from 'expo-router';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/lib/auth';
-import { colors } from '@/lib/theme';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { LoadingScreen } from '@/components/Screen';
 import { KenBurnsBackground } from '@/components/KenBurnsBackground';
@@ -138,7 +137,7 @@ export default function LoginScreen() {
                   autoComplete="email"
                   placeholder="you@company.com"
                   placeholderTextColor="#64748b"
-                  className="h-16 rounded-2xl border border-line-strong bg-surface-sunken px-4 font-sans text-lg text-white"
+                  className="px-4 h-16 font-sans text-lg text-white rounded-2xl border border-line-strong bg-surface-sunken"
                   returnKeyType="go"
                   onSubmitEditing={sendCode}
                   autoFocus
