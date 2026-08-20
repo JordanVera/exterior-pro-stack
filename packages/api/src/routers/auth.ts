@@ -370,7 +370,7 @@ export const authRouter = router({
       const email = input.email || user?.email || undefined;
       assertOwnedLogoPath(ctx.user.userId, input.logoPathname);
 
-      const serviceIds = [...new Set(input.serviceIds)];
+      const serviceIds = Array.from(new Set(input.serviceIds));
       const activeServices = await ctx.db.service.findMany({
         where: { id: { in: serviceIds }, active: true },
         select: { id: true },
