@@ -119,7 +119,7 @@ export function ZipCodeInput({
                     className="rounded-full p-0.5 text-muted-foreground hover:text-foreground"
                     aria-label={`Remove ${zip}`}
                   >
-                    <X className="h-3 w-3" />
+                    <X className="w-3 h-3" />
                   </button>
                 </span>
               ))}
@@ -148,7 +148,7 @@ export function ZipCodeInput({
               onKeyDown={(event) => {
                 if (event.key === 'Enter') event.preventDefault();
               }}
-              className="h-8 border-border bg-background/60 pl-8 text-sm shadow-none focus-visible:ring-brand-lime"
+              className="pl-8 h-8 text-sm shadow-none border-border bg-background/60 focus-visible:ring-brand-lime"
             />
           </div>
         </div>
@@ -157,10 +157,10 @@ export function ZipCodeInput({
           type="multiple"
           value={open}
           onValueChange={setOpen}
-          className="max-h-64 overflow-y-auto px-3"
+          className="max-h-80 overflow-y-auto px-3 lg:max-h-[22rem]"
         >
           {groups.length === 0 ? (
-            <p className="py-6 text-center text-xs text-muted-foreground">
+            <p className="py-6 text-xs text-center text-muted-foreground">
               No Greater Houston ZIPs match that search
             </p>
           ) : (
@@ -175,7 +175,7 @@ export function ZipCodeInput({
                   className="border-border"
                 >
                   <AccordionTrigger className="py-2.5 text-xs hover:no-underline">
-                    <span className="flex min-w-0 items-center gap-2">
+                    <span className="flex gap-2 items-center min-w-0">
                       <span className="truncate">{group.name}</span>
                       {picked > 0 ? (
                         <span className="rounded-full bg-brand-lime/15 px-1.5 py-0.5 text-[10px] font-semibold tabular-nums text-brand-navy dark:text-brand-lime">
@@ -220,7 +220,7 @@ export function ZipCodeInput({
           )}
         </Accordion>
 
-        <div className="flex items-center gap-2 border-t border-border px-3 py-2">
+        <div className="flex gap-2 items-center px-3 py-2 border-t border-border">
           <Input
             value={custom}
             disabled={disabled}
@@ -244,7 +244,7 @@ export function ZipCodeInput({
             variant="outline"
             disabled={disabled || custom.length !== 5}
             onClick={addCustom}
-            className="h-8 shrink-0 px-3 text-xs"
+            className="px-3 h-8 text-xs shrink-0"
           >
             Add
           </Button>

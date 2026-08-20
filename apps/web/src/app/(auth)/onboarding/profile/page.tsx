@@ -14,6 +14,7 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
+  CardTitle,
 } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -30,13 +31,13 @@ import {
 
 function AuthShell({ children }: { children: ReactNode }) {
   return (
-    <div className="flex overflow-hidden relative flex-col min-h-screen bg-background text-foreground">
+    <div className="relative flex min-h-screen flex-col bg-background text-foreground">
       <div className="bg-grid-fade pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
       <BackgroundBeams className="opacity-40" delay={0} />
 
       <header className="relative z-20 px-4 pt-4">
         <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-black/70">
-          <Link href="/" className="flex gap-2 items-center pl-1">
+          <Link href="/" className="flex items-center gap-2 pl-1">
             <Image
               src="/logos/logo-stacked-lime.png"
               alt="Exterior Pro"
@@ -49,7 +50,7 @@ function AuthShell({ children }: { children: ReactNode }) {
         </nav>
       </header>
 
-      <main className="flex relative z-10 flex-1 justify-center items-center px-4 py-12">
+      <main className="relative z-10 mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
         {children}
       </main>
     </div>
@@ -134,8 +135,8 @@ export default function ProfileOnboardingPage() {
   if (!role) {
     return (
       <AuthShell>
-        <div className="flex flex-col gap-3 items-center">
-          <div className="w-8 h-8 rounded-full border-2 animate-spin border-brand-lime/20 border-t-brand-lime" />
+        <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-lime/20 border-t-brand-lime" />
           <p className="text-sm text-muted-foreground">Loading</p>
         </div>
       </AuthShell>
@@ -144,32 +145,32 @@ export default function ProfileOnboardingPage() {
 
   return (
     <AuthShell>
-      <div className="w-full max-w-lg">
-        <Card className="relative p-8 rounded-2xl border shadow-lg backdrop-blur-xl border-border bg-background/80">
-          <CardHeader className="p-0 mb-6 space-y-3 text-center">
-            <p className="inline-flex items-center justify-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-brand-navy dark:text-brand-lime">
-              <span className="w-6 h-px bg-brand-lime" />
-              Almost there
-            </p>
-            <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              Complete your profile
-            </h1>
-            <CardDescription>
-              {role === 'CUSTOMER'
-                ? 'Tell us a bit about yourself'
-                : 'Tell us about your business'}
-            </CardDescription>
-          </CardHeader>
+      <div className="mb-8 space-y-2">
+        <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-brand-navy dark:text-brand-lime">
+          <span className="h-px w-6 bg-brand-lime" />
+          Almost there
+        </p>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+          Complete your profile
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          {role === 'CUSTOMER'
+            ? 'Tell us a bit about yourself'
+            : 'Tell us about your business, the work you do, and where you serve.'}
+        </p>
+      </div>
 
-          <CardContent className="p-0">
-            {error ? (
-              <Alert variant="destructive" className="mb-4">
-                <AlertDescription>{error}</AlertDescription>
-              </Alert>
-            ) : null}
+      {error ? (
+        <Alert variant="destructive" className="mb-6">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      ) : null}
 
-            {role === 'CUSTOMER' ? (
-              <form onSubmit={handleCustomerSubmit} className="space-y-4">
+      {role === 'CUSTOMER' ? (
+        <Card className="max-w-xl border-border bg-background/80 shadow-none">
+          <CardContent className="p-5 sm:p-6">
+            <form onSubmit={handleCustomerSubmit} className="space-y-4">
+              <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First name</Label>
                   <Input
@@ -192,29 +193,41 @@ export default function ProfileOnboardingPage() {
                     required
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email (optional)</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="focus-visible:ring-brand-lime"
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  disabled={loading || !firstName || !lastName}
-                  size="lg"
-                  className="mt-2 w-full font-semibold rounded-xl bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
-                >
-                  {loading ? 'Saving...' : 'Continue'}
-                </Button>
-              </form>
-            ) : null}
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="email">Email (optional)</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="focus-visible:ring-brand-lime"
+                />
+              </div>
+              <Button
+                type="submit"
+                disabled={loading || !firstName || !lastName}
+                size="lg"
+                className="rounded-xl bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
+              >
+                {loading ? 'Saving...' : 'Continue'}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+      ) : null}
 
-            {role === 'PROVIDER' ? (
-              <form onSubmit={handleProviderSubmit} className="space-y-4">
+      {role === 'PROVIDER' ? (
+        <form onSubmit={handleProviderSubmit} className="space-y-6">
+          <div className="grid items-start gap-6 lg:grid-cols-2">
+            <Card className="border-border bg-background/80 shadow-none">
+              <CardHeader className="p-5 pb-0">
+                <CardTitle className="text-base">Business information</CardTitle>
+                <CardDescription>
+                  Logo, name, and how customers will reach you.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 p-5">
                 <ProviderLogoUpload
                   value={logo}
                   onChange={setLogo}
@@ -254,21 +267,36 @@ export default function ProfileOnboardingPage() {
                     placeholder="you@company.com"
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>Services you offer</Label>
+              </CardContent>
+            </Card>
+
+            <div className="space-y-6">
+              <Card className="border-border bg-background/80 shadow-none">
+                <CardHeader className="p-5 pb-0">
+                  <CardTitle className="text-base">Services you offer</CardTitle>
+                  <CardDescription>
+                    Choose at least one. Custom prices can be set later.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-5">
                   <ProviderServicePicker
                     categories={categories}
                     value={serviceIds}
                     onChange={setServiceIds}
                     disabled={loading}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Choose at least one. You can set custom prices later in your
-                    profile.
-                  </p>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="serviceAreaZips">Service ZIP codes</Label>
+                </CardContent>
+              </Card>
+
+              <Card className="border-border bg-background/80 shadow-none">
+                <CardHeader className="p-5 pb-0">
+                  <CardTitle className="text-base">Service ZIP codes</CardTitle>
+                  <CardDescription>
+                    Select Greater Houston ZIPs you serve. Add any others one at
+                    a time at the bottom.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-5">
                   <ZipCodeInput
                     id="serviceAreaZips"
                     value={serviceAreaZips}
@@ -276,30 +304,29 @@ export default function ProfileOnboardingPage() {
                     disabled={loading}
                     placeholder="77008"
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Select Greater Houston ZIPs you serve. Add any others one at
-                    a time at the bottom.
-                  </p>
-                </div>
-                <Button
-                  type="submit"
-                  disabled={
-                    loading ||
-                    logoBusy ||
-                    !businessName ||
-                    !serviceAreaZips ||
-                    serviceIds.length === 0
-                  }
-                  size="lg"
-                  className="mt-2 w-full font-semibold rounded-xl bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
-                >
-                  {loading ? 'Saving...' : 'Continue'}
-                </Button>
-              </form>
-            ) : null}
-          </CardContent>
-        </Card>
-      </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <Button
+              type="submit"
+              disabled={
+                loading ||
+                logoBusy ||
+                !businessName ||
+                !serviceAreaZips ||
+                serviceIds.length === 0
+              }
+              size="lg"
+              className="rounded-xl bg-brand-lime px-8 font-semibold text-brand-ink hover:bg-brand-lime/90"
+            >
+              {loading ? 'Saving...' : 'Continue'}
+            </Button>
+          </div>
+        </form>
+      ) : null}
     </AuthShell>
   );
 }

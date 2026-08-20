@@ -86,7 +86,7 @@ export function ProviderServicePicker({
         type="multiple"
         value={open}
         onValueChange={setOpen}
-        className="overflow-y-auto px-3 max-h-64"
+        className="max-h-80 overflow-y-auto px-3 lg:max-h-[22rem]"
       >
         {categories.map((category) => {
           if (category.services.length === 0) return null;
