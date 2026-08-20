@@ -88,11 +88,15 @@ export default function AdminServicesPage() {
   const [saving, setSaving] = useState(false);
 
   const [catOpen, setCatOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<CategoryItem | null>(null);
+  const [editingCategory, setEditingCategory] = useState<CategoryItem | null>(
+    null,
+  );
   const [catForm, setCatForm] = useState<CategoryForm>(emptyCategory);
 
   const [svcOpen, setSvcOpen] = useState(false);
-  const [editingService, setEditingService] = useState<ServiceItem | null>(null);
+  const [editingService, setEditingService] = useState<ServiceItem | null>(
+    null,
+  );
   const [svcForm, setSvcForm] = useState<ServiceForm>(emptyService);
 
   const fetchCategories = () => {
@@ -153,7 +157,10 @@ export default function AdminServicesPage() {
         image: catForm.image.trim() || undefined,
       };
       if (editingCategory) {
-        await trpc.service.updateCategory.mutate({ id: editingCategory.id, ...payload });
+        await trpc.service.updateCategory.mutate({
+          id: editingCategory.id,
+          ...payload,
+        });
         toast.success('Category updated');
       } else {
         await trpc.service.createCategory.mutate(payload);
@@ -169,7 +176,8 @@ export default function AdminServicesPage() {
   };
 
   const saveService = async () => {
-    if (!svcForm.name.trim() || !svcForm.basePrice || !svcForm.categoryId) return;
+    if (!svcForm.name.trim() || !svcForm.basePrice || !svcForm.categoryId)
+      return;
     setSaving(true);
     try {
       const payload = {
@@ -180,7 +188,10 @@ export default function AdminServicesPage() {
         categoryId: svcForm.categoryId,
       };
       if (editingService) {
-        await trpc.service.updateService.mutate({ id: editingService.id, ...payload });
+        await trpc.service.updateService.mutate({
+          id: editingService.id,
+          ...payload,
+        });
         toast.success('Service updated');
       } else {
         await trpc.service.createService.mutate(payload);
@@ -201,7 +212,9 @@ export default function AdminServicesPage() {
         id: service.id,
         active: !service.active,
       });
-      toast.success(service.active ? 'Service deactivated' : 'Service activated');
+      toast.success(
+        service.active ? 'Service deactivated' : 'Service activated',
+      );
       fetchCategories();
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : 'Update failed');
@@ -209,16 +222,20 @@ export default function AdminServicesPage() {
   };
 
   const deleteCategory = async (category: CategoryItem) => {
+    if (!window.confirm(`Delete category “${category.name}”?`)) return;
     try {
       await trpc.service.deleteCategory.mutate({ id: category.id });
       toast.success('Category deleted');
       fetchCategories();
     } catch (err: unknown) {
-      toast.error(err instanceof Error ? err.message : 'Cannot delete category');
+      toast.error(
+        err instanceof Error ? err.message : 'Cannot delete category',
+      );
     }
   };
 
   const deleteService = async (service: ServiceItem) => {
+    if (!window.confirm(`Delete service “${service.name}”?`)) return;
     try {
       await trpc.service.deleteService.mutate({ id: service.id });
       toast.success('Service deleted');
@@ -231,8 +248,8 @@ export default function AdminServicesPage() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <Skeleton className="h-36 w-full rounded-3xl" />
-        <Skeleton className="h-48 w-full rounded-2xl" />
+        <Skeleton className="w-full h-36 rounded-3xl" />
+        <Skeleton className="w-full h-48 rounded-2xl" />
       </div>
     );
   }
@@ -271,12 +288,20 @@ export default function AdminServicesPage() {
             title={category.name}
             count={category.services.length}
             headerSlot={
-              <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={() => openCreateService(category.id)}>
+              <div className="flex gap-2 items-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openCreateService(category.id)}
+                >
                   <Plus />
                   Add service
                 </Button>
-                <Button variant="ghost" size="icon" onClick={() => openEditCategory(category)}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => openEditCategory(category)}
+                >
                   <Pencil />
                 </Button>
                 <Button
@@ -291,10 +316,14 @@ export default function AdminServicesPage() {
             }
           >
             {category.description ? (
-              <p className="mb-4 text-sm text-muted-foreground">{category.description}</p>
+              <p className="mb-4 text-sm text-muted-foreground">
+                {category.description}
+              </p>
             ) : null}
             {category.services.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No services in this category.</p>
+              <p className="text-sm text-muted-foreground">
+                No services in this category.
+              </p>
             ) : (
               <ul className="space-y-2">
                 {category.services.map((service) => (
@@ -309,7 +338,7 @@ export default function AdminServicesPage() {
                       <p className="text-sm font-medium text-foreground">
                         {service.name}
                         {!service.active ? (
-                          <span className="ml-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                          <span className="ml-2 text-xs font-semibold tracking-wide uppercase text-muted-foreground">
                             Inactive
                           </span>
                         ) : null}
@@ -319,11 +348,19 @@ export default function AdminServicesPage() {
                         {service.description ? ` · ${service.description}` : ''}
                       </p>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Button variant="ghost" size="sm" onClick={() => toggleService(service)}>
+                    <div className="flex gap-1 items-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleService(service)}
+                      >
                         {service.active ? 'Deactivate' : 'Activate'}
                       </Button>
-                      <Button variant="ghost" size="icon" onClick={() => openEditService(service)}>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openEditService(service)}
+                      >
                         <Pencil />
                       </Button>
                       <Button
@@ -346,36 +383,47 @@ export default function AdminServicesPage() {
       <Dialog open={catOpen} onOpenChange={setCatOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingCategory ? 'Edit category' : 'New category'}</DialogTitle>
+            <DialogTitle>
+              {editingCategory ? 'Edit category' : 'New category'}
+            </DialogTitle>
             <DialogDescription>
-              Categories group services on the marketing site and in job requests.
+              Categories group services on the marketing site and in job
+              requests.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <Field label="Name">
               <Input
                 value={catForm.name}
-                onChange={(e) => setCatForm({ ...catForm, name: e.target.value })}
+                onChange={(e) =>
+                  setCatForm({ ...catForm, name: e.target.value })
+                }
                 required
               />
             </Field>
             <Field label="Description">
               <Textarea
                 value={catForm.description}
-                onChange={(e) => setCatForm({ ...catForm, description: e.target.value })}
+                onChange={(e) =>
+                  setCatForm({ ...catForm, description: e.target.value })
+                }
               />
             </Field>
             <Field label="Icon">
               <Input
                 value={catForm.icon}
-                onChange={(e) => setCatForm({ ...catForm, icon: e.target.value })}
+                onChange={(e) =>
+                  setCatForm({ ...catForm, icon: e.target.value })
+                }
                 placeholder="droplets"
               />
             </Field>
             <Field label="Image URL">
               <Input
                 value={catForm.image}
-                onChange={(e) => setCatForm({ ...catForm, image: e.target.value })}
+                onChange={(e) =>
+                  setCatForm({ ...catForm, image: e.target.value })
+                }
                 placeholder="https://…"
               />
             </Field>
@@ -384,7 +432,10 @@ export default function AdminServicesPage() {
             <Button variant="outline" onClick={() => setCatOpen(false)}>
               Cancel
             </Button>
-            <Button onClick={saveCategory} disabled={saving || !catForm.name.trim()}>
+            <Button
+              onClick={saveCategory}
+              disabled={saving || !catForm.name.trim()}
+            >
               {saving ? 'Saving…' : 'Save'}
             </Button>
           </DialogFooter>
@@ -394,7 +445,9 @@ export default function AdminServicesPage() {
       <Dialog open={svcOpen} onOpenChange={setSvcOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingService ? 'Edit service' : 'New service'}</DialogTitle>
+            <DialogTitle>
+              {editingService ? 'Edit service' : 'New service'}
+            </DialogTitle>
             <DialogDescription>
               Base price is the platform reference; providers can override it.
             </DialogDescription>
@@ -403,19 +456,25 @@ export default function AdminServicesPage() {
             <Field label="Name">
               <Input
                 value={svcForm.name}
-                onChange={(e) => setSvcForm({ ...svcForm, name: e.target.value })}
+                onChange={(e) =>
+                  setSvcForm({ ...svcForm, name: e.target.value })
+                }
               />
             </Field>
             <Field label="Description">
               <Textarea
                 value={svcForm.description}
-                onChange={(e) => setSvcForm({ ...svcForm, description: e.target.value })}
+                onChange={(e) =>
+                  setSvcForm({ ...svcForm, description: e.target.value })
+                }
               />
             </Field>
             <Field label="Category">
               <Select
                 value={svcForm.categoryId}
-                onValueChange={(value) => setSvcForm({ ...svcForm, categoryId: value })}
+                onValueChange={(value) =>
+                  setSvcForm({ ...svcForm, categoryId: value })
+                }
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a category" />
@@ -436,14 +495,19 @@ export default function AdminServicesPage() {
                   step="0.01"
                   min="0"
                   value={svcForm.basePrice}
-                  onChange={(e) => setSvcForm({ ...svcForm, basePrice: e.target.value })}
+                  onChange={(e) =>
+                    setSvcForm({ ...svcForm, basePrice: e.target.value })
+                  }
                 />
               </Field>
               <Field label="Unit">
                 <Select
                   value={svcForm.unit}
                   onValueChange={(value) =>
-                    setSvcForm({ ...svcForm, unit: value as ServiceForm['unit'] })
+                    setSvcForm({
+                      ...svcForm,
+                      unit: value as ServiceForm['unit'],
+                    })
                   }
                 >
                   <SelectTrigger>
@@ -475,7 +539,13 @@ export default function AdminServicesPage() {
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="space-y-1.5">
       <Label>{label}</Label>

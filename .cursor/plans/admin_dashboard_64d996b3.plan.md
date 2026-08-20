@@ -19,13 +19,13 @@ todos:
     status: completed
   - id: catalog-ui
     content: Complete services page CRUD with dialogs, inactive services, guarded delete
-    status: in_progress
+    status: completed
   - id: providers
     content: Restyle providers list; add /admin/providers/[id] with verify/unverify, Stripe, payouts
-    status: pending
+    status: completed
   - id: payments-jobs
     content: Add /admin/payments; restyle jobs list as read-only oversight
-    status: pending
+    status: completed
 isProject: false
 ---
 
