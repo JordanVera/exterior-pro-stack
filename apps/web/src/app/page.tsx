@@ -6,6 +6,8 @@ const title = 'Exterior Pro — Recurring exterior care and on-demand pros';
 const description =
   'Subscribe to recurring lawn, gutter, and exterior care, or post a one-time job and let verified local providers compete for it. Built only for exterior work.';
 
+export const revalidate = 300;
+
 export const metadata: Metadata = {
   title,
   description,
