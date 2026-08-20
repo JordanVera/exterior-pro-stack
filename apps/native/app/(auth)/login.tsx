@@ -6,12 +6,14 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
+import { OtpInput } from 'react-native-otp-entry';
 import { Redirect, useRouter } from 'expo-router';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/lib/auth';
@@ -52,8 +54,9 @@ export default function LoginScreen() {
     }
   };
 
-  const verifyCode = async () => {
-    if (code.length !== 6) {
+  const verifyCode = async (codeOverride?: string) => {
+    const otp = codeOverride ?? code;
+    if (otp.length !== 6) {
       setError('Enter the 6-digit code');
       return;
     }
@@ -62,7 +65,7 @@ export default function LoginScreen() {
     try {
       const result = await trpc.auth.verifyCode.mutate({
         email: normalizedEmail,
-        code,
+        code: otp,
       });
       const me = await signIn(result.token);
 
@@ -131,7 +134,7 @@ export default function LoginScreen() {
                   <View className="items-center my-4">
                     <Image
                       source={require('../../assets/logo-stacked-lime.png')}
-                      style={{ width: 100, height: 38 }}
+                      style={{ width: 160, height: 50 }}
                       resizeMode="contain"
                     />
                   </View>
@@ -175,28 +178,37 @@ export default function LoginScreen() {
                     </>
                   ) : (
                     <>
-                      <Text className="mb-2 text-sm font-semibold text-white/70">
+                      <Text className="mb-3 text-sm font-semibold text-white/70">
                         6-digit code
                       </Text>
-                      <TextInput
-                        value={code}
-                        onChangeText={(value) =>
-                          setCode(value.replace(/\D/g, '').slice(0, 6))
-                        }
-                        keyboardType="number-pad"
-                        placeholder="000 000"
-                        placeholderTextColor="rgba(255,255,255,0.28)"
-                        className="h-[52px] rounded-2xl border border-line-strong bg-surface-sunken px-4 text-center font-semibold text-2xl tracking-[10px] text-white"
-                        returnKeyType="go"
-                        onSubmitEditing={verifyCode}
+                      <OtpInput
+                        numberOfDigits={6}
+                        type="numeric"
                         autoFocus
+                        focusColor={colors.lime}
+                        onTextChange={setCode}
+                        onFilled={(text) => {
+                          setCode(text);
+                          void verifyCode(text);
+                        }}
+                        disabled={loading}
+                        theme={{
+                          containerStyle: otpStyles.container,
+                          pinCodeContainerStyle: otpStyles.pinCodeContainer,
+                          pinCodeTextStyle: otpStyles.pinCodeText,
+                          focusStickStyle: otpStyles.focusStick,
+                          focusedPinCodeContainerStyle:
+                            otpStyles.focusedPinCodeContainer,
+                          filledPinCodeContainerStyle:
+                            otpStyles.filledPinCodeContainer,
+                        }}
                       />
                       {error ? <ErrorLine message={error} /> : null}
                       <View className="mt-4">
                         <PrimaryButton
                           label="Verify code"
                           icon="checkmark-circle-outline"
-                          onPress={verifyCode}
+                          onPress={() => void verifyCode()}
                           loading={loading}
                         />
                       </View>
@@ -259,3 +271,33 @@ function ErrorLine({ message }: { message: string }) {
     </View>
   );
 }
+
+const otpStyles = StyleSheet.create({
+  container: {
+    width: 'auto',
+  },
+  pinCodeContainer: {
+    width: 46,
+    height: 52,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.18)',
+    backgroundColor: '#0C0C0D',
+  },
+  pinCodeText: {
+    color: '#ffffff',
+    fontSize: 22,
+    fontFamily: 'Outfit_600SemiBold',
+  },
+  focusStick: {
+    backgroundColor: colors.lime,
+  },
+  focusedPinCodeContainer: {
+    borderColor: colors.lime,
+    borderWidth: 1.5,
+  },
+  filledPinCodeContainer: {
+    borderColor: 'rgba(200,245,66,0.35)',
+    backgroundColor: 'rgba(200,245,66,0.08)',
+  },
+});
