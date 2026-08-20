@@ -7,7 +7,7 @@ import { loginPath } from '@/lib/auth-intent';
 
 export function CtaSection() {
   return (
-    <section className="relative overflow-hidden px-4 py-28 sm:px-6">
+    <section className="relative overflow-hidden px-4 py-20 sm:px-6">
       {/* Lamp glow */}
       <div className="pointer-events-none absolute inset-x-0 top-0 flex justify-center">
         <motion.div

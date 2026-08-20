@@ -12,7 +12,7 @@ import { SectionEyebrow } from './section-eyebrow';
 
 export function FaqSection() {
   return (
-    <section id="faq" className="py-24 scroll-mt-24">
+    <section id="faq" className="py-16 scroll-mt-24">
       <div className="mx-auto grid max-w-6xl gap-12 px-6 lg:grid-cols-[0.8fr_1.2fr]">
         <div className="lg:sticky lg:top-28 lg:self-start">
           <SectionEyebrow>FAQ</SectionEyebrow>

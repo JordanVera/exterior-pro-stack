@@ -17,7 +17,7 @@ export function PlansSection() {
     BILLING_OPTIONS.find((item) => item.value === billing) ?? BILLING_OPTIONS[0];
 
   return (
-    <section id="pricing" className="relative scroll-mt-24 py-24">
+    <section id="pricing" className="relative scroll-mt-24 py-16">
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-lime/30 to-transparent" />
 
       <div className="mx-auto max-w-6xl px-6">

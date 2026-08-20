@@ -64,7 +64,7 @@ const CELLS: Cell[] = [
 
 export function WhySection() {
   return (
-    <section className="py-24">
+    <section className="py-16">
       <div className="mx-auto max-w-6xl px-6">
         <div className="mb-14 max-w-3xl">
           <SectionEyebrow>Why Exterior Pro</SectionEyebrow>

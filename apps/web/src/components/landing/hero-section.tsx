@@ -76,7 +76,7 @@ export function HeroSection() {
       <div className="pointer-events-none absolute -right-16 bottom-24 h-80 w-80 rounded-full bg-brand-lime/10 blur-[120px] dark:bg-brand-navy/40" />
       <div className="bg-grid-fade pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
 
-      <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-6 pb-24 pt-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+      <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-6 pb-16 pt-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
         <div>
           <SegmentedTabs
             options={[

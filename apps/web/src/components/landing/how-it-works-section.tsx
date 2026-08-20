@@ -57,7 +57,7 @@ export function HowItWorksSection() {
   );
 
   return (
-    <section id="how-it-works" className="relative py-24 scroll-mt-20 md:py-0">
+    <section id="how-it-works" className="relative py-16 scroll-mt-20 md:py-0">
       <StickyScrollHorizontal header={header}>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div

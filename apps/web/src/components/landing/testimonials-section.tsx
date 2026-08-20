@@ -7,7 +7,7 @@ import { HOMEOWNER_TESTIMONIALS, PROVIDER_TESTIMONIALS } from './data';
 
 export function TestimonialsSection() {
   return (
-    <section className="relative overflow-hidden py-24">
+    <section className="relative overflow-hidden py-16">
       <div className="mx-auto max-w-6xl px-6">
         <div className="max-w-2xl">
           <SectionEyebrow>Both sides of the job</SectionEyebrow>

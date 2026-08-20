@@ -6,7 +6,7 @@ import { STATS } from './data';
 
 export function StatsSection() {
   return (
-    <section className="relative overflow-hidden py-20">
+    <section className="relative overflow-hidden py-16">
       <div className="pointer-events-none absolute inset-x-0 top-1/2 h-64 -translate-y-1/2 bg-[radial-gradient(ellipse_at_center,rgba(200,245,66,0.10),transparent_70%)]" />
 
       <div className="relative mx-auto max-w-6xl px-6">

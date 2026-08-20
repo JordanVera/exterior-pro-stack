@@ -20,7 +20,7 @@ const ICONS = [Users, CalendarRange, Gavel, Banknote, Smartphone, Camera];
 
 export function ProvidersSection() {
   return (
-    <section id="providers" className="px-4 py-24 scroll-mt-24 sm:px-6">
+    <section id="providers" className="px-4 py-16 scroll-mt-24 sm:px-6">
       <WobbleCard containerClassName="mx-auto max-w-6xl">
         <BackgroundBeams className="opacity-40" />
 
