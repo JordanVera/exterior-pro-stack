@@ -205,7 +205,7 @@ export default function AdminServicesPage() {
       setSaving(false);
     }
   };
-
+ 
   const toggleService = async (service: ServiceItem) => {
     try {
       await trpc.service.updateService.mutate({

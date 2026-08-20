@@ -4,6 +4,8 @@ export const createSubscriptionInput = z.object({
   planId: z.string().cuid(),
   propertyId: z.string().cuid(),
   billingFrequency: z.enum(["MONTHLY", "QUARTERLY", "ANNUALLY"]),
+  successUrl: z.string().url().optional(),
+  cancelUrl: z.string().url().optional(),
 });
 
 export const cancelSubscriptionInput = z.object({

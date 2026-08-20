@@ -3,6 +3,7 @@ import { db } from "@repo/db";
 import { getInvoiceSubscriptionId, stripe } from "./stripe";
 import {
   fulfillJobCheckout,
+  fulfillPlanSubscriptionFromStripe,
   fulfillSubscriptionCheckout,
   reverseTransfersForPayment,
 } from "./payments";
@@ -55,10 +56,13 @@ export async function handleStripeEvent(event: Stripe.Event) {
       const invoice = event.data.object as Stripe.Invoice;
       const billingReason = (invoice as Stripe.Invoice & { billing_reason?: string })
         .billing_reason;
-      if (billingReason === "subscription_create") break;
-
       const stripeSubId = getInvoiceSubscriptionId(invoice);
       if (!stripeSubId) break;
+
+      if (billingReason === "subscription_create") {
+        await fulfillPlanSubscriptionFromStripe(stripeSubId);
+        break;
+      }
 
       const subscription = await db.customerSubscription.findFirst({
         where: { stripeSubscriptionId: stripeSubId },
