@@ -107,7 +107,7 @@ export default function SettingsScreen() {
         {/* Profile Section */}
         <View className="mt-6 mb-6">
           <Text className="mb-3 text-xs font-semibold tracking-wide uppercase text-slate-400">
-            Profileasdasd
+            Profile
           </Text>
 
           {editing ? (

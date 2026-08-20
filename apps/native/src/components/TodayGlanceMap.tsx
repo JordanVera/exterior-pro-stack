@@ -1,55 +1,74 @@
-import { useMemo } from 'react';
-import { Ionicons } from '@expo/vector-icons';
-import { AppleMaps, GoogleMaps } from 'expo-maps';
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import type { FieldJobListItem } from '@/lib/types';
-import { colors } from '@/lib/theme';
-import { formatTimeLabel } from '@/lib/utils';
-import { SectionPanel } from '@/components/ui';
+import { Component, useMemo, type ReactNode } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { AppleMaps, GoogleMaps } from "expo-maps";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import type { FieldJobListItem } from "@/lib/types";
+import { colors } from "@/lib/theme";
+import { formatTimeLabel } from "@/lib/utils";
+import { SectionPanel } from "@/components/ui";
 
 type Job = FieldJobListItem;
 
 type Stop = {
   id: string;
   index: number;
-  status: Job['status'];
+  status: Job["status"];
   time: string | null;
   serviceName: string;
   city: string;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
+};
+
+/** City centers used when a property has no stored coordinates yet. */
+const CITY_COORDS: Record<string, { latitude: number; longitude: number }> = {
+  Dallas: { latitude: 32.7767, longitude: -96.797 },
+  Plano: { latitude: 33.0198, longitude: -96.6989 },
+  "Fort Worth": { latitude: 32.7555, longitude: -97.3308 },
+  Arlington: { latitude: 32.7357, longitude: -97.1081 },
+  Frisco: { latitude: 33.1507, longitude: -96.8236 },
+  Southlake: { latitude: 32.9412, longitude: -97.1344 },
+  Grapevine: { latitude: 32.934, longitude: -97.0781 },
 };
 
 function asCoordinate(value: unknown) {
-  const n = typeof value === 'number' ? value : Number(value);
+  if (value == null || value === "") return null;
+  const n = typeof value === "number" ? value : Number(value);
   return Number.isFinite(n) ? n : null;
 }
 
+function coordinatesFor(property: Job["property"]) {
+  const latitude = asCoordinate(property.latitude);
+  const longitude = asCoordinate(property.longitude);
+  if (latitude != null && longitude != null) {
+    return { latitude, longitude };
+  }
+  return CITY_COORDS[property.city] ?? null;
+}
+
 function routeStops(jobs: Job[]): Stop[] {
-  return jobs
-    .flatMap((job) => {
-      const latitude = asCoordinate(job.property.latitude);
-      const longitude = asCoordinate(job.property.longitude);
-      if (latitude == null || longitude == null) return [];
-      return [
-        {
-          id: job.id,
-          index: 0,
-          status: job.status,
-          time: job.scheduledTime,
-          serviceName: job.service.name,
-          city: job.property.city,
-          latitude,
-          longitude,
-        },
-      ];
-    })
-    .map((stop, index) => ({ ...stop, index: index + 1 }));
+  return jobs.map((job, index) => {
+    const coords = coordinatesFor(job.property);
+    return {
+      id: job.id,
+      index: index + 1,
+      status: job.status,
+      time: job.scheduledTime,
+      serviceName: job.service.name,
+      city: job.property.city,
+      latitude: coords?.latitude ?? null,
+      longitude: coords?.longitude ?? null,
+    };
+  });
 }
 
 function cameraForStops(stops: Stop[]) {
-  const lats = stops.map((stop) => stop.latitude);
-  const lngs = stops.map((stop) => stop.longitude);
+  const plotted = stops.filter(
+    (stop): stop is Stop & { latitude: number; longitude: number } =>
+      stop.latitude != null && stop.longitude != null,
+  );
+  const lats = plotted.map((stop) => stop.latitude);
+  const lngs = plotted.map((stop) => stop.longitude);
   const minLat = Math.min(...lats);
   const maxLat = Math.max(...lats);
   const minLng = Math.min(...lngs);
@@ -64,19 +83,52 @@ function cameraForStops(stops: Stop[]) {
   };
 }
 
+class MapBoundary extends Component<
+  { children: ReactNode },
+  { failed: boolean }
+> {
+  state = { failed: false };
+
+  static getDerivedStateFromError() {
+    return { failed: true };
+  }
+
+  render() {
+    if (this.state.failed) {
+      return (
+        <View className="flex-1 items-center justify-center bg-surface">
+          <Ionicons name="map-outline" size={28} color={colors.muted} />
+          <Text className="mt-2 px-6 text-center text-sm text-slate-400">
+            Map needs a native rebuild. The stop list below still works.
+          </Text>
+        </View>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 function RouteMap({ stops }: { stops: Stop[] }) {
-  const cameraPosition = useMemo(() => cameraForStops(stops), [stops]);
+  const plotted = useMemo(
+    () =>
+      stops.filter(
+        (stop): stop is Stop & { latitude: number; longitude: number } =>
+          stop.latitude != null && stop.longitude != null,
+      ),
+    [stops],
+  );
+  const cameraPosition = useMemo(() => cameraForStops(plotted), [plotted]);
   const coordinates = useMemo(
     () =>
-      stops.map((stop) => ({
+      plotted.map((stop) => ({
         latitude: stop.latitude,
         longitude: stop.longitude,
       })),
-    [stops],
+    [plotted],
   );
   const appleMarkers = useMemo(
     () =>
-      stops.map((stop) => ({
+      plotted.map((stop) => ({
         id: stop.id,
         coordinates: {
           latitude: stop.latitude,
@@ -84,13 +136,13 @@ function RouteMap({ stops }: { stops: Stop[] }) {
         },
         title: `${stop.index}. ${stop.serviceName}`,
         monogram: String(stop.index),
-        tintColor: stop.status === 'IN_PROGRESS' ? colors.lime : '#60a5fa',
+        tintColor: stop.status === "IN_PROGRESS" ? colors.lime : "#60a5fa",
       })),
-    [stops],
+    [plotted],
   );
   const googleMarkers = useMemo(
     () =>
-      stops.map((stop) => ({
+      plotted.map((stop) => ({
         id: stop.id,
         coordinates: {
           latitude: stop.latitude,
@@ -99,7 +151,7 @@ function RouteMap({ stops }: { stops: Stop[] }) {
         title: `${stop.index}. ${stop.serviceName}`,
         snippet: stop.city,
       })),
-    [stops],
+    [plotted],
   );
   const polylines = useMemo(
     () =>
@@ -107,7 +159,7 @@ function RouteMap({ stops }: { stops: Stop[] }) {
         ? []
         : [
             {
-              id: 'today-route',
+              id: "today-route",
               coordinates,
               color: colors.lime,
               width: 4,
@@ -116,7 +168,18 @@ function RouteMap({ stops }: { stops: Stop[] }) {
     [coordinates],
   );
 
-  if (Platform.OS === 'ios') {
+  if (plotted.length === 0) {
+    return (
+      <View className="flex-1 items-center justify-center bg-surface">
+        <Ionicons name="map-outline" size={28} color={colors.muted} />
+        <Text className="mt-2 text-sm text-slate-400">
+          Stop locations will show here
+        </Text>
+      </View>
+    );
+  }
+
+  if (Platform.OS === "ios") {
     return (
       <AppleMaps.View
         style={StyleSheet.absoluteFill}
@@ -138,7 +201,7 @@ function RouteMap({ stops }: { stops: Stop[] }) {
     );
   }
 
-  if (Platform.OS === 'android') {
+  if (Platform.OS === "android") {
     return (
       <GoogleMaps.View
         style={StyleSheet.absoluteFill}
@@ -161,7 +224,7 @@ function RouteMap({ stops }: { stops: Stop[] }) {
   }
 
   return (
-    <View className="flex-1 justify-center items-center bg-surface">
+    <View className="flex-1 items-center justify-center bg-surface">
       <Ionicons name="map-outline" size={28} color={colors.muted} />
       <Text className="mt-2 text-sm text-slate-400">
         Map preview is on iOS and Android
@@ -196,14 +259,16 @@ export function TodayGlanceMap({
       count={stops.length}
       className="mt-8"
     >
-      <View className="overflow-hidden h-60 rounded-3xl border border-line">
+      <View className="h-60 overflow-hidden rounded-3xl border border-line">
         <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-          <RouteMap stops={stops} />
+          <MapBoundary>
+            <RouteMap stops={stops} />
+          </MapBoundary>
         </View>
       </View>
       {window ? (
         <Text className="mt-2 text-sm text-slate-400">
-          {stops.length} stop{stops.length === 1 ? '' : 's'} · {window}
+          {stops.length} stop{stops.length === 1 ? "" : "s"} · {window}
         </Text>
       ) : null}
 
@@ -218,22 +283,22 @@ export function TodayGlanceMap({
           >
             <View
               className={`h-8 w-8 items-center justify-center rounded-full ${
-                stop.status === 'IN_PROGRESS'
-                  ? 'bg-brand-lime'
-                  : 'bg-blue-500/25'
+                stop.status === "IN_PROGRESS"
+                  ? "bg-brand-lime"
+                  : "bg-blue-500/25"
               }`}
             >
               <Text
                 className={`text-sm font-bold ${
-                  stop.status === 'IN_PROGRESS'
-                    ? 'text-brand-ink'
-                    : 'text-blue-100'
+                  stop.status === "IN_PROGRESS"
+                    ? "text-brand-ink"
+                    : "text-blue-100"
                 }`}
               >
                 {stop.index}
               </Text>
             </View>
-            <View className="flex-1 min-w-0">
+            <View className="min-w-0 flex-1">
               <Text
                 className="text-[15px] font-semibold text-white"
                 numberOfLines={1}
@@ -242,7 +307,7 @@ export function TodayGlanceMap({
               </Text>
               <Text className="mt-0.5 text-sm text-slate-400" numberOfLines={1}>
                 {stop.city}
-                {stop.time ? ` · ${formatTimeLabel(stop.time)}` : ''}
+                {stop.time ? ` · ${formatTimeLabel(stop.time)}` : ""}
               </Text>
             </View>
             <Ionicons name="chevron-forward" size={16} color={colors.muted} />
