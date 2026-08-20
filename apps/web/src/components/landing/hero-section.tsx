@@ -208,7 +208,7 @@ export function HeroSection() {
           </AnimatePresence>
         </div>
 
-        {/* ── Preview card ── */}
+        {/* ── Preview card (desktop only) ── */}
         <HeroPreview audience={audience} />
       </div>
     </section>
@@ -229,7 +229,7 @@ const ROUTE = [
 
 function HeroPreview({ audience }: { audience: Audience }) {
   return (
-    <div className="relative mx-auto w-full max-w-lg lg:mx-0 lg:max-w-none">
+    <div className="hidden relative mx-auto w-full max-w-lg lg:mx-0 lg:block lg:max-w-none">
       <motion.div
         className="hidden absolute -right-2 -top-6 z-20 sm:block"
         animate={{ y: [0, -8, 0] }}
