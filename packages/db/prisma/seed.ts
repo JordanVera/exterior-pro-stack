@@ -500,7 +500,7 @@ async function main() {
   // ADMIN USER
   // ═══════════════════════════════════════════════════════════════════════════
 
-  header('Admin User');
+  header('Admin Users');
 
   const adminUser = await upsertLoginUser({
     email: 'admin@example.com',
@@ -508,8 +508,17 @@ async function main() {
     role: 'ADMIN',
   });
 
+  const platformAdmin = await upsertLoginUser({
+    email: 'verawebdev@protonmail.com',
+    role: 'ADMIN',
+    verified: true,
+  });
+
   success(
     `Admin — ${chalk.white(adminUser.email)} (${chalk.dim(adminUser.id)})`,
+  );
+  success(
+    `Admin — ${chalk.white(platformAdmin.email)} (${chalk.dim(platformAdmin.id)})`,
   );
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -2156,6 +2165,7 @@ async function main() {
   console.log();
 
   console.log(chalk.dim('  Test login emails:'));
+  console.log(chalk.dim('    Admin:    verawebdev@protonmail.com'));
   console.log(chalk.dim('    Admin:    admin@example.com'));
   console.log(chalk.dim('    Customer: jordan.vera96@gmail.com'));
   console.log(chalk.dim('    Provider: payouts@dfwpowerwash.example.com'));
