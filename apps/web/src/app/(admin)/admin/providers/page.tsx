@@ -1,66 +1,156 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { trpc } from "../../../../lib/trpc";
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { toast } from 'sonner';
+import { trpc } from '../../../../lib/trpc';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { DashboardHero } from '@/components/dashboard/dashboard-hero';
+import { FilterPills } from '@/components/dashboard/filter-pills';
+import { EmptyState } from '@/components/dashboard/empty-state';
+import { SectionPanel } from '@/components/dashboard/section-panel';
+import { Building2 } from 'lucide-react';
+import { formatDate } from '../_components/utils';
+
+type Filter = 'all' | 'pending' | 'verified';
+
+type ProviderUser = {
+  id: string;
+  email: string;
+  createdAt: string | Date;
+  providerProfile: {
+    id: string;
+    businessName: string;
+    description: string | null;
+    serviceArea: string | null;
+    verified: boolean;
+    stripeAccountId: string | null;
+    stripeTransfersEnabled: boolean;
+  } | null;
+};
 
 export default function AdminProvidersPage() {
-  const [data, setData] = useState<{ items: any[]; nextCursor?: string }>({ items: [] });
+  const [items, setItems] = useState<ProviderUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filter, setFilter] = useState<Filter>('all');
 
   const fetchProviders = () => {
     setLoading(true);
-    trpc.admin.listUsers.query({ role: "PROVIDER", limit: 50 }).then(setData).catch(console.error).finally(() => setLoading(false));
+    trpc.admin.listUsers
+      .query({ role: 'PROVIDER', limit: 50 })
+      .then((data) => setItems(data.items as ProviderUser[]))
+      .catch((err) => toast.error(err.message || 'Failed to load providers'))
+      .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchProviders(); }, []);
+  useEffect(() => {
+    fetchProviders();
+  }, []);
 
-  const handleVerifyProvider = async (providerId: string) => {
-    try { await trpc.admin.verifyProvider.mutate({ providerId }); fetchProviders(); }
-    catch (err: any) { alert(err.message || "Failed to verify provider"); }
+  const handleVerify = async (providerId: string, verified: boolean) => {
+    try {
+      await trpc.admin.setProviderVerified.mutate({ providerId, verified });
+      toast.success(verified ? 'Provider verified' : 'Provider unverified');
+      fetchProviders();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Update failed');
+    }
   };
 
-  if (loading) {
-    return <div className="text-gray-500 dark:text-neutral-400">Loading providers...</div>;
-  }
+  const visible = items.filter((user) => {
+    const profile = user.providerProfile;
+    if (!profile) return false;
+    if (filter === 'pending') return !profile.verified;
+    if (filter === 'verified') return profile.verified;
+    return true;
+  });
+
+  const pendingCount = items.filter((u) => u.providerProfile && !u.providerProfile.verified).length;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Provider Management</h2>
-        <p className="text-gray-500 dark:text-neutral-400 mt-1">Review and verify service providers</p>
-      </div>
+    <div className="space-y-8">
+      <DashboardHero
+        eyebrow="Marketplace"
+        title="Providers"
+        subtitle="Review businesses, verification, and Stripe Connect status."
+        size="md"
+        chips={[
+          {
+            id: 'pending',
+            label: `${pendingCount} pending review`,
+            tone: pendingCount > 0 ? 'amber' : 'green',
+            pulse: pendingCount > 0,
+          },
+        ]}
+      />
 
-      <div className="space-y-4">
-        {data.items.map((user) => {
-          const profile = user.providerProfile;
-          if (!profile) return null;
-          return (
-            <div key={user.id} className={`bg-white dark:bg-neutral-900 rounded-xl p-5 border ${profile.verified ? "border-gray-200 dark:border-neutral-800" : "border-yellow-300 dark:border-yellow-800"}`}>
-              <div className="flex items-start justify-between">
-                <div>
-                  <div className="flex items-center gap-3">
-                    <h3 className="font-semibold text-gray-900 dark:text-white text-lg">{profile.businessName}</h3>
-                    {profile.verified ? (
-                      <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded text-xs font-medium">Verified</span>
-                    ) : (
-                      <span className="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded text-xs font-medium">Pending</span>
-                    )}
+      <FilterPills
+        value={filter}
+        onChange={setFilter}
+        options={[
+          { value: 'all', label: 'All' },
+          { value: 'pending', label: 'Pending', count: pendingCount },
+          { value: 'verified', label: 'Verified' },
+        ]}
+      />
+
+      {loading ? (
+        <div className="space-y-3">
+          <Skeleton className="h-28 w-full rounded-2xl" />
+          <Skeleton className="h-28 w-full rounded-2xl" />
+        </div>
+      ) : visible.length === 0 ? (
+        <EmptyState icon={Building2} title="No providers" description="Nothing matches this filter." />
+      ) : (
+        <div className="space-y-3">
+          {visible.map((user) => {
+            const profile = user.providerProfile;
+            if (!profile) return null;
+            return (
+              <SectionPanel key={user.id} title={profile.businessName}>
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <div className="space-y-1 text-sm text-muted-foreground">
+                    <p>{user.email}</p>
+                    {profile.serviceArea ? <p>Area: {profile.serviceArea}</p> : null}
+                    {profile.description ? <p>{profile.description}</p> : null}
+                    <p className="text-xs">
+                      Joined {formatDate(user.createdAt)} · Connect{' '}
+                      {profile.stripeTransfersEnabled
+                        ? 'payouts enabled'
+                        : profile.stripeAccountId
+                          ? 'onboarding incomplete'
+                          : 'not started'}
+                    </p>
+                    <p>
+                      <span
+                        className={
+                          profile.verified
+                            ? 'text-green-600 dark:text-green-400'
+                            : 'text-amber-600 dark:text-amber-400'
+                        }
+                      >
+                        {profile.verified ? 'Verified' : 'Pending verification'}
+                      </span>
+                    </p>
                   </div>
-                  <p className="text-sm text-gray-500 dark:text-neutral-400 mt-1">Email: {user.email}</p>
-                  {profile.serviceArea && <p className="text-sm text-gray-500 dark:text-neutral-400">Area: {profile.serviceArea}</p>}
-                  {profile.description && <p className="text-sm text-gray-400 dark:text-neutral-500 mt-2">{profile.description}</p>}
-                  <p className="text-xs text-gray-400 dark:text-neutral-500 mt-2">Joined: {new Date(user.createdAt).toLocaleDateString()}</p>
+                  <div className="flex shrink-0 gap-2">
+                    <Button variant="outline" asChild>
+                      <Link href={`/admin/providers/${user.id}`}>View</Link>
+                    </Button>
+                    <Button
+                      variant={profile.verified ? 'outline' : 'default'}
+                      onClick={() => handleVerify(profile.id, !profile.verified)}
+                    >
+                      {profile.verified ? 'Unverify' : 'Approve'}
+                    </Button>
+                  </div>
                 </div>
-                {!profile.verified && (
-                  <button onClick={() => handleVerifyProvider(profile.id)} className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">Approve</button>
-                )}
-              </div>
-            </div>
-          );
-        })}
-
-        {data.items.length === 0 && <div className="text-center py-12 text-gray-500 dark:text-neutral-400">No providers registered yet.</div>}
-      </div>
+              </SectionPanel>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }

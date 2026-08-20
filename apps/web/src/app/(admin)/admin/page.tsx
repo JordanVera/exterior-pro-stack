@@ -1,70 +1,271 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { trpc } from "../../../lib/trpc";
+import { useEffect, useMemo, useState } from 'react';
+import { toast } from 'sonner';
+import { trpc } from '../../../lib/trpc';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  DashboardHero,
+  type HeroChip,
+} from '@/components/dashboard/dashboard-hero';
+import { StatTiles, type StatTile } from '@/components/dashboard/stat-tiles';
+import { SectionPanel } from '@/components/dashboard/section-panel';
+import { QuickActions } from '@/components/dashboard/quick-actions';
+import {
+  AlertTriangle,
+  Briefcase,
+  Building2,
+  CreditCard,
+  Layers,
+  RefreshCw,
+  Users,
+  Wallet,
+} from 'lucide-react';
+import { dollarsWhole } from './_components/utils';
+
+type AdminStats = {
+  totalUsers: number;
+  totalCustomers: number;
+  totalProviders: number;
+  totalCrew: number;
+  verifiedProviders: number;
+  unverifiedProviders: number;
+  totalJobs: number;
+  openJobs: number;
+  activeJobs: number;
+  completedJobs: number;
+  totalBids: number;
+  pendingBids: number;
+  totalSubscriptions: number;
+  failedPayments: number;
+  pendingPayouts: number;
+  gmvCents: number;
+  payoutsCents: number;
+  pendingPayoutsCents: number;
+};
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<any>(null);
+  const [stats, setStats] = useState<AdminStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
 
   useEffect(() => {
-    trpc.admin.getStats.query().then(setStats).catch(console.error).finally(() => setLoading(false));
+    trpc.admin.getStats
+      .query()
+      .then(setStats)
+      .catch((err) => toast.error(err.message || 'Failed to load stats'))
+      .finally(() => setLoading(false));
   }, []);
+
+  const chips: HeroChip[] = useMemo(() => {
+    if (!stats) return [];
+    return [
+      {
+        id: 'open',
+        label: `${stats.openJobs} open jobs`,
+        tone: 'lime',
+        pulse: stats.openJobs > 0,
+      },
+      {
+        id: 'verify',
+        label: `${stats.unverifiedProviders} providers to review`,
+        tone: stats.unverifiedProviders > 0 ? 'amber' : 'green',
+      },
+      {
+        id: 'failed',
+        label: `${stats.failedPayments} failed payments`,
+        tone: stats.failedPayments > 0 ? 'red' : 'muted',
+      },
+    ];
+  }, [stats]);
+
+  const tiles: StatTile[] = useMemo(() => {
+    if (!stats) return [];
+    return [
+      {
+        id: 'users',
+        label: 'Users',
+        value: stats.totalUsers,
+        caption: `${stats.totalCustomers} customers · ${stats.totalProviders} providers`,
+        icon: Users,
+        href: '/admin/users',
+        tone: 'lime',
+      },
+      {
+        id: 'providers',
+        label: 'Verified providers',
+        value: stats.verifiedProviders,
+        caption: `${stats.unverifiedProviders} pending review`,
+        icon: Building2,
+        href: '/admin/providers',
+        tone: stats.unverifiedProviders > 0 ? 'amber' : 'green',
+      },
+      {
+        id: 'jobs',
+        label: 'Jobs',
+        value: stats.totalJobs,
+        caption: `${stats.activeJobs} in progress · ${stats.openJobs} open`,
+        icon: Briefcase,
+        href: '/admin/jobs',
+        tone: 'blue',
+      },
+      {
+        id: 'gmv',
+        label: 'GMV',
+        value: stats.gmvCents / 100,
+        prefix: '$',
+        decimals: 0,
+        caption: `${stats.totalSubscriptions} active subscriptions`,
+        icon: CreditCard,
+        href: '/admin/payments',
+        tone: 'green',
+      },
+      {
+        id: 'payouts',
+        label: 'Payouts',
+        value: stats.payoutsCents / 100,
+        prefix: '$',
+        decimals: 0,
+        caption: `${stats.pendingPayouts} pending · ${dollarsWhole(stats.pendingPayoutsCents)}`,
+        icon: Wallet,
+        href: '/admin/payments',
+        tone: 'muted',
+      },
+    ];
+  }, [stats]);
 
   const syncPlans = async () => {
     setSyncing(true);
     try {
       await trpc.admin.syncStripePlans.mutate();
-      alert("Stripe products and prices synced.");
-    } catch (err: any) {
-      alert(err.message || "Sync failed");
+      toast.success('Stripe products and prices synced.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Sync failed';
+      toast.error(message);
     } finally {
       setSyncing(false);
     }
   };
 
   if (loading) {
-    return <div className="text-gray-500 dark:text-neutral-400">Loading stats...</div>;
+    return (
+      <div className="space-y-6">
+        <Skeleton className="w-full h-40 rounded-3xl" />
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-5">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-32 rounded-2xl" />
+          ))}
+        </div>
+      </div>
+    );
   }
-
-  const statCards = [
-    { label: "Total Users", value: stats?.totalUsers ?? 0, color: "text-gray-900 dark:text-white" },
-    { label: "Customers", value: stats?.totalCustomers ?? 0, color: "text-brand-navy dark:text-brand-lime" },
-    { label: "Providers", value: stats?.totalProviders ?? 0, color: "text-green-600 dark:text-green-400" },
-    { label: "Verified Providers", value: stats?.verifiedProviders ?? 0, color: "text-green-700 dark:text-green-400" },
-    { label: "Total Jobs", value: stats?.totalJobs ?? 0, color: "text-gray-900 dark:text-white" },
-    { label: "Open Jobs", value: stats?.openJobs ?? 0, color: "text-brand-navy dark:text-brand-lime" },
-    { label: "Active Jobs", value: stats?.activeJobs ?? 0, color: "text-blue-600 dark:text-blue-400" },
-    { label: "Completed Jobs", value: stats?.completedJobs ?? 0, color: "text-green-600 dark:text-green-400" },
-    { label: "Total Bids", value: stats?.totalBids ?? 0, color: "text-gray-900 dark:text-white" },
-    { label: "Pending Bids", value: stats?.pendingBids ?? 0, color: "text-orange-600 dark:text-orange-400" },
-    { label: "Active Subscriptions", value: stats?.totalSubscriptions ?? 0, color: "text-purple-600 dark:text-purple-400" },
-    { label: "GMV", value: `$${((stats?.gmvCents ?? 0) / 100).toFixed(0)}`, color: "text-emerald-600 dark:text-emerald-400" },
-    { label: "Provider payouts", value: `$${((stats?.payoutsCents ?? 0) / 100).toFixed(0)}`, color: "text-green-600 dark:text-green-400" },
-  ];
 
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Platform Overview</h2>
-        <p className="text-gray-500 dark:text-neutral-400 mt-1">Key metrics across the platform</p>
-        <button
-          onClick={syncPlans}
-          disabled={syncing}
-          className="mt-3 text-sm text-brand-navy hover:underline disabled:opacity-50 dark:text-brand-lime"
-        >
-          {syncing ? "Syncing…" : "Sync plans to Stripe"}
-        </button>
-      </div>
+      <DashboardHero
+        eyebrow="Platform"
+        title="Overview"
+        subtitle="Users, jobs, and money across Exterior Pro."
+        chips={chips}
+        action={
+          <Button variant="outline" onClick={syncPlans} disabled={syncing}>
+            <RefreshCw className={syncing ? 'animate-spin' : ''} />
+            {syncing ? 'Syncing…' : 'Sync plans to Stripe'}
+          </Button>
+        }
+      />
 
-      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
-        {statCards.map((stat) => (
-          <div key={stat.label} className="bg-white dark:bg-neutral-900 rounded-xl p-5 border border-gray-200 dark:border-neutral-800">
-            <div className="text-sm text-gray-500 dark:text-neutral-400">{stat.label}</div>
-            <div className={`text-3xl font-bold mt-1 ${stat.color}`}>{stat.value}</div>
-          </div>
-        ))}
+      <StatTiles tiles={tiles} />
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <SectionPanel title="Needs attention">
+          {stats &&
+          (stats.unverifiedProviders > 0 ||
+            stats.failedPayments > 0 ||
+            stats.pendingPayouts > 0 ||
+            stats.pendingBids > 0) ? (
+            <ul className="space-y-3 text-sm">
+              {stats.unverifiedProviders > 0 ? (
+                <li className="flex gap-3 items-start">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-500" />
+                  <span>
+                    {stats.unverifiedProviders} provider
+                    {stats.unverifiedProviders === 1 ? '' : 's'} waiting for
+                    verification.
+                  </span>
+                </li>
+              ) : null}
+              {stats.failedPayments > 0 ? (
+                <li className="flex gap-3 items-start">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 text-red-500" />
+                  <span>
+                    {stats.failedPayments} failed payment
+                    {stats.failedPayments === 1 ? '' : 's'} to review.
+                  </span>
+                </li>
+              ) : null}
+              {stats.pendingPayouts > 0 ? (
+                <li className="flex gap-3 items-start">
+                  <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-500" />
+                  <span>
+                    {stats.pendingPayouts} pending payout
+                    {stats.pendingPayouts === 1 ? '' : 's'} totaling{' '}
+                    {dollarsWhole(stats.pendingPayoutsCents)}.
+                  </span>
+                </li>
+              ) : null}
+              {stats.pendingBids > 0 ? (
+                <li className="flex gap-3 items-start text-muted-foreground">
+                  <Briefcase className="mt-0.5 h-4 w-4" />
+                  <span>
+                    {stats.pendingBids} bids awaiting a customer decision.
+                  </span>
+                </li>
+              ) : null}
+            </ul>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Nothing needs review right now.
+            </p>
+          )}
+        </SectionPanel>
+
+        <SectionPanel title="Jump to">
+          <QuickActions
+            orientation="list"
+            actions={[
+              {
+                id: 'users',
+                label: 'Manage users',
+                description: 'Search, verify, and suspend accounts',
+                href: '/admin/users',
+                icon: Users,
+              },
+              {
+                id: 'providers',
+                label: 'Review providers',
+                description: 'Approve businesses and check Connect',
+                href: '/admin/providers',
+                icon: Building2,
+              },
+              {
+                id: 'catalog',
+                label: 'Edit catalog',
+                description: 'Categories, prices, and units',
+                href: '/admin/services',
+                icon: Layers,
+              },
+              {
+                id: 'payments',
+                label: 'Payments & payouts',
+                description: 'Receipts, fees, and transfers',
+                href: '/admin/payments',
+                icon: Wallet,
+              },
+            ]}
+          />
+        </SectionPanel>
       </div>
     </div>
   );

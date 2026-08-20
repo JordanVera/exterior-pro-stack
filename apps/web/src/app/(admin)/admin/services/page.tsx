@@ -1,119 +1,555 @@
-"use client";
+'use client';
 
-import { useEffect, useState } from "react";
-import { trpc } from "../../../../lib/trpc";
+import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { trpc } from '../../../../lib/trpc';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { DashboardHero } from '@/components/dashboard/dashboard-hero';
+import { SectionPanel } from '@/components/dashboard/section-panel';
+import { EmptyState } from '@/components/dashboard/empty-state';
+import { Layers, Pencil, Plus, Trash2 } from 'lucide-react';
+import { cn } from '@/lib/utils';
+
+type ServiceItem = {
+  id: string;
+  name: string;
+  description: string | null;
+  basePrice: unknown;
+  unit: 'FLAT' | 'HOUR' | 'SQFT';
+  active: boolean;
+  categoryId: string;
+};
+
+type CategoryItem = {
+  id: string;
+  name: string;
+  description: string | null;
+  icon: string | null;
+  image: string | null;
+  services: ServiceItem[];
+};
+
+type CategoryForm = {
+  name: string;
+  description: string;
+  icon: string;
+  image: string;
+};
+
+type ServiceForm = {
+  name: string;
+  description: string;
+  basePrice: string;
+  unit: 'FLAT' | 'HOUR' | 'SQFT';
+  categoryId: string;
+};
+
+const emptyCategory: CategoryForm = {
+  name: '',
+  description: '',
+  icon: '',
+  image: '',
+};
+
+const emptyService: ServiceForm = {
+  name: '',
+  description: '',
+  basePrice: '',
+  unit: 'FLAT',
+  categoryId: '',
+};
+
+function priceLabel(service: ServiceItem) {
+  return `$${Number(service.basePrice).toFixed(2)}/${service.unit.toLowerCase()}`;
+}
 
 export default function AdminServicesPage() {
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<CategoryItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showCatForm, setShowCatForm] = useState(false);
-  const [catName, setCatName] = useState("");
-  const [catDesc, setCatDesc] = useState("");
-  const [catIcon, setCatIcon] = useState("");
-  const [addingServiceCatId, setAddingServiceCatId] = useState<string | null>(null);
-  const [svcName, setSvcName] = useState("");
-  const [svcDesc, setSvcDesc] = useState("");
-  const [svcPrice, setSvcPrice] = useState("");
-  const [svcUnit, setSvcUnit] = useState("FLAT");
+  const [saving, setSaving] = useState(false);
+
+  const [catOpen, setCatOpen] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<CategoryItem | null>(
+    null,
+  );
+  const [catForm, setCatForm] = useState<CategoryForm>(emptyCategory);
+
+  const [svcOpen, setSvcOpen] = useState(false);
+  const [editingService, setEditingService] = useState<ServiceItem | null>(
+    null,
+  );
+  const [svcForm, setSvcForm] = useState<ServiceForm>(emptyService);
 
   const fetchCategories = () => {
-    trpc.service.listCategories.query().then(setCategories).catch(console.error).finally(() => setLoading(false));
+    trpc.service.listCategoriesAdmin
+      .query()
+      .then((data) => setCategories(data as unknown as CategoryItem[]))
+      .catch((err) => toast.error(err.message || 'Failed to load catalog'))
+      .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchCategories(); }, []);
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
-  const handleCreateCategory = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const openCreateCategory = () => {
+    setEditingCategory(null);
+    setCatForm(emptyCategory);
+    setCatOpen(true);
+  };
+
+  const openEditCategory = (category: CategoryItem) => {
+    setEditingCategory(category);
+    setCatForm({
+      name: category.name,
+      description: category.description ?? '',
+      icon: category.icon ?? '',
+      image: category.image ?? '',
+    });
+    setCatOpen(true);
+  };
+
+  const openCreateService = (categoryId: string) => {
+    setEditingService(null);
+    setSvcForm({ ...emptyService, categoryId });
+    setSvcOpen(true);
+  };
+
+  const openEditService = (service: ServiceItem) => {
+    setEditingService(service);
+    setSvcForm({
+      name: service.name,
+      description: service.description ?? '',
+      basePrice: String(Number(service.basePrice)),
+      unit: service.unit,
+      categoryId: service.categoryId,
+    });
+    setSvcOpen(true);
+  };
+
+  const saveCategory = async () => {
+    if (!catForm.name.trim()) return;
+    setSaving(true);
     try {
-      await trpc.service.createCategory.mutate({ name: catName, description: catDesc || undefined, icon: catIcon || undefined });
-      setCatName(""); setCatDesc(""); setCatIcon(""); setShowCatForm(false); fetchCategories();
-    } catch (err: any) { alert(err.message); }
+      const payload = {
+        name: catForm.name.trim(),
+        description: catForm.description.trim() || undefined,
+        icon: catForm.icon.trim() || undefined,
+        image: catForm.image.trim() || undefined,
+      };
+      if (editingCategory) {
+        await trpc.service.updateCategory.mutate({
+          id: editingCategory.id,
+          ...payload,
+        });
+        toast.success('Category updated');
+      } else {
+        await trpc.service.createCategory.mutate(payload);
+        toast.success('Category created');
+      }
+      setCatOpen(false);
+      fetchCategories();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Save failed');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleCreateService = async (categoryId: string) => {
-    if (!svcName || !svcPrice) return;
+  const saveService = async () => {
+    if (!svcForm.name.trim() || !svcForm.basePrice || !svcForm.categoryId)
+      return;
+    setSaving(true);
     try {
-      await trpc.service.createService.mutate({ categoryId, name: svcName, description: svcDesc || undefined, basePrice: Number(svcPrice), unit: svcUnit as any });
-      setSvcName(""); setSvcDesc(""); setSvcPrice(""); setSvcUnit("FLAT"); setAddingServiceCatId(null); fetchCategories();
-    } catch (err: any) { alert(err.message); }
+      const payload = {
+        name: svcForm.name.trim(),
+        description: svcForm.description.trim() || undefined,
+        basePrice: Number(svcForm.basePrice),
+        unit: svcForm.unit,
+        categoryId: svcForm.categoryId,
+      };
+      if (editingService) {
+        await trpc.service.updateService.mutate({
+          id: editingService.id,
+          ...payload,
+        });
+        toast.success('Service updated');
+      } else {
+        await trpc.service.createService.mutate(payload);
+        toast.success('Service created');
+      }
+      setSvcOpen(false);
+      fetchCategories();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Save failed');
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleToggleService = async (serviceId: string, active: boolean) => {
-    try { await trpc.service.updateService.mutate({ id: serviceId, active: !active }); fetchCategories(); }
-    catch (err: any) { alert(err.message); }
+  const toggleService = async (service: ServiceItem) => {
+    try {
+      await trpc.service.updateService.mutate({
+        id: service.id,
+        active: !service.active,
+      });
+      toast.success(
+        service.active ? 'Service deactivated' : 'Service activated',
+      );
+      fetchCategories();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Update failed');
+    }
   };
 
-  const inputClass = "block w-full px-4 py-2 text-gray-900 dark:text-white bg-white dark:bg-neutral-950 border border-gray-300 dark:border-neutral-700 rounded-lg outline-none focus:ring-2 focus:ring-gray-500 dark:focus:ring-neutral-500 focus:border-transparent";
-  const smallInputClass = "block w-full px-3 py-2 text-sm border border-gray-300 dark:border-neutral-700 rounded bg-white dark:bg-neutral-950 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent";
+  const deleteCategory = async (category: CategoryItem) => {
+    if (!window.confirm(`Delete category “${category.name}”?`)) return;
+    try {
+      await trpc.service.deleteCategory.mutate({ id: category.id });
+      toast.success('Category deleted');
+      fetchCategories();
+    } catch (err: unknown) {
+      toast.error(
+        err instanceof Error ? err.message : 'Cannot delete category',
+      );
+    }
+  };
+
+  const deleteService = async (service: ServiceItem) => {
+    if (!window.confirm(`Delete service “${service.name}”?`)) return;
+    try {
+      await trpc.service.deleteService.mutate({ id: service.id });
+      toast.success('Service deleted');
+      fetchCategories();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Cannot delete service');
+    }
+  };
 
   if (loading) {
-    return <div className="text-gray-500 dark:text-neutral-400">Loading services...</div>;
+    return (
+      <div className="space-y-4">
+        <Skeleton className="w-full h-36 rounded-3xl" />
+        <Skeleton className="w-full h-48 rounded-2xl" />
+      </div>
+    );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Service Catalog</h2>
-          <p className="mt-1 text-gray-500 dark:text-neutral-400">Manage categories and services</p>
-        </div>
-        <button onClick={() => setShowCatForm(!showCatForm)} className="px-4 py-2 font-medium text-white transition-colors bg-gray-900 dark:bg-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-neutral-200">
-          {showCatForm ? "Cancel" : "+ New Category"}
-        </button>
-      </div>
+    <div className="space-y-8">
+      <DashboardHero
+        eyebrow="Catalog"
+        title="Services"
+        subtitle="Categories and services that customers request and providers bid on."
+        size="md"
+        action={
+          <Button onClick={openCreateCategory}>
+            <Plus />
+            New category
+          </Button>
+        }
+      />
 
-      {showCatForm && (
-        <form onSubmit={handleCreateCategory} className="p-5 space-y-3 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl">
-          <input type="text" value={catName} onChange={(e) => setCatName(e.target.value)} placeholder="Category name *" className={inputClass} required />
-          <input type="text" value={catDesc} onChange={(e) => setCatDesc(e.target.value)} placeholder="Description" className={inputClass} />
-          <input type="text" value={catIcon} onChange={(e) => setCatIcon(e.target.value)} placeholder="Icon name" className={inputClass} />
-          <button type="submit" className="px-6 py-2 font-medium text-white bg-gray-900 dark:bg-white dark:text-black rounded-lg hover:bg-gray-800 dark:hover:bg-neutral-200">Create Category</button>
-        </form>
+      {categories.length === 0 ? (
+        <EmptyState
+          icon={Layers}
+          title="No categories yet"
+          description="Create a category, then add services with a base price and unit."
+          action={
+            <Button onClick={openCreateCategory}>
+              <Plus />
+              New category
+            </Button>
+          }
+        />
+      ) : (
+        categories.map((category) => (
+          <SectionPanel
+            key={category.id}
+            title={category.name}
+            count={category.services.length}
+            headerSlot={
+              <div className="flex gap-2 items-center">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => openCreateService(category.id)}
+                >
+                  <Plus />
+                  Add service
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => openEditCategory(category)}
+                >
+                  <Pencil />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-red-500"
+                  onClick={() => deleteCategory(category)}
+                >
+                  <Trash2 />
+                </Button>
+              </div>
+            }
+          >
+            {category.description ? (
+              <p className="mb-4 text-sm text-muted-foreground">
+                {category.description}
+              </p>
+            ) : null}
+            {category.services.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No services in this category.
+              </p>
+            ) : (
+              <ul className="space-y-2">
+                {category.services.map((service) => (
+                  <li
+                    key={service.id}
+                    className={cn(
+                      'flex flex-wrap items-center justify-between gap-3 rounded-xl border border-border bg-muted/30 px-3 py-2.5',
+                      !service.active && 'opacity-60',
+                    )}
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground">
+                        {service.name}
+                        {!service.active ? (
+                          <span className="ml-2 text-xs font-semibold tracking-wide uppercase text-muted-foreground">
+                            Inactive
+                          </span>
+                        ) : null}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {priceLabel(service)}
+                        {service.description ? ` · ${service.description}` : ''}
+                      </p>
+                    </div>
+                    <div className="flex gap-1 items-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleService(service)}
+                      >
+                        {service.active ? 'Deactivate' : 'Activate'}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openEditService(service)}
+                      >
+                        <Pencil />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-red-500"
+                        onClick={() => deleteService(service)}
+                      >
+                        <Trash2 />
+                      </Button>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </SectionPanel>
+        ))
       )}
 
-      {categories.map((category) => (
-        <div key={category.id} className="p-5 bg-white dark:bg-neutral-900 border border-gray-200 dark:border-neutral-800 rounded-xl">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{category.name}</h3>
-              {category.description && <p className="text-sm text-gray-500 dark:text-neutral-400">{category.description}</p>}
-            </div>
-            <button onClick={() => setAddingServiceCatId(addingServiceCatId === category.id ? null : category.id)} className="text-sm font-medium text-brand-navy dark:text-brand-lime hover:text-brand-navy dark:hover:text-brand-lime">
-              + Add Service
-            </button>
+      <Dialog open={catOpen} onOpenChange={setCatOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingCategory ? 'Edit category' : 'New category'}
+            </DialogTitle>
+            <DialogDescription>
+              Categories group services on the marketing site and in job
+              requests.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Field label="Name">
+              <Input
+                value={catForm.name}
+                onChange={(e) =>
+                  setCatForm({ ...catForm, name: e.target.value })
+                }
+                required
+              />
+            </Field>
+            <Field label="Description">
+              <Textarea
+                value={catForm.description}
+                onChange={(e) =>
+                  setCatForm({ ...catForm, description: e.target.value })
+                }
+              />
+            </Field>
+            <Field label="Icon">
+              <Input
+                value={catForm.icon}
+                onChange={(e) =>
+                  setCatForm({ ...catForm, icon: e.target.value })
+                }
+                placeholder="droplets"
+              />
+            </Field>
+            <Field label="Image URL">
+              <Input
+                value={catForm.image}
+                onChange={(e) =>
+                  setCatForm({ ...catForm, image: e.target.value })
+                }
+                placeholder="https://…"
+              />
+            </Field>
           </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCatOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={saveCategory}
+              disabled={saving || !catForm.name.trim()}
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-          <div className="space-y-2">
-            {category.services.map((service: any) => (
-              <div key={service.id} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-neutral-950">
-                <div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">{service.name}</span>
-                  <span className="ml-3 text-sm text-gray-500 dark:text-neutral-400">${Number(service.basePrice).toFixed(2)}/{service.unit.toLowerCase()}</span>
-                </div>
-                <button onClick={() => handleToggleService(service.id, service.active)}
-                  className={`text-xs font-medium ${service.active ? "text-red-500 dark:text-red-400 hover:text-red-700" : "text-green-600 dark:text-green-400 hover:text-green-700"}`}
-                >{service.active ? "Deactivate" : "Activate"}</button>
-              </div>
-            ))}
-          </div>
-
-          {addingServiceCatId === category.id && (
-            <div className="p-3 mt-3 space-y-2 rounded-lg bg-gray-50 dark:bg-neutral-950">
-              <input type="text" value={svcName} onChange={(e) => setSvcName(e.target.value)} placeholder="Service name *" className={smallInputClass} />
-              <input type="text" value={svcDesc} onChange={(e) => setSvcDesc(e.target.value)} placeholder="Description" className={smallInputClass} />
-              <div className="flex gap-2">
-                <input type="number" step="0.01" value={svcPrice} onChange={(e) => setSvcPrice(e.target.value)} placeholder="Price *" className={`flex-1 ${smallInputClass}`} />
-                <select value={svcUnit} onChange={(e) => setSvcUnit(e.target.value)} className={smallInputClass}>
-                  <option value="FLAT">Flat</option>
-                  <option value="HOUR">Per Hour</option>
-                  <option value="SQFT">Per Sq Ft</option>
-                </select>
-              </div>
-              <button onClick={() => handleCreateService(category.id)} className="px-4 py-1.5 bg-gray-900 dark:bg-white text-white dark:text-black text-sm rounded hover:bg-gray-800 dark:hover:bg-neutral-200">Add Service</button>
+      <Dialog open={svcOpen} onOpenChange={setSvcOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {editingService ? 'Edit service' : 'New service'}
+            </DialogTitle>
+            <DialogDescription>
+              Base price is the platform reference; providers can override it.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <Field label="Name">
+              <Input
+                value={svcForm.name}
+                onChange={(e) =>
+                  setSvcForm({ ...svcForm, name: e.target.value })
+                }
+              />
+            </Field>
+            <Field label="Description">
+              <Textarea
+                value={svcForm.description}
+                onChange={(e) =>
+                  setSvcForm({ ...svcForm, description: e.target.value })
+                }
+              />
+            </Field>
+            <Field label="Category">
+              <Select
+                value={svcForm.categoryId}
+                onValueChange={(value) =>
+                  setSvcForm({ ...svcForm, categoryId: value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((category) => (
+                    <SelectItem key={category.id} value={category.id}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Base price">
+                <Input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={svcForm.basePrice}
+                  onChange={(e) =>
+                    setSvcForm({ ...svcForm, basePrice: e.target.value })
+                  }
+                />
+              </Field>
+              <Field label="Unit">
+                <Select
+                  value={svcForm.unit}
+                  onValueChange={(value) =>
+                    setSvcForm({
+                      ...svcForm,
+                      unit: value as ServiceForm['unit'],
+                    })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="FLAT">Flat</SelectItem>
+                    <SelectItem value="HOUR">Per hour</SelectItem>
+                    <SelectItem value="SQFT">Per sq ft</SelectItem>
+                  </SelectContent>
+                </Select>
+              </Field>
             </div>
-          )}
-        </div>
-      ))}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setSvcOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={saveService}
+              disabled={saving || !svcForm.name.trim() || !svcForm.basePrice}
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="space-y-1.5">
+      <Label>{label}</Label>
+      {children}
     </div>
   );
 }
