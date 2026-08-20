@@ -6,13 +6,15 @@ import {
   useMemo,
   useState,
   type ReactNode,
-} from "react";
-import * as SecureStore from "expo-secure-store";
-import { queryClient } from "./query";
-import { setAuthToken, trpc } from "./trpc";
-import type { Me } from "./types";
+} from 'react';
+import * as SecureStore from 'expo-secure-store';
+import { Platform } from 'react-native';
+import { queryClient } from './query';
+import { setAuthToken, trpc } from './trpc';
+import type { Me } from './types';
+import { registerForPushNotificationsAsync } from './push-notifications';
 
-const TOKEN_KEY = "auth-token";
+const TOKEN_KEY = 'auth-token';
 
 type AuthContextValue = {
   token: string | null;
@@ -45,6 +47,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return null;
     }
   }, []);
+
+  // Register push token after user is authenticated
+  useEffect(() => {
+    if (!user) return;
+
+    (async () => {
+      try {
+        const pushToken = await registerForPushNotificationsAsync();
+        if (pushToken) {
+          await trpc.notification.registerPushToken.mutate({
+            token: pushToken,
+            platform: Platform.OS,
+          });
+          console.log('Push token registered successfully');
+        }
+      } catch (error) {
+        console.error('Failed to register push token:', error);
+      }
+    })();
+  }, [user]);
 
   useEffect(() => {
     let cancelled = false;
@@ -95,7 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       token,
       user,
       isReady,
-      isFieldUser: user?.role === "PROVIDER" || user?.role === "CREW",
+      isFieldUser: user?.role === 'PROVIDER' || user?.role === 'CREW',
       signIn,
       signOut,
       refresh,
@@ -109,7 +131,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) {
-    throw new Error("useAuth must be used within AuthProvider");
+    throw new Error('useAuth must be used within AuthProvider');
   }
   return ctx;
 }

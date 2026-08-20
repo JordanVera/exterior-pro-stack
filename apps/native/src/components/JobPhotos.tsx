@@ -105,7 +105,7 @@ function PhotoSection({
             >
               <Image
                 source={{ uri: photo.url }}
-                className="rounded-2xl bg-navy-700"
+                className="rounded-2xl bg-surface-raised"
                 style={{ width: 112, height: 112 }}
               />
               {canEdit ? (
@@ -128,7 +128,7 @@ function PhotoSection({
           <Pressable
             onPress={() => addPhoto('camera')}
             disabled={loading}
-            className={`flex-1 items-center rounded-2xl bg-navy-700 px-3 py-4 ${loading ? 'opacity-50' : ''}`}
+            className={`flex-1 items-center rounded-2xl border border-line bg-surface-raised px-3 py-4 ${loading ? 'opacity-50' : ''}`}
           >
             <Text className="text-sm font-semibold text-center text-white">
               {loading ? 'Uploading…' : 'Take photo'}
@@ -137,7 +137,7 @@ function PhotoSection({
           <Pressable
             onPress={() => addPhoto('library')}
             disabled={loading}
-            className={`flex-1 items-center rounded-2xl bg-navy-700 px-3 py-4 ${loading ? 'opacity-50' : ''}`}
+            className={`flex-1 items-center rounded-2xl border border-line bg-surface-raised px-3 py-4 ${loading ? 'opacity-50' : ''}`}
           >
             <Text className="text-sm font-semibold text-center text-white">
               Choose from library

@@ -65,14 +65,18 @@ export default function LoginScreen() {
         code,
       });
       const me = await signIn(result.token);
-      if (me.role !== 'PROVIDER' && me.role !== 'CREW') {
+
+      // Route based on role
+      if (me.role === 'CUSTOMER') {
+        router.replace('/home');
+      } else if (me.role === 'PROVIDER' || me.role === 'CREW') {
+        router.replace('/today');
+      } else {
         await signOut();
         setError(
-          'This app is for crews and providers. Ask your owner to add your phone to a crew.',
+          'Unable to determine your account type. Please contact support.',
         );
-        return;
       }
-      router.replace('/today');
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Invalid verification code',
@@ -152,7 +156,7 @@ export default function LoginScreen() {
                   />
                 </View>
                 <Text className="mt-4 text-center text-[13px] leading-5 text-slate-400">
-                  For crews and providers. Homeowners, use the web app.
+                  For homeowners, crews, and service providers.
                 </Text>
               </>
             ) : (

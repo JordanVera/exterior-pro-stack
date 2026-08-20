@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { ClipboardList } from 'lucide-react';
 import { trpc } from '../../../../lib/trpc';
@@ -33,6 +34,7 @@ const FILTERS = [
 ];
 
 export default function ProviderJobsPage() {
+  const router = useRouter();
   const [jobs, setJobs] = useState<any[]>([]);
   const [crews, setCrews] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -165,7 +167,8 @@ export default function ProviderJobsPage() {
             return (
               <Card
                 key={job.id}
-                className="shadow-none backdrop-blur-xl border-border bg-background/80"
+                className="shadow-none backdrop-blur-xl border-border bg-background/80 cursor-pointer transition-all hover:shadow-md"
+                onClick={() => router.push(`/provider/jobs/${job.id}`)}
               >
                 <CardContent className="p-5 space-y-4">
                   <div className="flex gap-3 justify-between items-start">

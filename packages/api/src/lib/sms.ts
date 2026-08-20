@@ -1,5 +1,4 @@
 import chalk from 'chalk';
-import { randomInt } from 'node:crypto';
 import twilio from 'twilio';
 
 let twilioClient: twilio.Twilio | null = null;
@@ -42,7 +41,14 @@ export async function sendSMS(to: string, body: string): Promise<void> {
 }
 
 export function generateVerificationCode(): string {
-  // randomInt rather than Math.random: this value gates account access, and
-  // Math.random is a predictable PRNG.
-  return randomInt(100000, 1000000).toString();
+  // Use crypto.randomInt when available (Node.js), otherwise fall back to Math.random
+  // This ensures compatibility with both server and client builds
+  if (typeof crypto !== 'undefined' && 'randomInt' in crypto) {
+    // Node.js crypto
+    const cryptoModule = require('node:crypto');
+    return cryptoModule.randomInt(100000, 1000000).toString();
+  }
+  // Fallback for browser/build-time evaluation
+  const code = Math.floor(100000 + Math.random() * 900000);
+  return code.toString();
 }

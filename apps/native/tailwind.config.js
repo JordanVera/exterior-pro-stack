@@ -27,12 +27,13 @@ module.exports = {
           800: "#0B1F33",
           700: "#163552",
         },
-        // Field-first surfaces. Slightly lifted from the old flat navy-800 so
-        // cards separate from the background in bright outdoor light.
+        // Field-first surfaces: neutral greys, not tinted. A blue cast reads as
+        // muddy next to the lime accent, and neutral separates from the
+        // near-black background more cleanly in bright outdoor light.
         surface: {
-          DEFAULT: "#101F30",
-          raised: "#17293D",
-          sunken: "#0A1421",
+          DEFAULT: "#151517",
+          raised: "#1F1F22",
+          sunken: "#0C0C0D",
         },
         line: {
           DEFAULT: "rgba(255,255,255,0.10)",

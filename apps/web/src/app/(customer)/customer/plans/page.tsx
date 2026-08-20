@@ -76,15 +76,15 @@ export default function PlansPage() {
   const getPrice = (plan: any) => {
     switch (billingFrequency) {
       case 'QUARTERLY':
-        return plan.quarterlyPrice
-          ? `$${Number(plan.quarterlyPrice).toFixed(0)}`
+        return plan.quarterlyPriceCents
+          ? `$${(plan.quarterlyPriceCents / 100).toFixed(0)}`
           : null;
       case 'ANNUALLY':
-        return plan.annualPrice
-          ? `$${Number(plan.annualPrice).toFixed(0)}`
+        return plan.annualPriceCents
+          ? `$${(plan.annualPriceCents / 100).toFixed(0)}`
           : null;
       default:
-        return `$${Number(plan.monthlyPrice).toFixed(0)}`;
+        return `$${(plan.monthlyPriceCents / 100).toFixed(0)}`;
     }
   };
 

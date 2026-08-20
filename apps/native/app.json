@@ -45,6 +45,14 @@
           "cameraPermission": "Allow Exterior Pro to use the camera to take before and after job pictures."
         }
       ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#84CC16",
+          "sounds": ["./assets/notification-sound.wav"]
+        }
+      ],
       "expo-font",
       "expo-splash-screen"
     ]
