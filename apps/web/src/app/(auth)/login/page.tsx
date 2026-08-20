@@ -28,7 +28,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { BackgroundBeams } from '@/components/ui/background-beams';
 
-type Step = 'phone' | 'code';
+type Step = 'email' | 'code';
 
 /** Login and signup share this screen, so the heading must read well for both. */
 const headings = {
@@ -53,29 +53,24 @@ function LoginContent() {
   const searchParams = useSearchParams();
   const intentParam = searchParams.get('intent');
   const intent = isAuthIntent(intentParam) ? intentParam : null;
-  const [step, setStep] = useState<Step>('phone');
-  const [phone, setPhone] = useState('');
+  const [step, setStep] = useState<Step>('email');
+  const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const formatPhone = (value: string) => {
-    const digits = value.replace(/\D/g, '');
-    return digits.length <= 10 ? digits : digits.slice(0, 10);
-  };
-
-  const fullPhone = `+1${phone}`;
+  const normalizedEmail = email.trim().toLowerCase();
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (phone.length !== 10) {
-      setError('Please enter a valid 10-digit phone number');
+    if (!normalizedEmail.includes('@')) {
+      setError('Please enter a valid email address');
       return;
     }
     setLoading(true);
     setError('');
     try {
-      await trpc.auth.sendCode.mutate({ phone: fullPhone });
+      await trpc.auth.sendCode.mutate({ email: normalizedEmail });
       setStep('code');
     } catch (err: any) {
       setError(err.message || 'Failed to send code');
@@ -94,7 +89,7 @@ function LoginContent() {
     setError('');
     try {
       const result = await trpc.auth.verifyCode.mutate({
-        phone: fullPhone,
+        email: normalizedEmail,
         code,
       });
       if (result.user.role === 'CREW') {
@@ -154,34 +149,33 @@ function LoginContent() {
           <Card className="relative p-8 rounded-2xl border shadow-lg backdrop-blur-xl border-border bg-background/80">
             <CardHeader className="p-0 mb-6 space-y-3 text-center">
               <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-                {step === 'phone' ? headings[intent ?? 'none'] : 'Check your messages'}
+                {step === 'email'
+                  ? headings[intent ?? 'none']
+                  : 'Check your email'}
               </h1>
               <CardDescription>
-                {step === 'phone'
-                  ? "Sign in or create an account with your phone number. We'll text you a 6-digit code — there's no password to remember."
-                  : `Enter the 6-digit code we sent to ${fullPhone}.`}
+                {step === 'email'
+                  ? "Sign in or create an account with your email. We'll send a 6-digit code — there's no password to remember."
+                  : `Enter the 6-digit code we sent to ${normalizedEmail}.`}
               </CardDescription>
             </CardHeader>
 
             <CardContent className="p-0">
-              {step === 'phone' && (
+              {step === 'email' && (
                 <form onSubmit={handleSendCode} className="space-y-6">
                   <div className="space-y-2">
-                    <Label htmlFor="phone">Phone number</Label>
-                    <div className="flex">
-                      <span className="inline-flex items-center px-4 h-9 text-sm rounded-l-md border border-r-0 border-input bg-muted/50 text-muted-foreground">
-                        +1
-                      </span>
-                      <Input
-                        id="phone"
-                        type="tel"
-                        value={phone}
-                        onChange={(e) => setPhone(formatPhone(e.target.value))}
-                        placeholder="(555) 123-4567"
-                        className="flex-1 rounded-l-none focus-visible:ring-brand-lime"
-                        autoFocus
-                      />
-                    </div>
+                    <Label htmlFor="email">Email</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@email.com"
+                      autoComplete="email"
+                      autoCapitalize="none"
+                      autoFocus
+                      className="focus-visible:ring-brand-lime"
+                    />
                   </div>
                   {error ? (
                     <Alert variant="destructive">
@@ -190,7 +184,7 @@ function LoginContent() {
                   ) : null}
                   <Button
                     type="submit"
-                    disabled={loading || phone.length !== 10}
+                    disabled={loading || !normalizedEmail.includes('@')}
                     size="lg"
                     className="w-full font-semibold rounded-xl bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
                   >
@@ -245,21 +239,21 @@ function LoginContent() {
                     type="button"
                     variant="ghost"
                     onClick={() => {
-                      setStep('phone');
+                      setStep('email');
                       setCode('');
                       setError('');
                     }}
                     className="w-full text-muted-foreground hover:text-foreground"
                   >
-                    Use a different number
+                    Use a different email
                   </Button>
                 </form>
               )}
 
               {process.env.NODE_ENV === 'production' ? null : (
                 <div className="mt-6 flex flex-col items-center justify-center gap-0.5 font-mono text-xs text-muted-foreground">
-                  <p>customer: 5551001001</p>
-                  <p>provider: 5552001001</p>
+                  <p>customer: jordan.vera96@gmail.com</p>
+                  <p>provider: payouts@dfwpowerwash.example.com</p>
                 </div>
               )}
             </CardContent>

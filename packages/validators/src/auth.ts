@@ -4,12 +4,19 @@ export const phoneSchema = z
   .string()
   .regex(/^\+1\d{10}$/, "Phone must be in format +1XXXXXXXXXX");
 
+export const emailSchema = z
+  .string()
+  .trim()
+  .toLowerCase()
+  .email("Enter a valid email address")
+  .max(191);
+
 export const sendCodeInput = z.object({
-  phone: phoneSchema,
+  email: emailSchema,
 });
 
 export const verifyCodeInput = z.object({
-  phone: phoneSchema,
+  email: emailSchema,
   code: z.string().length(6, "Code must be 6 digits"),
 });
 

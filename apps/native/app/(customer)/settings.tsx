@@ -152,7 +152,7 @@ export default function CustomerSettingsScreen() {
                   {user?.customerProfile?.lastName}
                 </Text>
                 <Text className="mt-0.5 text-sm text-slate-400">
-                  {user?.phone}
+                  {user?.email}
                 </Text>
               </View>
             </View>

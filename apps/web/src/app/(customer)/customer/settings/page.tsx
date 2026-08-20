@@ -232,7 +232,7 @@ export default function SettingsPage() {
     );
   }
 
-  const phone = user?.phone || "—";
+  const email = user?.email || "—";
   const firstName = user?.customerProfile?.firstName || "";
   const lastName = user?.customerProfile?.lastName || "";
   const initials =
@@ -265,7 +265,7 @@ export default function SettingsPage() {
             <p className="text-sm font-semibold truncate text-foreground">
               {firstName} {lastName}
             </p>
-            <p className="text-xs text-muted-foreground">{phone}</p>
+            <p className="text-xs text-muted-foreground">{email}</p>
           </div>
           {!editingProfile && (
             <Button
@@ -340,7 +340,9 @@ export default function SettingsPage() {
                   <Phone className="w-4 h-4" />
                   Phone
                 </dt>
-                <dd className="font-mono text-sm text-foreground">{phone}</dd>
+                <dd className="font-mono text-sm text-foreground">
+                  {user?.phone || "—"}
+                </dd>
               </div>
               <Separator />
               <div className="flex gap-4 justify-between items-center py-3">

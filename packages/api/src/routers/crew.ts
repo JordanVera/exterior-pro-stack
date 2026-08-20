@@ -105,7 +105,7 @@ export const crewRouter = router({
       }
 
       const existingUser = await ctx.db.user.findUnique({
-        where: { phone: input.phone },
+        where: { email: input.email },
       });
 
       let userId: string | undefined;
@@ -123,6 +123,7 @@ export const crewRouter = router({
         data: {
           crewId: input.crewId,
           name: input.name,
+          email: input.email,
           phone: input.phone,
           role: input.role,
           userId,
@@ -152,6 +153,28 @@ export const crewRouter = router({
       }
 
       const { id, ...data } = input;
+
+      if (data.email) {
+        const existingUser = await ctx.db.user.findUnique({
+          where: { email: data.email },
+        });
+        if (
+          existingUser &&
+          (existingUser.role == null || existingUser.role === "CREW")
+        ) {
+          if (!existingUser.role) {
+            await ctx.db.user.update({
+              where: { id: existingUser.id },
+              data: { role: "CREW" },
+            });
+          }
+          return ctx.db.crewMember.update({
+            where: { id },
+            data: { ...data, userId: existingUser.id },
+          });
+        }
+      }
+
       return ctx.db.crewMember.update({ where: { id }, data });
     }),
 

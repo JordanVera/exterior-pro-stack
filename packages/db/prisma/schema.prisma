@@ -121,7 +121,8 @@ enum TransferStatus {
 
 model User {
   id        String    @id @default(cuid())
-  phone     String    @unique
+  email     String    @unique
+  phone     String?   @unique
   role      UserRole?
   verified  Boolean   @default(false)
   createdAt DateTime  @default(now())
@@ -385,6 +386,7 @@ model CrewMember {
   crewId    String
   userId    String?  @unique
   name      String
+  email     String?
   phone     String?
   role      String?
   createdAt DateTime @default(now())
@@ -440,7 +442,7 @@ model Notification {
 
 model VerificationCode {
   id        String   @id @default(cuid())
-  phone     String
+  email     String
   code      String
   expiresAt DateTime
   used      Boolean  @default(false)
@@ -450,8 +452,8 @@ model VerificationCode {
   ip        String?
   createdAt DateTime @default(now())
 
-  @@index([phone, code])
-  @@index([phone, createdAt])
+  @@index([email, code])
+  @@index([email, createdAt])
   @@index([ip, createdAt])
 }
 

@@ -23,8 +23,8 @@ export default function LoginScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { isReady, isFieldUser, signIn, signOut } = useAuth();
-  const [step, setStep] = useState<'phone' | 'code'>('phone');
-  const [phone, setPhone] = useState('');
+  const [step, setStep] = useState<'email' | 'code'>('email');
+  const [email, setEmail] = useState('');
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -32,18 +32,17 @@ export default function LoginScreen() {
   if (!isReady) return <LoadingScreen />;
   if (isFieldUser) return <Redirect href="/today" />;
 
-  const digits = phone.replace(/\D/g, '').slice(0, 10);
-  const fullPhone = `+1${digits}`;
+  const normalizedEmail = email.trim().toLowerCase();
 
   const sendCode = async () => {
-    if (digits.length !== 10) {
-      setError('Enter a 10-digit phone number');
+    if (!normalizedEmail.includes('@')) {
+      setError('Enter a valid email address');
       return;
     }
     setLoading(true);
     setError('');
     try {
-      await trpc.auth.sendCode.mutate({ phone: fullPhone });
+      await trpc.auth.sendCode.mutate({ email: normalizedEmail });
       setStep('code');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send code');
@@ -61,7 +60,7 @@ export default function LoginScreen() {
     setError('');
     try {
       const result = await trpc.auth.verifyCode.mutate({
-        phone: fullPhone,
+        email: normalizedEmail,
         code,
       });
       const me = await signIn(result.token);
@@ -110,14 +109,14 @@ export default function LoginScreen() {
               Exterior Pro
             </Text>
             <Text className="mt-2 font-bold text-[40px] leading-[44px] text-white">
-              {step === 'phone'
+              {step === 'email'
                 ? 'Run your day\nfrom the truck.'
-                : 'Check your\ntexts.'}
+                : 'Check your\nemail.'}
             </Text>
             <Text className="mt-3 text-[17px] leading-7 text-slate-300">
-              {step === 'phone'
+              {step === 'email'
                 ? 'Schedules, crews, and before-and-after photos for every job you win.'
-                : `We sent a 6-digit code to +1 ${digits}.`}
+                : `We sent a 6-digit code to ${normalizedEmail}.`}
             </Text>
           </Animated.View>
 
@@ -125,27 +124,25 @@ export default function LoginScreen() {
             entering={FadeInDown.duration(600).delay(120)}
             className="p-5 mx-4 rounded-3xl border border-line-strong bg-surface/95"
           >
-            {step === 'phone' ? (
+            {step === 'email' ? (
               <>
                 <Text className="mb-2 text-sm font-medium text-slate-300">
-                  Phone number
+                  Email
                 </Text>
-                <View className="overflow-hidden flex-row rounded-2xl border border-line-strong bg-surface-sunken">
-                  <View className="justify-center px-4 border-r border-line">
-                    <Text className="text-lg text-slate-300">+1</Text>
-                  </View>
-                  <TextInput
-                    value={digits}
-                    onChangeText={(value) => setPhone(value.replace(/\D/g, ''))}
-                    keyboardType="phone-pad"
-                    placeholder="5551234567"
-                    placeholderTextColor="#64748b"
-                    className="flex-1 px-4 h-16 font-sans text-lg text-white"
-                    returnKeyType="go"
-                    onSubmitEditing={sendCode}
-                    autoFocus
-                  />
-                </View>
+                <TextInput
+                  value={email}
+                  onChangeText={setEmail}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  autoComplete="email"
+                  placeholder="you@company.com"
+                  placeholderTextColor="#64748b"
+                  className="h-16 rounded-2xl border border-line-strong bg-surface-sunken px-4 font-sans text-lg text-white"
+                  returnKeyType="go"
+                  onSubmitEditing={sendCode}
+                  autoFocus
+                />
                 {error ? <ErrorLine message={error} /> : null}
                 <View className="mt-4">
                   <PrimaryButton
@@ -188,14 +185,14 @@ export default function LoginScreen() {
                 </View>
                 <Pressable
                   onPress={() => {
-                    setStep('phone');
+                    setStep('email');
                     setCode('');
                     setError('');
                   }}
                   className="items-center py-3 mt-3 active:opacity-70"
                 >
                   <Text className="text-base font-semibold text-brand-lime">
-                    Use a different number
+                    Use a different email
                   </Text>
                 </Pressable>
               </>

@@ -16,9 +16,8 @@ export async function sendEmail(opts: {
   html?: string;
 }) {
   if (!resend || !opts.to) {
-    if (!resend) {
-      console.log(`[email:skipped] ${opts.subject} → ${opts.to}`);
-    }
+    console.log(`[email:skipped] ${opts.subject} → ${opts.to}`);
+    if (opts.text) console.log(opts.text);
     return;
   }
 
@@ -50,6 +49,21 @@ export async function sendPaymentReceiptEmail(opts: {
     to: opts.to,
     subject: `Payment received — ${opts.description}`,
     text: `Hi ${opts.name},\n\nWe received your payment of ${amount} for ${opts.description}.${receiptLine}\n\nThank you,\nExterior Pro`,
+  });
+}
+
+export async function sendVerificationEmail(opts: {
+  to: string;
+  code: string;
+  ttlMinutes: number;
+}) {
+  await sendEmail({
+    to: opts.to,
+    subject: `${opts.code} is your Exterior Pro verification code`,
+    text: `${opts.code} is your Exterior Pro verification code. It expires in ${opts.ttlMinutes} minutes. If you didn't request this, you can ignore this email.`,
+    html: `<p>Your Exterior Pro verification code is:</p>
+<p style="font-size:28px;font-weight:700;letter-spacing:0.2em">${opts.code}</p>
+<p>It expires in ${opts.ttlMinutes} minutes. If you didn't request this, you can ignore this email.</p>`,
   });
 }
 
