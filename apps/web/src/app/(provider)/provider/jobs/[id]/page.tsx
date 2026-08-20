@@ -31,8 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { formatJobDateTime, STATUS_BADGE } from '../../_components/utils';
-import { JobPhotoGallery } from '@/components/job-photo-gallery';
-import { JobPhotoPicker } from '@/components/job-photo-picker';
+import { uploadJobPhotoFile, validateJobPhotoFile } from '@/lib/job-photos';
 
 type JobPhotoKind = 'BEFORE' | 'AFTER';
 
@@ -58,9 +57,12 @@ export default function ProviderJobDetailPage() {
     try {
       const jobData = await trpc.job.getById.query({ jobId });
       setJob(jobData);
-      setNotes(jobData.providerNotes || '');
+      setNotes(jobData.notes || '');
       if (jobData.scheduledDate) {
-        setSchedDate(jobData.scheduledDate);
+        const scheduled = new Date(jobData.scheduledDate);
+        const month = `${scheduled.getMonth() + 1}`.padStart(2, '0');
+        const day = `${scheduled.getDate()}`.padStart(2, '0');
+        setSchedDate(`${scheduled.getFullYear()}-${month}-${day}`);
         setSchedTime(jobData.scheduledTime || '');
       }
     } catch (err) {
@@ -88,12 +90,17 @@ export default function ProviderJobDetailPage() {
       return;
     }
 
+    if (!schedTime) {
+      toast.error('Please select a time');
+      return;
+    }
+
     try {
       setUpdatingStatus(true);
       await trpc.job.schedule.mutate({
         jobId,
         scheduledDate: schedDate,
-        scheduledTime: schedTime || undefined,
+        scheduledTime: schedTime,
       });
       toast.success('Job scheduled successfully');
       setSchedulingMode(false);
@@ -173,28 +180,22 @@ export default function ProviderJobDetailPage() {
   const handlePhotoUpload = async (files: File[], kind: JobPhotoKind) => {
     try {
       setUploadingPhotos(true);
-      const formData = new FormData();
-      formData.append('kind', kind);
-      files.forEach((file) => {
-        formData.append('photos', file);
-      });
-
-      const response = await fetch(`/api/jobs/${jobId}/photos`, {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
-
-      if (!response.ok) {
-        throw new Error('Upload failed');
+      for (const file of files) {
+        const error = validateJobPhotoFile(file);
+        if (error) {
+          toast.error(error);
+          continue;
+        }
+        await uploadJobPhotoFile({ jobId, kind, file });
       }
-
       toast.success(
         `${kind === 'BEFORE' ? 'Before' : 'After'} photos uploaded`,
       );
       await fetchJob();
     } catch (err) {
-      toast.error('Failed to upload photos');
+      toast.error(
+        err instanceof Error ? err.message : 'Failed to upload photos',
+      );
     } finally {
       setUploadingPhotos(false);
     }
@@ -368,7 +369,7 @@ export default function ProviderJobDetailPage() {
                     />
                   </div>
                   <div>
-                    <Label htmlFor="schedTime">Time (Optional)</Label>
+                    <Label htmlFor="schedTime">Time</Label>
                     <Input
                       id="schedTime"
                       type="time"
@@ -553,10 +554,20 @@ export default function ProviderJobDetailPage() {
                       <Camera className="w-4 h-4" />
                       Upload
                     </div>
-                    <JobPhotoPicker
+                    <input
                       id="before-photos"
-                      onSelect={(files) => handlePhotoUpload(files, 'BEFORE')}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
                       disabled={uploadingPhotos}
+                      className="sr-only"
+                      onChange={(event) => {
+                        const files = event.target.files;
+                        if (files?.length) {
+                          void handlePhotoUpload(Array.from(files), 'BEFORE');
+                        }
+                        event.target.value = '';
+                      }}
                     />
                   </Label>
                 )}
@@ -604,10 +615,20 @@ export default function ProviderJobDetailPage() {
                       <Camera className="w-4 h-4" />
                       Upload
                     </div>
-                    <JobPhotoPicker
+                    <input
                       id="after-photos"
-                      onSelect={(files) => handlePhotoUpload(files, 'AFTER')}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
                       disabled={uploadingPhotos}
+                      className="sr-only"
+                      onChange={(event) => {
+                        const files = event.target.files;
+                        if (files?.length) {
+                          void handlePhotoUpload(Array.from(files), 'AFTER');
+                        }
+                        event.target.value = '';
+                      }}
                     />
                   </Label>
                 )}
