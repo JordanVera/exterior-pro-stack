@@ -24,6 +24,7 @@ const SENDS_PER_EMAIL_PER_HOUR = 5;
 const SENDS_PER_IP_PER_HOUR = 15;
 /** Wrong guesses allowed against a single code before it is burned. */
 const MAX_VERIFY_ATTEMPTS = 5;
+const isDev = process.env.NODE_ENV === 'development';
 
 export const authRouter = router({
   /** Send a 6-digit verification code via email */
@@ -31,50 +32,54 @@ export const authRouter = router({
     .input(sendCodeInput)
     .mutation(async ({ ctx, input }) => {
       const now = Date.now();
-      const oneHourAgo = new Date(now - 60 * 60 * 1000);
 
-      // Throttle by email. An unthrottled endpoint is both a spam vector
-      // and a way to burn through the Resend quota.
-      const [recent, sendsThisHour] = await Promise.all([
-        ctx.db.verificationCode.findFirst({
-          where: { email: input.email },
-          orderBy: { createdAt: 'desc' },
-          select: { createdAt: true },
-        }),
-        ctx.db.verificationCode.count({
-          where: { email: input.email, createdAt: { gt: oneHourAgo } },
-        }),
-      ]);
+      if (!isDev) {
+        const oneHourAgo = new Date(now - 60 * 60 * 1000);
 
-      if (recent) {
-        const elapsedSeconds = (now - recent.createdAt.getTime()) / 1000;
-        if (elapsedSeconds < RESEND_COOLDOWN_SECONDS) {
+        // Throttle by email. An unthrottled endpoint is both a spam vector
+        // and a way to burn through the Resend quota.
+        const [recent, sendsThisHour] = await Promise.all([
+          ctx.db.verificationCode.findFirst({
+            where: { email: input.email },
+            orderBy: { createdAt: 'desc' },
+            select: { createdAt: true },
+          }),
+          ctx.db.verificationCode.count({
+            where: { email: input.email, createdAt: { gt: oneHourAgo } },
+          }),
+        ]);
+
+        if (recent) {
+          const elapsedSeconds = (now - recent.createdAt.getTime()) / 1000;
+          if (elapsedSeconds < RESEND_COOLDOWN_SECONDS) {
+            throw new TRPCError({
+              code: 'TOO_MANY_REQUESTS',
+              message: `Please wait ${Math.ceil(
+                RESEND_COOLDOWN_SECONDS - elapsedSeconds,
+              )} seconds before requesting another code.`,
+            });
+          }
+        }
+
+        if (sendsThisHour >= SENDS_PER_EMAIL_PER_HOUR) {
           throw new TRPCError({
             code: 'TOO_MANY_REQUESTS',
-            message: `Please wait ${Math.ceil(
-              RESEND_COOLDOWN_SECONDS - elapsedSeconds,
-            )} seconds before requesting another code.`,
+            message:
+              'Too many verification codes requested for this email. Try again in an hour.',
           });
         }
-      }
 
-      if (sendsThisHour >= SENDS_PER_EMAIL_PER_HOUR) {
-        throw new TRPCError({
-          code: 'TOO_MANY_REQUESTS',
-          message:
-            'Too many verification codes requested for this email. Try again in an hour.',
-        });
-      }
-
-      if (ctx.ip) {
-        const sendsFromIp = await ctx.db.verificationCode.count({
-          where: { ip: ctx.ip, createdAt: { gt: oneHourAgo } },
-        });
-        if (sendsFromIp >= SENDS_PER_IP_PER_HOUR) {
-          throw new TRPCError({
-            code: 'TOO_MANY_REQUESTS',
-            message: 'Too many verification codes requested. Try again later.',
+        if (ctx.ip) {
+          const sendsFromIp = await ctx.db.verificationCode.count({
+            where: { ip: ctx.ip, createdAt: { gt: oneHourAgo } },
           });
+          if (sendsFromIp >= SENDS_PER_IP_PER_HOUR) {
+            throw new TRPCError({
+              code: 'TOO_MANY_REQUESTS',
+              message:
+                'Too many verification codes requested. Try again later.',
+            });
+          }
         }
       }
 
@@ -127,7 +132,7 @@ export const authRouter = router({
         });
       }
 
-      if (verification.attempts >= MAX_VERIFY_ATTEMPTS) {
+      if (!isDev && verification.attempts >= MAX_VERIFY_ATTEMPTS) {
         await ctx.db.verificationCode.update({
           where: { id: verification.id },
           data: { used: true },

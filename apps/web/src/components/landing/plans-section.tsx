@@ -5,11 +5,19 @@ import Link from 'next/link';
 import { motion } from 'motion/react';
 import { ArrowRight, Check, Sparkles } from 'lucide-react';
 import { MovingBorder } from '@/components/ui/moving-border';
+import { BackgroundBeams } from '@/components/ui/background-beams';
 import { SegmentedTabs } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { loginPath } from '@/lib/auth-intent';
 import { SectionEyebrow } from './section-eyebrow';
 import { BILLING_OPTIONS, PLANS, type BillingOption } from './data';
+
+const TRUST_BADGES = [
+  'Verified providers only',
+  '12,400+ jobs completed',
+  'No contracts or lock-in',
+  'Photo proof every visit',
+] as const;
 
 export function PlansSection() {
   const [billing, setBilling] = useState<BillingOption>('monthly');
@@ -17,10 +25,15 @@ export function PlansSection() {
     BILLING_OPTIONS.find((item) => item.value === billing) ?? BILLING_OPTIONS[0];
 
   return (
-    <section id="pricing" className="relative scroll-mt-24 py-24">
+    <section id="pricing" className="relative scroll-mt-24 overflow-hidden py-20">
+      {/* Animated beam background — extremely subtle */}
+      <div className="pointer-events-none absolute inset-0 opacity-[0.035]">
+        <BackgroundBeams variant="lime" />
+      </div>
+
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-brand-lime/30 to-transparent" />
 
-      <div className="mx-auto max-w-6xl px-6">
+      <div className="relative mx-auto max-w-6xl px-6">
         <div className="mx-auto max-w-2xl text-center">
           <div className="flex justify-center">
             <SectionEyebrow>Plans</SectionEyebrow>
@@ -34,7 +47,20 @@ export function PlansSection() {
           </p>
         </div>
 
-        <div className="mt-10 flex flex-col items-center gap-3">
+        {/* Trust badges */}
+        <div className="mx-auto mt-8 flex max-w-2xl flex-wrap justify-center gap-x-6 gap-y-2">
+          {TRUST_BADGES.map((badge) => (
+            <span
+              key={badge}
+              className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground"
+            >
+              <Check className="h-3.5 w-3.5 text-brand-lime" />
+              {badge}
+            </span>
+          ))}
+        </div>
+
+        <div className="mt-8 flex flex-col items-center gap-3">
           <SegmentedTabs
             options={BILLING_OPTIONS.map((item) => ({
               value: item.value,

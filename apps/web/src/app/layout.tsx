@@ -14,9 +14,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`dark ${outfit.variable}`} suppressHydrationWarning>
+    <html
+      lang="en"
+      className={`dark ${outfit.variable}`}
+      suppressHydrationWarning
+    >
       <head>
-        <link rel="icon" href="/logos/logo-icon.ico" sizes="any" />
+        <link rel="icon" href="/logos/logo-icon-lime.ico" sizes="any" />
         {/* Inline script to set theme before paint — prevents flash */}
         <script
           dangerouslySetInnerHTML={{
@@ -33,7 +37,9 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={`${outfit.className} antialiased bg-brand-mist text-brand-navy dark:bg-brand-night dark:text-neutral-100`}>
+      <body
+        className={`${outfit.className} antialiased bg-brand-mist text-brand-navy dark:bg-brand-night dark:text-neutral-100`}
+      >
         <Toaster />
         {children}
       </body>

@@ -9,8 +9,8 @@ import { SERVICES } from './data';
 
 export function ServicesSection() {
   return (
-    <section id="services" className="scroll-mt-24 py-24">
-      <div className="mx-auto max-w-6xl px-6">
+    <section id="services" className="py-16 scroll-mt-24">
+      <div className="px-6 mx-auto max-w-6xl">
         <div className="max-w-2xl">
           <SectionEyebrow>All services</SectionEyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-5xl">
@@ -27,8 +27,8 @@ export function ServicesSection() {
       <Carousel
         className="mt-12"
         controlsSlot={
-          <p className="inline-flex items-center gap-2 text-sm text-muted-foreground">
-            <MousePointer2 className="h-4 w-4 text-brand-lime" />
+          <p className="inline-flex gap-2 items-center text-sm text-muted-foreground">
+            <MousePointer2 className="w-4 h-4 text-brand-lime" />
             Drag or swipe to explore all {SERVICES.length} services
           </p>
         }
@@ -54,9 +54,9 @@ export function ServicesSection() {
               </span>
 
               <div className="relative">
-                <h3 className="flex items-center gap-2 text-2xl font-bold text-white">
+                <h3 className="flex gap-2 items-center text-2xl font-bold text-white">
                   {service.title}
-                  <ArrowUpRight className="h-5 w-5 shrink-0 text-brand-lime opacity-0 transition duration-300 group-hover:opacity-100" />
+                  <ArrowUpRight className="w-5 h-5 opacity-0 transition duration-300 shrink-0 text-brand-lime group-hover:opacity-100" />
                 </h3>
                 <p className="mt-2 text-sm leading-relaxed text-white/75">
                   {service.description}

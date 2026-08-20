@@ -1,7 +1,15 @@
 'use client';
 
 import Image from 'next/image';
-import { Bell, Camera, Repeat, ShieldCheck, Target, Users } from 'lucide-react';
+import {
+  Bell,
+  Camera,
+  CreditCard,
+  Repeat,
+  ShieldCheck,
+  Target,
+  Users,
+} from 'lucide-react';
 import { motion } from 'motion/react';
 import { GlowingEffect } from '@/components/ui/glowing-effect';
 import { cn } from '@/lib/utils';
@@ -21,7 +29,7 @@ const CELLS: Cell[] = [
     description:
       'We do not also do dog walking and tax prep. The whole product is built around lawns, gutters, siding, and roofs, so the providers here actually do this for a living.',
     icon: Target,
-    image: '/services/lawn-maintenance.jpg',
+    image: '/landing/why/exterior-only.webp',
     className: 'md:col-span-2 md:row-span-2',
   },
   {
@@ -29,6 +37,7 @@ const CELLS: Cell[] = [
     description:
       'Every provider is reviewed and payout-verified before they can touch a job.',
     icon: ShieldCheck,
+    image: '/landing/why/verified.webp',
     className: 'md:col-span-1',
   },
   {
@@ -36,6 +45,7 @@ const CELLS: Cell[] = [
     description:
       'Real bids with real prices, side by side. No auto-matching to whoever paid the most.',
     icon: Users,
+    image: '/landing/why/compete.webp',
     className: 'md:col-span-1',
   },
   {
@@ -43,7 +53,7 @@ const CELLS: Cell[] = [
     description:
       'A plan turns seasonal chores into a calendar. Your provider stays assigned instead of restarting the search every visit.',
     icon: Repeat,
-    image: '/services/landscaping.webp',
+    image: '/landing/why/recurring.webp',
     className: 'md:col-span-2',
   },
   {
@@ -51,6 +61,7 @@ const CELLS: Cell[] = [
     description:
       'Crews upload before and after shots on site. You see the work whether you were home or not.',
     icon: Camera,
+    image: '/landing/why/photo-proof.webp',
     className: 'md:col-span-1',
   },
   {
@@ -58,19 +69,28 @@ const CELLS: Cell[] = [
     description:
       'SMS and in-app alerts at every step, from first bid through completion.',
     icon: Bell,
+    image: '/landing/why/updates.webp',
     className: 'md:col-span-1',
+  },
+  {
+    title: 'Pay through us, not a stranger',
+    description:
+      'Stripe handles the money. You are charged when you accept a bid or on the plan cadence you picked — not by whoever showed up with a card reader.',
+    icon: CreditCard,
+    image: '/landing/why/payments.webp',
+    className: 'md:col-span-2',
   },
 ];
 
 export function WhySection() {
   return (
-    <section className="py-24">
-      <div className="mx-auto max-w-6xl px-6">
+    <section className="py-16">
+      <div className="px-6 mx-auto max-w-6xl">
         <div className="mb-14 max-w-3xl">
           <SectionEyebrow>Why Exterior Pro</SectionEyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-5xl">
             Not another lead-gen site.
-            <span className="mt-2 block text-muted-foreground">
+            <span className="block mt-2 text-muted-foreground">
               A system for keeping a property up.
             </span>
           </h2>
@@ -92,7 +112,7 @@ export function WhySection() {
               transition={{ duration: 0.4, delay: index * 0.05 }}
               className={cn('relative', cell.className)}
             >
-              <div className="group relative flex h-full flex-col justify-end overflow-hidden rounded-3xl border border-border bg-background/70 p-6 backdrop-blur-xl">
+              <div className="flex overflow-hidden relative flex-col justify-end p-6 h-full rounded-3xl border backdrop-blur-xl group border-border bg-background/70">
                 <GlowingEffect
                   disabled={false}
                   glow
@@ -123,7 +143,7 @@ export function WhySection() {
                         : 'border-brand-lime/25 bg-brand-lime/10',
                     )}
                   >
-                    <cell.icon className="h-4 w-4 text-brand-lime" />
+                    <cell.icon className="w-4 h-4 text-brand-lime" />
                   </span>
                   <h3
                     className={cn(
