@@ -326,10 +326,12 @@ function LoginContent() {
                 {process.env.NODE_ENV === 'production' ? null : (
                   <div className="mt-6 flex flex-col items-center justify-center gap-0.5 font-mono text-xs text-muted-foreground">
                     <p className="text-cyan-400">
-                      customer: jordan.vera96@gmail.com
+                      <span className="font-bold text-red-500">customer:</span>{' '}
+                      jordan.vera96@gmail.com
                     </p>
                     <p className="text-cyan-400">
-                      provider: payouts@dfwpowerwash.example.com
+                      <span className="font-bold text-red-500">provider:</span>{' '}
+                      payouts@dfwpowerwash.example.com
                     </p>
                   </div>
                 )}

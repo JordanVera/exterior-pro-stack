@@ -1369,7 +1369,7 @@ async function main() {
       ],
     },
     {
-      customerPhone: '+15551001001',
+      customerPhone: '+18325428743',
       propertyIndex: 1,
       serviceName: 'Deck / Patio Wash',
       customerNotes: 'Composite deck off the kitchen. Rental — tenant on site.',
@@ -1412,7 +1412,7 @@ async function main() {
       ],
     },
     {
-      customerPhone: '+15551001001',
+      customerPhone: '+18325428743',
       propertyIndex: 0,
       serviceName: 'Trim & Shutters Painting',
       customerNotes: 'Match existing white trim. 14 shutters.',
@@ -1441,7 +1441,7 @@ async function main() {
     },
     // SCHEDULED — next 3–14 days
     {
-      customerPhone: '+15551001001',
+      customerPhone: '+18325428743',
       propertyIndex: 0,
       serviceName: 'Driveway Pressure Wash',
       customerNotes: 'Driveway has oil stains near the garage.',
@@ -1548,7 +1548,7 @@ async function main() {
       ],
     },
     {
-      customerPhone: '+15551001001',
+      customerPhone: '+18325428743',
       propertyIndex: 1,
       serviceName: 'Fence / Deck Staining',
       customerNotes: 'Back cedar fence at the Plano rental.',
@@ -1565,7 +1565,7 @@ async function main() {
     },
     // COMPLETED
     {
-      customerPhone: '+15551001001',
+      customerPhone: '+18325428743',
       propertyIndex: 0,
       serviceName: 'Weekly Lawn Mowing',
       customerNotes: 'Front and back yard. Avoid flower beds near porch.',
@@ -1581,7 +1581,7 @@ async function main() {
       ],
     },
     {
-      customerPhone: '+15551001001',
+      customerPhone: '+18325428743',
       propertyIndex: 1,
       serviceName: 'Gutter Clean & Flush',
       status: 'COMPLETED',
@@ -1845,20 +1845,24 @@ async function main() {
 
   header('Sample Subscriptions');
 
-  // Give Sarah Johnson a Basic Lawn Care subscription
-  const sarahProfile = allCustomerProfiles.find(
-    (cp) => cp.firstName === 'Sarah',
+  // Give Jordan Vera a Basic Lawn Care subscription
+  const jordanProfile = allCustomerProfiles.find(
+    (cp) => cp.user.email === 'jordan.vera96@gmail.com',
   );
   const greenscapeProfile = allProviderProfiles.find(
     (pp) => pp.businessName === 'GreenScape Lawn & Garden',
   );
 
-  if (sarahProfile && greenscapeProfile && sarahProfile.properties.length > 0) {
+  if (
+    jordanProfile &&
+    greenscapeProfile &&
+    jordanProfile.properties.length > 0
+  ) {
     const sub = await prisma.customerSubscription.create({
       data: {
-        customerId: sarahProfile.id,
+        customerId: jordanProfile.id,
         planId: basicPlan.id,
-        propertyId: sarahProfile.properties[0].id,
+        propertyId: jordanProfile.properties[0].id,
         status: 'ACTIVE',
         billingFrequency: 'MONTHLY',
         currentPeriodStart: daysFromNow(-15),
@@ -1867,14 +1871,14 @@ async function main() {
       },
     });
     success(
-      `Sarah Johnson → ${basicPlan.name} (${chalk.green('ACTIVE')}, provider: GreenScape)`,
+      `Jordan Vera → ${basicPlan.name} (${chalk.green('ACTIVE')}, provider: GreenScape)`,
     );
 
     const mowingId = serviceMap.get('Weekly Lawn Mowing');
     if (mowingId) {
       const subJob = await prisma.job.create({
         data: {
-          propertyId: sarahProfile.properties[0].id,
+          propertyId: jordanProfile.properties[0].id,
           serviceId: mowingId,
           type: 'SUBSCRIPTION',
           status: 'SCHEDULED',
@@ -1974,7 +1978,7 @@ async function main() {
           userId: user.id,
           type: 'BID_ACCEPTED',
           title: 'Bid Accepted',
-          body: 'Sarah Johnson accepted your bid for Weekly Lawn Mowing!',
+          body: 'Jordan Vera accepted your bid for Weekly Lawn Mowing!',
           read: true,
         },
       ],
@@ -2040,7 +2044,7 @@ async function main() {
 
   console.log(chalk.dim('  Test login emails:'));
   console.log(chalk.dim('    Admin:    admin@example.com'));
-  console.log(chalk.dim('    Customer: sarah.johnson@example.com'));
+  console.log(chalk.dim('    Customer: jordan.vera96@gmail.com'));
   console.log(chalk.dim('    Provider: payouts@dfwpowerwash.example.com'));
   console.log(
     chalk.dim('    Crew:     carlos.rivera@crew.example.com (DFW Alpha Team)'),
