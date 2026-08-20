@@ -10,8 +10,8 @@ import Animated, {
 import { LinearGradient } from 'expo-linear-gradient';
 
 const SLIDES: ImageSourcePropType[] = [
-  require('../../assets/login/login-bg-1.jpg'),
-  require('../../assets/login/login-bg-2.jpg'),
+  require('../../assets/login/login-bg-1.webp'),
+  require('../../assets/login/login-bg-2.webp'),
   require('../../assets/login/login-bg-3.jpg'),
 ];
 
@@ -54,7 +54,7 @@ export function KenBurnsBackground() {
       <Animated.View
         style={[
           StyleSheet.absoluteFill,
-          { backgroundColor: 'rgba(7,11,18,0.5)' },
+          { backgroundColor: 'rgba(7,11,18,0.2)' },
         ]}
       />
       <LinearGradient

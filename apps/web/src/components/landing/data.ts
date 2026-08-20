@@ -1,58 +1,12 @@
 import { loginPath } from '@/lib/auth-intent';
 
 export const BILLING_OPTIONS = [
-  { value: 'monthly', label: 'Monthly', multiplier: 1, discount: 0 },
-  { value: 'quarterly', label: 'Quarterly', multiplier: 0.95, discount: 5 },
-  { value: 'annually', label: 'Annually', multiplier: 0.85, discount: 15 },
+  { value: 'monthly', label: 'Monthly' },
+  { value: 'quarterly', label: 'Quarterly' },
+  { value: 'annually', label: 'Annually' },
 ] as const;
 
 export type BillingOption = (typeof BILLING_OPTIONS)[number]['value'];
-
-export const PLANS = [
-  {
-    name: 'Basic Lawn Care',
-    price: 99,
-    period: '/mo',
-    desc: 'The essentials, handled. Your yard stays cut and weed-free without a single phone call.',
-    features: [
-      'Bi-weekly lawn mowing',
-      'Monthly weed control',
-      'Matched to a verified local provider',
-      'Pause or cancel anytime',
-    ],
-    highlight: false,
-  },
-  {
-    name: 'Standard Exterior',
-    price: 179,
-    period: '/mo',
-    desc: 'Our most popular plan. Weekly lawn care plus the seasonal work everyone forgets.',
-    features: [
-      'Weekly lawn mowing',
-      'Monthly weed control',
-      'Quarterly gutter cleaning',
-      'A dedicated provider who stays on your property',
-      'Before and after photos on every visit',
-    ],
-    highlight: true,
-  },
-  {
-    name: 'Premium Exterior',
-    price: 299,
-    period: '/mo',
-    desc: 'The full curb-appeal package. Everything outside your walls, on autopilot.',
-    features: [
-      'Weekly lawn mowing',
-      'Bi-weekly weed control',
-      'Quarterly gutter cleaning',
-      'Bi-annual pressure washing',
-      'Quarterly window cleaning',
-    ],
-    highlight: false,
-  },
-] as const;
-
-export type Plan = (typeof PLANS)[number];
 
 export const SERVICES = [
   {

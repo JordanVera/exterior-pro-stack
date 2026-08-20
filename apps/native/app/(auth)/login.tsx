@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -10,10 +11,11 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeInUp } from 'react-native-reanimated';
 import { Redirect, useRouter } from 'expo-router';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/lib/auth';
+import { colors } from '@/lib/theme';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { LoadingScreen } from '@/components/Screen';
 import { KenBurnsBackground } from '@/components/KenBurnsBackground';
@@ -64,7 +66,6 @@ export default function LoginScreen() {
       });
       const me = await signIn(result.token);
 
-      // Route based on role
       if (me.role === 'CUSTOMER') {
         router.replace('/home');
       } else if (me.role === 'PROVIDER' || me.role === 'CREW') {
@@ -97,105 +98,135 @@ export default function LoginScreen() {
           contentContainerStyle={{
             flexGrow: 1,
             justifyContent: 'flex-end',
-            paddingTop: insets.top + 24,
-            paddingBottom: Math.max(insets.bottom, 20),
+            paddingBottom: Math.max(insets.bottom, 24),
           }}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Animated.View entering={FadeIn.duration(700)} className="px-6 pb-8">
-            <Text className="mt-6 font-semibold text-xs uppercase tracking-[3px] text-brand-lime">
-              Exterior Pro
-            </Text>
-            <Text className="mt-2 font-bold text-[40px] leading-[44px] text-white">
-              {step === 'email'
-                ? 'Run your day\nfrom the truck.'
-                : 'Check your\nemail.'}
-            </Text>
-            <Text className="mt-3 text-[17px] leading-7 text-slate-300">
-              {step === 'email'
-                ? 'Schedules, crews, and before-and-after photos for every job you win.'
-                : `We sent a 6-digit code to ${normalizedEmail}.`}
-            </Text>
-          </Animated.View>
-
           <Animated.View
-            entering={FadeInDown.duration(600).delay(120)}
-            className="p-5 mx-4 rounded-3xl border border-line-strong bg-surface/95"
+            entering={FadeInUp.duration(550)}
+            className="px-4 pt-6"
           >
-            {step === 'email' ? (
-              <>
-                <Text className="mb-2 text-sm font-medium text-slate-300">
-                  Email
-                </Text>
-                <TextInput
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  autoComplete="email"
-                  placeholder="you@company.com"
-                  placeholderTextColor="#64748b"
-                  className="px-4 h-16 font-sans text-lg text-white rounded-2xl border border-line-strong bg-surface-sunken"
-                  returnKeyType="go"
-                  onSubmitEditing={sendCode}
-                  autoFocus
-                />
-                {error ? <ErrorLine message={error} /> : null}
-                <View className="mt-4">
-                  <PrimaryButton
-                    label="Send code"
-                    icon="arrow-forward"
-                    onPress={sendCode}
-                    loading={loading}
-                  />
-                </View>
-                <Text className="mt-4 text-center text-[13px] leading-5 text-slate-400">
-                  For homeowners, crews, and service providers.
-                </Text>
-              </>
-            ) : (
-              <>
-                <Text className="mb-2 text-sm font-medium text-slate-300">
-                  Verification code
-                </Text>
-                <TextInput
-                  value={code}
-                  onChangeText={(value) =>
-                    setCode(value.replace(/\D/g, '').slice(0, 6))
-                  }
-                  keyboardType="number-pad"
-                  placeholder="000000"
-                  placeholderTextColor="#64748b"
-                  className="h-16 rounded-2xl border border-line-strong bg-surface-sunken px-4 text-center font-semibold text-2xl tracking-[8px] text-white"
-                  returnKeyType="go"
-                  onSubmitEditing={verifyCode}
-                  autoFocus
-                />
-                {error ? <ErrorLine message={error} /> : null}
-                <View className="mt-4">
-                  <PrimaryButton
-                    label="Verify"
-                    icon="checkmark"
-                    onPress={verifyCode}
-                    loading={loading}
-                  />
-                </View>
-                <Pressable
-                  onPress={() => {
-                    setStep('email');
-                    setCode('');
-                    setError('');
-                  }}
-                  className="items-center py-3 mt-3 active:opacity-70"
-                >
-                  <Text className="text-base font-semibold text-brand-lime">
-                    Use a different email
+            {/* Logo */}
+            {/* <View className="items-center mb-6">
+              <Image
+                source={require('../../assets/logo-stacked-lime.png')}
+                style={{ width: 100, height: 38 }}
+                resizeMode="contain"
+              />
+            </View> */}
+
+            {/* Form card */}
+            <View
+              className="overflow-hidden rounded-3xl"
+              style={{
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.14)',
+              }}
+            >
+              <View style={{ height: 3, backgroundColor: colors.lime }} />
+
+              <View className="p-5 bg-surface-raised">
+                <Animated.View key={step} entering={FadeInDown.duration(300)}>
+                  <View className="items-center my-4">
+                    <Image
+                      source={require('../../assets/logo-stacked-lime.png')}
+                      style={{ width: 100, height: 38 }}
+                      resizeMode="contain"
+                    />
+                  </View>
+                  <Text className="mb-1 text-xl font-bold text-white">
+                    {step === 'email' ? 'Sign in' : 'Check your email'}
                   </Text>
-                </Pressable>
-              </>
-            )}
+                  <Text className="mb-5 text-sm leading-5 text-white/55">
+                    {step === 'email'
+                      ? "Enter your email and we'll send a 6-digit code."
+                      : `Code sent to ${normalizedEmail}`}
+                  </Text>
+
+                  {step === 'email' ? (
+                    <>
+                      <Text className="mb-2 text-sm font-semibold text-white/70">
+                        Email address
+                      </Text>
+                      <TextInput
+                        value={email}
+                        onChangeText={setEmail}
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        autoCorrect={false}
+                        autoComplete="email"
+                        placeholder="you@company.com"
+                        placeholderTextColor="rgba(255,255,255,0.28)"
+                        className="px-4 h-[52px] text-base text-white rounded-2xl border border-line-strong bg-surface-sunken"
+                        returnKeyType="go"
+                        onSubmitEditing={sendCode}
+                        autoFocus
+                      />
+                      {error ? <ErrorLine message={error} /> : null}
+                      <View className="mt-4">
+                        <PrimaryButton
+                          label="Send code"
+                          icon="arrow-forward"
+                          onPress={sendCode}
+                          loading={loading}
+                        />
+                      </View>
+                    </>
+                  ) : (
+                    <>
+                      <Text className="mb-2 text-sm font-semibold text-white/70">
+                        6-digit code
+                      </Text>
+                      <TextInput
+                        value={code}
+                        onChangeText={(value) =>
+                          setCode(value.replace(/\D/g, '').slice(0, 6))
+                        }
+                        keyboardType="number-pad"
+                        placeholder="000 000"
+                        placeholderTextColor="rgba(255,255,255,0.28)"
+                        className="h-[52px] rounded-2xl border border-line-strong bg-surface-sunken px-4 text-center font-semibold text-2xl tracking-[10px] text-white"
+                        returnKeyType="go"
+                        onSubmitEditing={verifyCode}
+                        autoFocus
+                      />
+                      {error ? <ErrorLine message={error} /> : null}
+                      <View className="mt-4">
+                        <PrimaryButton
+                          label="Verify code"
+                          icon="checkmark-circle-outline"
+                          onPress={verifyCode}
+                          loading={loading}
+                        />
+                      </View>
+                      <Pressable
+                        onPress={() => {
+                          setStep('email');
+                          setCode('');
+                          setError('');
+                        }}
+                        className="items-center py-3 mt-2 active:opacity-60"
+                      >
+                        <Text className="text-[15px] font-semibold text-brand-lime">
+                          Use a different email
+                        </Text>
+                      </Pressable>
+                    </>
+                  )}
+                </Animated.View>
+              </View>
+            </View>
+
+            {/* Trust chips */}
+            <View className="flex-row gap-5 justify-center items-center mt-5">
+              <TrustChip
+                icon="shield-checkmark-outline"
+                label="Verified pros"
+              />
+              <TrustChip icon="refresh-outline" label="No lock-in" />
+              <TrustChip icon="camera-outline" label="Photo proof" />
+            </View>
           </Animated.View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -203,11 +234,26 @@ export default function LoginScreen() {
   );
 }
 
+function TrustChip({
+  icon,
+  label,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+}) {
+  return (
+    <View className="flex-row items-center gap-1.5">
+      <Ionicons name={icon} size={13} color={colors.lime} />
+      <Text className="text-[12px] text-white/55">{label}</Text>
+    </View>
+  );
+}
+
 function ErrorLine({ message }: { message: string }) {
   return (
     <View className="flex-row gap-2 items-start px-4 py-3 mt-3 rounded-2xl border border-red-500/30 bg-red-500/15">
-      <Ionicons name="alert-circle" size={18} color="#f87171" />
-      <Text className="flex-1 text-[15px] leading-6 text-red-200">
+      <Ionicons name="alert-circle-outline" size={17} color="#f87171" />
+      <Text className="flex-1 text-[14px] leading-5 text-red-200">
         {message}
       </Text>
     </View>

@@ -12,8 +12,11 @@ import { TestimonialsSection } from './testimonials-section';
 import { FaqSection } from './faq-section';
 import { CtaSection } from './cta-section';
 import { LandingFooter } from './footer';
+import { getLandingPlans } from './get-plans';
 
-export function LandingPage() {
+export async function LandingPage() {
+  const plans = await getLandingPlans();
+
   return (
     <AudienceProvider>
       <div className="bg-brand-mist text-foreground dark:bg-brand-night">
@@ -25,7 +28,7 @@ export function LandingPage() {
           <HowItWorksSection />
           <ServicesSection />
           <WhySection />
-          <PlansSection />
+          <PlansSection plans={plans} />
           <ProvidersSection />
           <TestimonialsSection />
           <FaqSection />
