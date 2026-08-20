@@ -56,7 +56,7 @@ export default function ProviderJobDetailPage() {
 
   const fetchJob = async () => {
     try {
-      const jobData = await trpc.job.getById.query({ id: jobId });
+      const jobData = await trpc.job.getById.query({ jobId });
       setJob(jobData);
       setNotes(jobData.providerNotes || '');
       if (jobData.scheduledDate) {
@@ -125,13 +125,17 @@ export default function ProviderJobDetailPage() {
     }
   };
 
-  const handleStatusUpdate = async (status: 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED') => {
+  const handleStatusUpdate = async (
+    status: 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED',
+  ) => {
     if (status === 'COMPLETED') {
       const hasBeforePhotos = job.photos.some((p: any) => p.kind === 'BEFORE');
       const hasAfterPhotos = job.photos.some((p: any) => p.kind === 'AFTER');
-      
+
       if (!hasBeforePhotos || !hasAfterPhotos) {
-        toast.error('Please upload both before and after photos before completing');
+        toast.error(
+          'Please upload both before and after photos before completing',
+        );
         return;
       }
     }
@@ -185,7 +189,9 @@ export default function ProviderJobDetailPage() {
         throw new Error('Upload failed');
       }
 
-      toast.success(`${kind === 'BEFORE' ? 'Before' : 'After'} photos uploaded`);
+      toast.success(
+        `${kind === 'BEFORE' ? 'Before' : 'After'} photos uploaded`,
+      );
       await fetchJob();
     } catch (err) {
       toast.error('Failed to upload photos');
@@ -207,7 +213,7 @@ export default function ProviderJobDetailPage() {
   if (loading || !job) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-10 w-48" />
+        <Skeleton className="w-48 h-10" />
         <Skeleton className="h-64 rounded-xl" />
         <Skeleton className="h-32 rounded-xl" />
       </div>
@@ -229,13 +235,13 @@ export default function ProviderJobDetailPage() {
           className="mb-4 -ml-2"
           onClick={() => router.push('/provider/jobs')}
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="mr-2 w-4 h-4" />
           Back to jobs
         </Button>
 
-        <div className="flex items-start justify-between">
+        <div className="flex justify-between items-start">
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex gap-2 items-center">
               <h1 className="text-2xl font-bold tracking-tight text-foreground">
                 {job.service.name}
               </h1>
@@ -252,7 +258,7 @@ export default function ProviderJobDetailPage() {
               {job.type === 'SUBSCRIPTION' && (
                 <Badge
                   variant="secondary"
-                  className="rounded-full border-0 bg-purple-500/10 text-xs text-purple-500"
+                  className="text-xs text-purple-500 rounded-full border-0 bg-purple-500/10"
                 >
                   Subscription
                 </Badge>
@@ -297,7 +303,7 @@ export default function ProviderJobDetailPage() {
               <CardTitle className="text-base">Property & Customer</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-start gap-3">
+              <div className="flex gap-3 items-start">
                 <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <div>
                   <p className="text-sm font-medium">{job.property.address}</p>
@@ -307,14 +313,16 @@ export default function ProviderJobDetailPage() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3">
+              <div className="flex gap-3 items-start">
                 <Phone className="mt-0.5 h-4 w-4 text-muted-foreground flex-shrink-0" />
                 <div>
                   <p className="text-sm font-medium">
                     {customer.firstName} {customer.lastName}
                   </p>
                   {customer.email && (
-                    <p className="text-sm text-muted-foreground">{customer.email}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {customer.email}
+                    </p>
                   )}
                   <a
                     href={`tel:${job.property.customer.user.phone}`}
@@ -326,13 +334,15 @@ export default function ProviderJobDetailPage() {
               </div>
 
               {job.acceptedBid && (
-                <div className="flex items-start gap-3">
+                <div className="flex gap-3 items-start">
                   <DollarSign className="mt-0.5 h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <div>
                     <p className="text-sm font-medium">
                       ${Number(job.acceptedBid.price).toFixed(2)}
                     </p>
-                    <p className="text-sm text-muted-foreground">Agreed price</p>
+                    <p className="text-sm text-muted-foreground">
+                      Agreed price
+                    </p>
                   </div>
                 </div>
               )}
@@ -386,21 +396,26 @@ export default function ProviderJobDetailPage() {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-start gap-3">
+                <div className="flex gap-3 items-start">
                   <Calendar className="mt-0.5 h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <div className="flex-1">
                     {job.scheduledDate ? (
                       <p className="text-sm font-medium">
-                        {formatJobDateTime(job.scheduledDate, job.scheduledTime)}
+                        {formatJobDateTime(
+                          job.scheduledDate,
+                          job.scheduledTime,
+                        )}
                       </p>
                     ) : (
-                      <p className="text-sm text-muted-foreground">Not scheduled</p>
+                      <p className="text-sm text-muted-foreground">
+                        Not scheduled
+                      </p>
                     )}
                     {job.status === 'PENDING' && (
                       <Button
                         size="sm"
                         variant="link"
-                        className="h-auto p-0 text-brand-lime"
+                        className="p-0 h-auto text-brand-lime"
                         onClick={() => setSchedulingMode(true)}
                       >
                         {job.scheduledDate ? 'Reschedule' : 'Schedule now'}
@@ -414,7 +429,10 @@ export default function ProviderJobDetailPage() {
                 <div className="space-y-3">
                   <div>
                     <Label htmlFor="crew">Select Crew</Label>
-                    <Select value={selectedCrewId} onValueChange={setSelectedCrewId}>
+                    <Select
+                      value={selectedCrewId}
+                      onValueChange={setSelectedCrewId}
+                    >
                       <SelectTrigger id="crew" className="mt-1">
                         <SelectValue placeholder="Choose a crew" />
                       </SelectTrigger>
@@ -446,7 +464,7 @@ export default function ProviderJobDetailPage() {
                   </div>
                 </div>
               ) : (
-                <div className="flex items-start gap-3">
+                <div className="flex gap-3 items-start">
                   <Users className="mt-0.5 h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <div className="flex-1">
                     {job.assignments?.length > 0 ? (
@@ -458,18 +476,23 @@ export default function ProviderJobDetailPage() {
                         ))}
                       </div>
                     ) : (
-                      <p className="text-sm text-muted-foreground">No crew assigned</p>
+                      <p className="text-sm text-muted-foreground">
+                        No crew assigned
+                      </p>
                     )}
-                    {['PENDING', 'SCHEDULED'].includes(job.status) && crews.length > 0 && (
-                      <Button
-                        size="sm"
-                        variant="link"
-                        className="h-auto p-0 text-brand-lime"
-                        onClick={() => setAssigningMode(true)}
-                      >
-                        {job.assignments?.length > 0 ? 'Change crew' : 'Assign crew'}
-                      </Button>
-                    )}
+                    {['PENDING', 'SCHEDULED'].includes(job.status) &&
+                      crews.length > 0 && (
+                        <Button
+                          size="sm"
+                          variant="link"
+                          className="p-0 h-auto text-brand-lime"
+                          onClick={() => setAssigningMode(true)}
+                        >
+                          {job.assignments?.length > 0
+                            ? 'Change crew'
+                            : 'Assign crew'}
+                        </Button>
+                      )}
                   </div>
                 </div>
               )}
@@ -483,7 +506,7 @@ export default function ProviderJobDetailPage() {
                 <CardTitle className="text-base">Customer Notes</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex items-start gap-3">
+                <div className="flex gap-3 items-start">
                   <FileText className="mt-0.5 h-4 w-4 text-muted-foreground flex-shrink-0" />
                   <p className="text-sm text-foreground">{job.customerNotes}</p>
                 </div>
@@ -520,12 +543,14 @@ export default function ProviderJobDetailPage() {
           {/* Before Photos */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base flex items-center justify-between">
+              <CardTitle className="flex justify-between items-center text-base">
                 <span>Before Photos</span>
-                {['PENDING', 'SCHEDULED', 'IN_PROGRESS'].includes(job.status) && (
+                {['PENDING', 'SCHEDULED', 'IN_PROGRESS'].includes(
+                  job.status,
+                ) && (
                   <Label htmlFor="before-photos" className="cursor-pointer">
-                    <div className="flex items-center gap-2 text-sm text-brand-lime hover:underline">
-                      <Camera className="h-4 w-4" />
+                    <div className="flex gap-2 items-center text-sm text-brand-lime hover:underline">
+                      <Camera className="w-4 h-4" />
                       Upload
                     </div>
                     <JobPhotoPicker
@@ -545,23 +570,23 @@ export default function ProviderJobDetailPage() {
                       <img
                         src={photo.url}
                         alt="Before"
-                        className="w-full h-32 object-cover rounded-lg"
+                        className="object-cover w-full h-32 rounded-lg"
                       />
                       {job.status !== 'COMPLETED' && (
                         <Button
                           size="icon"
                           variant="destructive"
-                          className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-2 right-2 w-6 h-6 opacity-0 transition-opacity group-hover:opacity-100"
                           onClick={() => handleDeletePhoto(photo.id)}
                         >
-                          <X className="h-3 w-3" />
+                          <X className="w-3 h-3" />
                         </Button>
                       )}
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground text-center py-8">
+                <p className="py-8 text-sm text-center text-muted-foreground">
                   No before photos yet
                 </p>
               )}
@@ -571,12 +596,12 @@ export default function ProviderJobDetailPage() {
           {/* After Photos */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-base flex items-center justify-between">
+              <CardTitle className="flex justify-between items-center text-base">
                 <span>After Photos</span>
                 {['IN_PROGRESS'].includes(job.status) && (
                   <Label htmlFor="after-photos" className="cursor-pointer">
-                    <div className="flex items-center gap-2 text-sm text-brand-lime hover:underline">
-                      <Camera className="h-4 w-4" />
+                    <div className="flex gap-2 items-center text-sm text-brand-lime hover:underline">
+                      <Camera className="w-4 h-4" />
                       Upload
                     </div>
                     <JobPhotoPicker
@@ -596,23 +621,23 @@ export default function ProviderJobDetailPage() {
                       <img
                         src={photo.url}
                         alt="After"
-                        className="w-full h-32 object-cover rounded-lg"
+                        className="object-cover w-full h-32 rounded-lg"
                       />
                       {job.status !== 'COMPLETED' && (
                         <Button
                           size="icon"
                           variant="destructive"
-                          className="absolute top-2 right-2 h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-2 right-2 w-6 h-6 opacity-0 transition-opacity group-hover:opacity-100"
                           onClick={() => handleDeletePhoto(photo.id)}
                         >
-                          <X className="h-3 w-3" />
+                          <X className="w-3 h-3" />
                         </Button>
                       )}
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground text-center py-8">
+                <p className="py-8 text-sm text-center text-muted-foreground">
                   No after photos yet
                 </p>
               )}
