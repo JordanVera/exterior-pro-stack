@@ -30,6 +30,20 @@ export function requireStripe() {
   return stripeClient;
 }
 
+export function getStripePublishableKey() {
+  return (
+    process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
+    process.env.STRIPE_PUBLIC_KEY ||
+    ""
+  );
+}
+
+/**
+ * API version the React Native SDK uses for ephemeral keys.
+ * Must match @stripe/stripe-react-native, not the server Stripe SDK.
+ */
+export const STRIPE_MOBILE_API_VERSION = "2025-03-31.basil";
+
 /**
  * Lazy Stripe client so Next.js can collect page data at build time
  * without requiring STRIPE_SECRET_KEY during import.
@@ -107,6 +121,47 @@ export function priceIdForFrequency(
     default:
       return plan.stripePriceIdMonthly;
   }
+}
+
+export function getInvoicePaymentIntentId(invoice: Stripe.Invoice): string | null {
+  const legacy = (
+    invoice as Stripe.Invoice & { payment_intent?: string | { id: string } }
+  ).payment_intent;
+  if (typeof legacy === "string") return legacy;
+  if (legacy && typeof legacy === "object" && "id" in legacy) return legacy.id;
+
+  const payments = (
+    invoice as Stripe.Invoice & {
+      payments?: {
+        data?: Array<{
+          payment?: { payment_intent?: string | { id: string } };
+        }>;
+      };
+    }
+  ).payments?.data;
+  for (const item of payments ?? []) {
+    const pi = item.payment?.payment_intent;
+    if (typeof pi === "string") return pi;
+    if (pi && typeof pi === "object" && "id" in pi) return pi.id;
+  }
+  return null;
+}
+
+export function getInvoicePaymentClientSecret(invoice: Stripe.Invoice): string | null {
+  const confirmation = (
+    invoice as Stripe.Invoice & {
+      confirmation_secret?: { client_secret?: string | null } | null;
+    }
+  ).confirmation_secret?.client_secret;
+  if (confirmation) return confirmation;
+
+  const pi = (
+    invoice as Stripe.Invoice & {
+      payment_intent?: string | { client_secret?: string | null };
+    }
+  ).payment_intent;
+  if (pi && typeof pi === "object" && pi.client_secret) return pi.client_secret;
+  return null;
 }
 
 export function getInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {

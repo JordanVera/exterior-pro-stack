@@ -8,10 +8,13 @@ import {
   resumeSubscriptionInput,
 } from '@repo/validators';
 import {
+  cancelIncompletePlanSubscription,
   createBillingPortalSession,
   createPlanCheckoutSession,
+  createPlanPaymentSheet,
+  fulfillPlanSubscriptionFromStripe,
 } from '../lib/payments';
-import { requireStripe } from '../lib/stripe';
+import { getStripePublishableKey, requireStripe } from '../lib/stripe';
 
 function asStripeError(err: unknown): never {
   const message = err instanceof Error ? err.message : 'Payments unavailable';
@@ -23,7 +26,71 @@ function asStripeError(err: unknown): never {
   });
 }
 
+async function requireSubscribeContext(
+  ctx: {
+    db: typeof import('@repo/db').db;
+    user: { userId: string };
+  },
+  input: {
+    planId: string;
+    propertyId: string;
+  },
+) {
+  const profile = await ctx.db.customerProfile.findUnique({
+    where: { userId: ctx.user.userId },
+    include: { user: true },
+  });
+
+  if (!profile) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Profile not found',
+    });
+  }
+
+  const property = await ctx.db.property.findUnique({
+    where: { id: input.propertyId },
+  });
+
+  if (!property || property.customerId !== profile.id) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Property not found',
+    });
+  }
+
+  const plan = await ctx.db.subscriptionPlan.findUnique({
+    where: { id: input.planId },
+  });
+
+  if (!plan || !plan.active) {
+    throw new TRPCError({ code: 'NOT_FOUND', message: 'Plan not found' });
+  }
+
+  const existing = await ctx.db.customerSubscription.findFirst({
+    where: {
+      customerId: profile.id,
+      propertyId: input.propertyId,
+      status: { in: ['ACTIVE', 'PAUSED'] },
+    },
+  });
+
+  if (existing) {
+    throw new TRPCError({
+      code: 'CONFLICT',
+      message: 'Property already has an active subscription',
+    });
+  }
+
+  return { profile, property, plan };
+}
+
 export const subscriptionRouter = router({
+  getStripeConfig: publicProcedure.query(() => ({
+    publishableKey: getStripePublishableKey(),
+    merchantDisplayName: 'Exterior Pro',
+  })),
+
   listPlans: publicProcedure.query(async ({ ctx }) => {
     const plans = await ctx.db.subscriptionPlan.findMany({
       where: { active: true },
@@ -121,51 +188,7 @@ export const subscriptionRouter = router({
   subscribe: customerProcedure
     .input(createSubscriptionInput)
     .mutation(async ({ ctx, input }) => {
-      const profile = await ctx.db.customerProfile.findUnique({
-        where: { userId: ctx.user.userId },
-        include: { user: true },
-      });
-
-      if (!profile) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profile not found',
-        });
-      }
-
-      const property = await ctx.db.property.findUnique({
-        where: { id: input.propertyId },
-      });
-
-      if (!property || property.customerId !== profile.id) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Property not found',
-        });
-      }
-
-      const plan = await ctx.db.subscriptionPlan.findUnique({
-        where: { id: input.planId },
-      });
-
-      if (!plan || !plan.active) {
-        throw new TRPCError({ code: 'NOT_FOUND', message: 'Plan not found' });
-      }
-
-      const existing = await ctx.db.customerSubscription.findFirst({
-        where: {
-          customerId: profile.id,
-          propertyId: input.propertyId,
-          status: { in: ['ACTIVE', 'PAUSED'] },
-        },
-      });
-
-      if (existing) {
-        throw new TRPCError({
-          code: 'CONFLICT',
-          message: 'Property already has an active subscription',
-        });
-      }
+      const { profile } = await requireSubscribeContext(ctx, input);
 
       try {
         return await createPlanCheckoutSession({
@@ -177,6 +200,87 @@ export const subscriptionRouter = router({
           name: `${profile.firstName} ${profile.lastName}`,
           phone: profile.user.phone,
           stripeCustomerId: profile.stripeCustomerId,
+          successUrl: input.successUrl,
+          cancelUrl: input.cancelUrl,
+        });
+      } catch (err) {
+        asStripeError(err);
+      }
+    }),
+
+  /** Native: Stripe Payment Sheet params for in-app subscription checkout. */
+  createPaymentSheet: customerProcedure
+    .input(createSubscriptionInput)
+    .mutation(async ({ ctx, input }) => {
+      const { profile } = await requireSubscribeContext(ctx, input);
+
+      try {
+        return await createPlanPaymentSheet({
+          customerId: profile.id,
+          planId: input.planId,
+          propertyId: input.propertyId,
+          billingFrequency: input.billingFrequency,
+          email: profile.email,
+          name: `${profile.firstName} ${profile.lastName}`,
+          phone: profile.user.phone,
+          stripeCustomerId: profile.stripeCustomerId,
+        });
+      } catch (err) {
+        asStripeError(err);
+      }
+    }),
+
+  confirmPaymentSheet: customerProcedure
+    .input(z.object({ stripeSubscriptionId: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const profile = await ctx.db.customerProfile.findUnique({
+        where: { userId: ctx.user.userId },
+      });
+      if (!profile) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Profile not found' });
+      }
+
+      try {
+        const client = requireStripe();
+        const stripeSub = await client.subscriptions.retrieve(
+          input.stripeSubscriptionId,
+        );
+        if (stripeSub.metadata?.customerId !== profile.id) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Subscription not found',
+          });
+        }
+        const result = await fulfillPlanSubscriptionFromStripe(
+          input.stripeSubscriptionId,
+        );
+        if (!result.fulfilled) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Payment is not complete yet. Please try again.',
+          });
+        }
+        return result;
+      } catch (err) {
+        if (err instanceof TRPCError) throw err;
+        asStripeError(err);
+      }
+    }),
+
+  cancelPaymentSheet: customerProcedure
+    .input(z.object({ stripeSubscriptionId: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const profile = await ctx.db.customerProfile.findUnique({
+        where: { userId: ctx.user.userId },
+      });
+      if (!profile) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Profile not found' });
+      }
+
+      try {
+        return await cancelIncompletePlanSubscription({
+          stripeSubscriptionId: input.stripeSubscriptionId,
+          customerId: profile.id,
         });
       } catch (err) {
         asStripeError(err);

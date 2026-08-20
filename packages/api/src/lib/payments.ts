@@ -1,19 +1,23 @@
-import { TRPCError } from "@trpc/server";
-import { db } from "@repo/db";
-import type { BillingFrequency } from "@repo/db";
+import { TRPCError } from '@trpc/server';
+import { db } from '@repo/db';
+import type { BillingFrequency } from '@repo/db';
 import {
   billingInterval,
   getAppUrl,
+  getInvoicePaymentClientSecret,
+  getInvoicePaymentIntentId,
   getReceiptUrl,
+  getStripePublishableKey,
   priceIdForFrequency,
   randomSuffix,
   requireStripe,
   splitCharge,
+  STRIPE_MOBILE_API_VERSION,
   stripe,
   toCents,
-} from "./stripe";
-import { sendJobConfirmationEmail, sendPaymentReceiptEmail } from "./email";
-import { notifyBidAccepted, notifySubscriptionCreated } from "./notifications";
+} from './stripe';
+import { sendJobConfirmationEmail, sendPaymentReceiptEmail } from './email';
+import { notifyBidAccepted, notifySubscriptionCreated } from './notifications';
 
 export async function getOrCreateStripeCustomer(opts: {
   customerId: string;
@@ -46,7 +50,7 @@ export async function ensurePlanStripePrices(planId: string) {
   const client = requireStripe();
   const plan = await db.subscriptionPlan.findUnique({ where: { id: planId } });
   if (!plan) {
-    throw new TRPCError({ code: "NOT_FOUND", message: "Plan not found" });
+    throw new TRPCError({ code: 'NOT_FOUND', message: 'Plan not found' });
   }
 
   let productId = plan.stripeProductId;
@@ -68,7 +72,7 @@ export async function ensurePlanStripePrices(planId: string) {
 
   async function createPrice(
     amount: { toNumber?: () => number } | number | string | null,
-    frequency: BillingFrequency
+    frequency: BillingFrequency,
   ) {
     if (!amount) return undefined;
     const cents = toCents(amount);
@@ -76,7 +80,7 @@ export async function ensurePlanStripePrices(planId: string) {
     const { interval, interval_count } = billingInterval(frequency);
     const price = await client.prices.create({
       product: productId!,
-      currency: "usd",
+      currency: 'usd',
       unit_amount: cents,
       recurring: { interval, interval_count },
       metadata: { planId, billingFrequency: frequency },
@@ -85,16 +89,19 @@ export async function ensurePlanStripePrices(planId: string) {
   }
 
   if (!plan.stripePriceIdMonthly) {
-    data.stripePriceIdMonthly = await createPrice(plan.monthlyPrice, "MONTHLY");
+    data.stripePriceIdMonthly = await createPrice(plan.monthlyPrice, 'MONTHLY');
   }
   if (!plan.stripePriceIdQuarterly && plan.quarterlyPrice) {
     data.stripePriceIdQuarterly = await createPrice(
       plan.quarterlyPrice,
-      "QUARTERLY"
+      'QUARTERLY',
     );
   }
   if (!plan.stripePriceIdAnnually && plan.annualPrice) {
-    data.stripePriceIdAnnually = await createPrice(plan.annualPrice, "ANNUALLY");
+    data.stripePriceIdAnnually = await createPrice(
+      plan.annualPrice,
+      'ANNUALLY',
+    );
   }
 
   return db.subscriptionPlan.update({
@@ -121,14 +128,16 @@ export async function createPlanCheckoutSession(opts: {
   name: string;
   phone?: string | null;
   stripeCustomerId?: string | null;
+  successUrl?: string;
+  cancelUrl?: string;
 }) {
   const client = requireStripe();
   const plan = await ensurePlanStripePrices(opts.planId);
   const priceId = priceIdForFrequency(plan, opts.billingFrequency);
   if (!priceId) {
     throw new TRPCError({
-      code: "BAD_REQUEST",
-      message: "This billing frequency is not available for the selected plan",
+      code: 'BAD_REQUEST',
+      message: 'This billing frequency is not available for the selected plan',
     });
   }
 
@@ -142,14 +151,15 @@ export async function createPlanCheckoutSession(opts: {
 
   const appUrl = getAppUrl();
   const session = await client.checkout.sessions.create({
-    mode: "subscription",
+    mode: 'subscription',
     customer: stripeCustomerId,
     client_reference_id: opts.customerId,
     line_items: [{ price: priceId, quantity: 1 }],
-    success_url: `${appUrl}/customer/subscriptions?checkout=success`,
-    cancel_url: `${appUrl}/customer/plans?checkout=canceled`,
+    success_url:
+      opts.successUrl || `${appUrl}/customer/subscriptions?checkout=success`,
+    cancel_url: opts.cancelUrl || `${appUrl}/customer/plans?checkout=canceled`,
     metadata: {
-      kind: "subscription",
+      kind: 'subscription',
       planId: opts.planId,
       propertyId: opts.propertyId,
       customerId: opts.customerId,
@@ -157,7 +167,7 @@ export async function createPlanCheckoutSession(opts: {
     },
     subscription_data: {
       metadata: {
-        kind: "subscription",
+        kind: 'subscription',
         planId: opts.planId,
         propertyId: opts.propertyId,
         customerId: opts.customerId,
@@ -169,12 +179,184 @@ export async function createPlanCheckoutSession(opts: {
 
   if (!session.url) {
     throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "Failed to create checkout session",
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'Failed to create checkout session',
     });
   }
 
   return { checkoutUrl: session.url, sessionId: session.id };
+}
+
+function planPaymentMetadata(opts: {
+  planId: string;
+  propertyId: string;
+  customerId: string;
+  billingFrequency: BillingFrequency;
+}) {
+  return {
+    kind: 'subscription',
+    planId: opts.planId,
+    propertyId: opts.propertyId,
+    customerId: opts.customerId,
+    billingFrequency: opts.billingFrequency,
+  };
+}
+
+export async function createPlanPaymentSheet(opts: {
+  customerId: string;
+  planId: string;
+  propertyId: string;
+  billingFrequency: BillingFrequency;
+  email?: string | null;
+  name: string;
+  phone?: string | null;
+  stripeCustomerId?: string | null;
+}): Promise<{
+  publishableKey: string;
+  customerId: string;
+  ephemeralKeySecret: string;
+  paymentIntentClientSecret: string;
+  stripeSubscriptionId: string;
+}> {
+  const client = requireStripe();
+  const publishableKey = getStripePublishableKey();
+  if (!publishableKey) {
+    throw new TRPCError({
+      code: 'PRECONDITION_FAILED',
+      message:
+        'Payments are not configured. Set NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY.',
+    });
+  }
+
+  const plan = await ensurePlanStripePrices(opts.planId);
+  const priceId = priceIdForFrequency(plan, opts.billingFrequency);
+  if (!priceId) {
+    throw new TRPCError({
+      code: 'BAD_REQUEST',
+      message: 'This billing frequency is not available for the selected plan',
+    });
+  }
+
+  const stripeCustomerId = await getOrCreateStripeCustomer({
+    customerId: opts.customerId,
+    email: opts.email,
+    name: opts.name,
+    phone: opts.phone,
+    existingStripeCustomerId: opts.stripeCustomerId,
+  });
+
+  const metadata = planPaymentMetadata(opts);
+
+  const ephemeralKey = await client.ephemeralKeys.create(
+    { customer: stripeCustomerId },
+    { apiVersion: STRIPE_MOBILE_API_VERSION },
+  );
+
+  const subscription = await client.subscriptions.create({
+    customer: stripeCustomerId,
+    items: [{ price: priceId }],
+    payment_behavior: 'default_incomplete',
+    payment_settings: { save_default_payment_method: 'on_subscription' },
+    metadata,
+    expand: [
+      'latest_invoice.confirmation_secret',
+      'latest_invoice.payment_intent',
+    ],
+  });
+
+  const invoice = subscription.latest_invoice;
+  if (!invoice || typeof invoice === 'string') {
+    throw new TRPCError({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'Failed to start in-app checkout',
+    });
+  }
+
+  let clientSecret = getInvoicePaymentClientSecret(invoice);
+  if (!clientSecret) {
+    const paymentIntentId = getInvoicePaymentIntentId(invoice);
+    if (paymentIntentId) {
+      const intent = await client.paymentIntents.retrieve(paymentIntentId);
+      clientSecret = intent.client_secret;
+    }
+  }
+
+  if (!clientSecret || !ephemeralKey.secret) {
+    throw new TRPCError({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'Failed to start in-app checkout',
+    });
+  }
+
+  return {
+    publishableKey,
+    customerId: stripeCustomerId,
+    ephemeralKeySecret: ephemeralKey.secret,
+    paymentIntentClientSecret: clientSecret,
+    stripeSubscriptionId: subscription.id,
+  };
+}
+
+export async function fulfillPlanSubscriptionFromStripe(
+  stripeSubscriptionId: string,
+): Promise<{ fulfilled: boolean; status: string }> {
+  const client = requireStripe();
+  const subscription = await client.subscriptions.retrieve(
+    stripeSubscriptionId,
+    { expand: ['latest_invoice'] },
+  );
+
+  if (subscription.status !== 'active' && subscription.status !== 'trialing') {
+    return { fulfilled: false, status: subscription.status };
+  }
+
+  const invoice =
+    subscription.latest_invoice &&
+    typeof subscription.latest_invoice !== 'string'
+      ? subscription.latest_invoice
+      : null;
+
+  await fulfillSubscriptionCheckout({
+    sessionId: null,
+    subscriptionId: subscription.id,
+    customerStripeId:
+      typeof subscription.customer === 'string'
+        ? subscription.customer
+        : (subscription.customer?.id ?? null),
+    paymentIntentId: invoice ? getInvoicePaymentIntentId(invoice) : null,
+    metadata: Object.fromEntries(
+      Object.entries(subscription.metadata ?? {}).map(([k, v]) => [
+        k,
+        String(v ?? ''),
+      ]),
+    ),
+  });
+
+  return { fulfilled: true, status: subscription.status };
+}
+
+export async function cancelIncompletePlanSubscription(opts: {
+  stripeSubscriptionId: string;
+  customerId: string;
+}): Promise<{ canceled: boolean }> {
+  const client = requireStripe();
+  const subscription = await client.subscriptions.retrieve(
+    opts.stripeSubscriptionId,
+  );
+  if (subscription.metadata?.customerId !== opts.customerId) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Subscription not found',
+    });
+  }
+  if (
+    subscription.status !== 'incomplete' &&
+    subscription.status !== 'incomplete_expired'
+  ) {
+    return { canceled: false };
+  }
+  await client.subscriptions.cancel(opts.stripeSubscriptionId);
+  return { canceled: true };
 }
 
 export async function createJobCheckoutSession(opts: {
@@ -199,19 +381,19 @@ export async function createJobCheckoutSession(opts: {
   });
 
   const { stripeFeeCents, platformFeeCents, transferAmountCents } = splitCharge(
-    opts.amountCents
+    opts.amountCents,
   );
   const appUrl = getAppUrl();
 
   const session = await client.checkout.sessions.create({
-    mode: "payment",
+    mode: 'payment',
     customer: stripeCustomerId,
     client_reference_id: opts.customerId,
     line_items: [
       {
         quantity: 1,
         price_data: {
-          currency: "usd",
+          currency: 'usd',
           unit_amount: opts.amountCents,
           product_data: { name: opts.description },
         },
@@ -220,7 +402,7 @@ export async function createJobCheckoutSession(opts: {
     success_url: `${appUrl}/customer/jobs?checkout=success`,
     cancel_url: `${appUrl}/customer/jobs?checkout=canceled`,
     metadata: {
-      kind: "job",
+      kind: 'job',
       jobId: opts.jobId,
       bidId: opts.bidId,
       customerId: opts.customerId,
@@ -234,15 +416,15 @@ export async function createJobCheckoutSession(opts: {
 
   if (!session.url) {
     throw new TRPCError({
-      code: "INTERNAL_SERVER_ERROR",
-      message: "Failed to create checkout session",
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'Failed to create checkout session',
     });
   }
 
   await db.payment.create({
     data: {
-      kind: "JOB",
-      status: "PENDING",
+      kind: 'JOB',
+      status: 'PENDING',
       amountCents: opts.amountCents,
       platformFeeCents,
       stripeFeeCents,
@@ -295,23 +477,25 @@ export async function fulfillJobCheckout(opts: {
 
   const receiptUrl = await getReceiptUrl(opts.paymentIntentId);
 
-  if (job.status === "OPEN") {
+  if (job.status === 'OPEN') {
     await db.$transaction([
       db.jobBid.update({
         where: { id: bidId },
-        data: { status: "ACCEPTED" },
+        data: { status: 'ACCEPTED' },
       }),
       db.jobBid.updateMany({
         where: { jobId, id: { not: bidId } },
-        data: { status: "DECLINED" },
+        data: { status: 'DECLINED' },
       }),
       db.job.update({
         where: { id: jobId },
-        data: { acceptedBidId: bidId, status: "PENDING" },
+        data: { acceptedBidId: bidId, status: 'PENDING' },
       }),
     ]);
 
-    notifyBidAccepted(bid.provider.userId, job.service.name).catch(console.error);
+    notifyBidAccepted(bid.provider.userId, job.service.name).catch(
+      console.error,
+    );
 
     const customer = job.property.customer;
     if (customer.email) {
@@ -331,7 +515,7 @@ export async function fulfillJobCheckout(opts: {
     await db.payment.update({
       where: { id: existing.id },
       data: {
-        status: "SUCCEEDED",
+        status: 'SUCCEEDED',
         stripePaymentIntentId: opts.paymentIntentId,
         receiptUrl,
         amountCents,
@@ -341,8 +525,8 @@ export async function fulfillJobCheckout(opts: {
   } else {
     await db.payment.create({
       data: {
-        kind: "JOB",
-        status: "SUCCEEDED",
+        kind: 'JOB',
+        status: 'SUCCEEDED',
         amountCents,
         ...split,
         stripeCheckoutSessionId: opts.sessionId,
@@ -374,7 +558,7 @@ export async function fulfillJobCheckout(opts: {
 }
 
 export async function fulfillSubscriptionCheckout(opts: {
-  sessionId: string;
+  sessionId?: string | null;
   subscriptionId: string | null;
   customerStripeId: string | null;
   paymentIntentId?: string | null;
@@ -390,7 +574,7 @@ export async function fulfillSubscriptionCheckout(opts: {
     where: {
       customerId,
       propertyId,
-      status: { in: ["ACTIVE", "PAUSED"] },
+      status: { in: ['ACTIVE', 'PAUSED'] },
     },
   });
   if (existing) {
@@ -405,15 +589,15 @@ export async function fulfillSubscriptionCheckout(opts: {
 
   const now = new Date();
   const periodEnd = new Date(now);
-  const freq = (billingFrequency || "MONTHLY") as BillingFrequency;
+  const freq = (billingFrequency || 'MONTHLY') as BillingFrequency;
   switch (freq) {
-    case "MONTHLY":
+    case 'MONTHLY':
       periodEnd.setMonth(periodEnd.getMonth() + 1);
       break;
-    case "QUARTERLY":
+    case 'QUARTERLY':
       periodEnd.setMonth(periodEnd.getMonth() + 3);
       break;
-    case "ANNUALLY":
+    case 'ANNUALLY':
       periodEnd.setFullYear(periodEnd.getFullYear() + 1);
       break;
   }
@@ -423,7 +607,7 @@ export async function fulfillSubscriptionCheckout(opts: {
       customerId,
       planId,
       propertyId,
-      status: "ACTIVE",
+      status: 'ACTIVE',
       billingFrequency: freq,
       currentPeriodStart: now,
       currentPeriodEnd: periodEnd,
@@ -442,9 +626,9 @@ export async function fulfillSubscriptionCheckout(opts: {
   }
 
   const amountCents =
-    freq === "ANNUALLY"
+    freq === 'ANNUALLY'
       ? toCents(plan.annualPrice ?? plan.monthlyPrice)
-      : freq === "QUARTERLY"
+      : freq === 'QUARTERLY'
         ? toCents(plan.quarterlyPrice ?? plan.monthlyPrice)
         : toCents(plan.monthlyPrice);
 
@@ -452,10 +636,10 @@ export async function fulfillSubscriptionCheckout(opts: {
 
   await db.payment.create({
     data: {
-      kind: "SUBSCRIPTION",
-      status: "SUCCEEDED",
+      kind: 'SUBSCRIPTION',
+      status: 'SUCCEEDED',
       amountCents,
-      stripeCheckoutSessionId: opts.sessionId,
+      stripeCheckoutSessionId: opts.sessionId || undefined,
       stripePaymentIntentId: opts.paymentIntentId,
       receiptUrl,
       customerId,
@@ -464,7 +648,7 @@ export async function fulfillSubscriptionCheckout(opts: {
   });
 
   notifySubscriptionCreated(subscription.customer.userId, plan.name).catch(
-    console.error
+    console.error,
   );
 
   if (subscription.customer.email) {
@@ -483,7 +667,10 @@ export async function payoutForCompletedJob(jobId: string) {
     where: { id: jobId },
     include: {
       acceptedBid: { include: { provider: true } },
-      payments: { where: { status: "SUCCEEDED" }, include: { transfers: true } },
+      payments: {
+        where: { status: 'SUCCEEDED' },
+        include: { transfers: true },
+      },
       service: true,
       subscription: true,
     },
@@ -493,20 +680,20 @@ export async function payoutForCompletedJob(jobId: string) {
   const provider = job.acceptedBid.provider;
   if (!provider.stripeAccountId || !provider.stripeTransfersEnabled) {
     console.warn(
-      `Skipping payout for job ${jobId}: provider is not payout-ready`
+      `Skipping payout for job ${jobId}: provider is not payout-ready`,
     );
     return null;
   }
 
-  let payment = job.payments.find((p) => p.status === "SUCCEEDED");
+  let payment = job.payments.find((p) => p.status === 'SUCCEEDED');
 
-  if (!payment && job.type === "SUBSCRIPTION") {
+  if (!payment && job.type === 'SUBSCRIPTION') {
     const amountCents = toCents(job.acceptedBid.price);
     const split = splitCharge(amountCents);
     payment = await db.payment.create({
       data: {
-        kind: "SUBSCRIPTION",
-        status: "SUCCEEDED",
+        kind: 'SUBSCRIPTION',
+        status: 'SUCCEEDED',
         amountCents,
         ...split,
         customerId: (await db.property.findUnique({
@@ -521,7 +708,8 @@ export async function payoutForCompletedJob(jobId: string) {
   }
 
   if (!payment) return null;
-  if (payment.transfers.some((t) => t.status === "PAID")) return payment.transfers[0];
+  if (payment.transfers.some((t) => t.status === 'PAID'))
+    return payment.transfers[0];
 
   const amountCents =
     payment.transferAmountCents > 0
@@ -535,28 +723,32 @@ export async function payoutForCompletedJob(jobId: string) {
       paymentId: payment.id,
       providerId: provider.id,
       amountCents,
-      status: "PENDING",
+      status: 'PENDING',
     },
   });
 
   try {
     const transfer = await stripe.transfers.create({
       amount: amountCents,
-      currency: "usd",
+      currency: 'usd',
       destination: provider.stripeAccountId,
       transfer_group: job.id,
-      metadata: { jobId: job.id, paymentId: payment.id, providerId: provider.id },
+      metadata: {
+        jobId: job.id,
+        paymentId: payment.id,
+        providerId: provider.id,
+      },
     });
 
     return db.transfer.update({
       where: { id: record.id },
-      data: { status: "PAID", stripeTransferId: transfer.id },
+      data: { status: 'PAID', stripeTransferId: transfer.id },
     });
   } catch (err) {
     console.error(`Transfer failed for job ${jobId}:`, err);
     await db.transfer.update({
       where: { id: record.id },
-      data: { status: "FAILED" },
+      data: { status: 'FAILED' },
     });
     throw err;
   }
@@ -564,7 +756,7 @@ export async function payoutForCompletedJob(jobId: string) {
 
 export async function reverseTransfersForPayment(paymentId: string) {
   const transfers = await db.transfer.findMany({
-    where: { paymentId, status: "PAID", stripeTransferId: { not: null } },
+    where: { paymentId, status: 'PAID', stripeTransferId: { not: null } },
   });
 
   for (const transfer of transfers) {
@@ -574,7 +766,7 @@ export async function reverseTransfersForPayment(paymentId: string) {
       });
       await db.transfer.update({
         where: { id: transfer.id },
-        data: { status: "REVERSED" },
+        data: { status: 'REVERSED' },
       });
     } catch (err) {
       console.error(`Failed to reverse transfer ${transfer.id}:`, err);

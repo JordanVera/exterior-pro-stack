@@ -1,7 +1,6 @@
 import { useState, useMemo } from 'react';
 import {
   Alert,
-  Linking,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -10,7 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { trpc } from '@/lib/trpc';
 import { queryClient } from '@/lib/query';
 import { LoadingScreen, Screen } from '@/components/Screen';
@@ -18,8 +17,9 @@ import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { Card, PressableCard } from '@/components/ui/Card';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { colors } from '@/lib/theme';
+import { usePlanPaymentSheet } from '@/lib/stripe';
 
-type BillingFrequency = 'MONTHLY' | 'QUARTERLY' | 'ANNUAL';
+type BillingFrequency = 'MONTHLY' | 'QUARTERLY' | 'ANNUALLY';
 
 export default function PlanDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -29,6 +29,8 @@ export default function PlanDetailScreen() {
     null,
   );
   const [frequency, setFrequency] = useState<BillingFrequency>('MONTHLY');
+  const [subscribing, setSubscribing] = useState(false);
+  const presentPlanPaymentSheet = usePlanPaymentSheet();
 
   const planQuery = useQuery({
     queryKey: ['plan', id],
@@ -51,29 +53,6 @@ export default function PlanDetailScreen() {
   const properties = propertiesQuery.data ?? [];
   const subscriptions = subscriptionsQuery.data ?? [];
 
-  const subscribe = useMutation({
-    mutationFn: (input: {
-      planId: string;
-      propertyId: string;
-      billingFrequency: BillingFrequency;
-    }) => trpc.subscription.subscribe.mutate(input),
-    onSuccess: (data) => {
-      if (data.checkoutUrl) {
-        Linking.openURL(data.checkoutUrl);
-        Alert.alert(
-          'Redirected to Checkout',
-          'Complete payment in your browser, then return to the app.',
-        );
-      }
-      queryClient.invalidateQueries({
-        queryKey: ['subscriptions', 'customer'],
-      });
-    },
-    onError: (error: any) => {
-      Alert.alert('Error', error.message);
-    },
-  });
-
   const onRefresh = async () => {
     setRefreshing(true);
     await Promise.all([
@@ -90,17 +69,32 @@ export default function PlanDetailScreen() {
     [subscriptions, id],
   );
 
-  const handleSubscribe = () => {
+  const handleSubscribe = async () => {
     if (!selectedPropertyId) {
       Alert.alert('Select Property', 'Please select a property for this plan.');
       return;
     }
 
-    subscribe.mutate({
-      planId: id!,
-      propertyId: selectedPropertyId,
-      billingFrequency: frequency,
-    });
+    setSubscribing(true);
+    try {
+      const result = await presentPlanPaymentSheet({
+        planId: id!,
+        propertyId: selectedPropertyId,
+        billingFrequency: frequency,
+      });
+      if (result.status === 'canceled') return;
+      queryClient.invalidateQueries({
+        queryKey: ['subscriptions', 'customer'],
+      });
+      Alert.alert(
+        'Subscribed',
+        "You're all set. Recurring visits are on the way.",
+      );
+    } catch (error: any) {
+      Alert.alert('Error', error.message ?? 'Unable to start checkout.');
+    } finally {
+      setSubscribing(false);
+    }
   };
 
   if (planQuery.isLoading || !plan) return <LoadingScreen />;
@@ -108,7 +102,7 @@ export default function PlanDetailScreen() {
   const prices = {
     MONTHLY: plan.monthlyPriceCents / 100,
     QUARTERLY: plan.quarterlyPriceCents / 100,
-    ANNUAL: plan.annualPriceCents / 100,
+    ANNUALLY: plan.annualPriceCents / 100,
   };
 
   const selectedProperty = properties.find(
@@ -192,7 +186,7 @@ export default function PlanDetailScreen() {
                     label: 'Quarterly',
                     savings: 'Save 5%',
                   },
-                  { value: 'ANNUAL', label: 'Annual', savings: 'Save 10%' },
+                  { value: 'ANNUALLY', label: 'Annual', savings: 'Save 10%' },
                 ].map((option) => (
                   <PressableCard
                     key={option.value}
@@ -271,11 +265,11 @@ export default function PlanDetailScreen() {
                   label={`Subscribe for $${prices[frequency].toFixed(0)}`}
                   icon="checkmark-circle"
                   onPress={handleSubscribe}
-                  loading={subscribe.status === 'pending'}
+                  loading={subscribing}
                   disabled={!selectedPropertyId}
                 />
                 <Text className="mt-3 text-xs text-center text-slate-400">
-                  You'll be redirected to Stripe to complete payment
+                  Pay securely in the app with Stripe
                 </Text>
               </View>
             ) : null}

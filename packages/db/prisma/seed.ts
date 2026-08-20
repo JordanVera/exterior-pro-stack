@@ -670,15 +670,8 @@ async function main() {
     });
 
     for (const prop of cust.properties) {
-      const id = `seed-prop-${cust.phone}-${prop.address.slice(0, 20).replace(/\s/g, '-')}`;
-      await prisma.property.upsert({
-        where: { id },
-        update: {
-          latitude: prop.latitude,
-          longitude: prop.longitude,
-        },
-        create: {
-          id,
+      await prisma.property.create({
+        data: {
           customerId: profile.id,
           ...prop,
         },
