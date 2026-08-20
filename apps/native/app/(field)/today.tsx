@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { Ionicons } from '@expo/vector-icons';
+import { useMemo, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
 import {
   Linking,
   Platform,
@@ -8,13 +8,13 @@ import {
   ScrollView,
   Text,
   View,
-} from 'react-native';
-import { useQuery } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
-import { trpc } from '@/lib/trpc';
-import { useAuth } from '@/lib/auth';
-import { colors } from '@/lib/theme';
-import type { FieldJobListItem } from '@/lib/types';
+} from "react-native";
+import { useQuery } from "@tanstack/react-query";
+import { useRouter } from "expo-router";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/lib/auth";
+import { colors } from "@/lib/theme";
+import type { FieldJobListItem } from "@/lib/types";
 import {
   formatAddress,
   formatJobDateTime,
@@ -22,10 +22,11 @@ import {
   getGreeting,
   isToday,
   serviceIcon,
-} from '@/lib/utils';
-import { JobCard } from '@/components/JobCard';
-import { StatusBadge } from '@/components/StatusBadge';
-import { EmptyState, LoadingScreen, Screen } from '@/components/Screen';
+} from "@/lib/utils";
+import { JobCard } from "@/components/JobCard";
+import { StatusBadge } from "@/components/StatusBadge";
+import { EmptyState, LoadingScreen, Screen } from "@/components/Screen";
+import { TodayGlanceMap } from "@/components/TodayGlanceMap";
 import {
   Card,
   IconButton,
@@ -33,7 +34,7 @@ import {
   SectionPanel,
   StatTiles,
   type StatTile,
-} from '@/components/ui';
+} from "@/components/ui";
 
 type Job = FieldJobListItem;
 
@@ -41,18 +42,29 @@ type Job = FieldJobListItem;
 function todaysJobs(jobs: Job[]) {
   return jobs.filter(
     (job) =>
-      job.status === 'IN_PROGRESS' ||
-      (job.status === 'SCHEDULED' &&
+      job.status === "IN_PROGRESS" ||
+      (job.status === "SCHEDULED" &&
         job.scheduledDate &&
         isToday(job.scheduledDate)),
   );
+}
+
+/** In-progress first, then the rest in clock order so the map and list agree. */
+function sortTodaysRoute(jobs: Job[]) {
+  return [...jobs].sort((a, b) => {
+    if (a.status === "IN_PROGRESS" && b.status !== "IN_PROGRESS") return -1;
+    if (b.status === "IN_PROGRESS" && a.status !== "IN_PROGRESS") return 1;
+    return (a.scheduledTime ?? "99:99").localeCompare(
+      b.scheduledTime ?? "99:99",
+    );
+  });
 }
 
 /** Scheduled work still ahead, excluding whatever is already on today's list. */
 function upcomingCount(jobs: Job[]) {
   return jobs.filter(
     (job) =>
-      job.status === 'SCHEDULED' &&
+      job.status === "SCHEDULED" &&
       job.scheduledDate &&
       !isToday(job.scheduledDate) &&
       new Date(job.scheduledDate) > new Date(),
@@ -64,7 +76,7 @@ function completedThisWeek(jobs: Job[]) {
   weekAgo.setDate(weekAgo.getDate() - 7);
   return jobs.filter(
     (job) =>
-      job.status === 'COMPLETED' &&
+      job.status === "COMPLETED" &&
       job.completedAt &&
       new Date(job.completedAt) >= weekAgo,
   ).length;
@@ -73,90 +85,90 @@ function completedThisWeek(jobs: Job[]) {
 export default function TodayScreen() {
   const router = useRouter();
   const { user } = useAuth();
-  const isCrew = user?.role === 'CREW';
+  const isCrew = user?.role === "CREW";
   const [refreshing, setRefreshing] = useState(false);
 
   // One `all` query powers both the stat band and the list; filtering happens
   // client-side so pulling to refresh updates every number at once.
   const jobsQuery = useQuery({
-    queryKey: ['jobs', 'all'],
-    queryFn: () => trpc.job.listMine.query({ view: 'all' }),
+    queryKey: ["jobs", "all"],
+    queryFn: () => trpc.job.listMine.query({ view: "all" }),
   });
 
   const jobs = useMemo(() => jobsQuery.data ?? [], [jobsQuery.data]);
-  const today = useMemo(() => todaysJobs(jobs), [jobs]);
+  const today = useMemo(() => sortTodaysRoute(todaysJobs(jobs)), [jobs]);
 
   const tiles = useMemo<StatTile[]>(() => {
-    const inProgress = jobs.filter((j) => j.status === 'IN_PROGRESS').length;
+    const inProgress = jobs.filter((j) => j.status === "IN_PROGRESS").length;
 
     if (isCrew) {
       return [
         {
-          id: 'today',
-          label: 'On today',
+          id: "today",
+          label: "On today",
           value: today.length,
-          icon: 'today-outline',
-          tone: 'lime',
+          icon: "today-outline",
+          tone: "lime",
         },
         {
-          id: 'progress',
-          label: 'In progress',
+          id: "progress",
+          label: "In progress",
           value: inProgress,
-          icon: 'flash-outline',
-          tone: 'amber',
+          icon: "flash-outline",
+          tone: "amber",
         },
         {
-          id: 'upcoming',
-          label: 'Upcoming',
+          id: "upcoming",
+          label: "Upcoming",
           value: upcomingCount(jobs),
-          icon: 'calendar-outline',
-          tone: 'blue',
-          onPress: () => router.push('/jobs'),
+          icon: "calendar-outline",
+          tone: "blue",
+          onPress: () => router.push("/jobs"),
         },
         {
-          id: 'done',
-          label: 'Done this week',
+          id: "done",
+          label: "Done this week",
           value: completedThisWeek(jobs),
-          icon: 'checkmark-done-outline',
-          tone: 'muted',
+          icon: "checkmark-done-outline",
+          tone: "muted",
         },
       ];
     }
 
     return [
       {
-        id: 'today',
-        label: 'On today',
+        id: "today",
+        label: "On today",
         value: today.length,
-        icon: 'today-outline',
-        tone: 'lime',
+        icon: "today-outline",
+        tone: "lime",
       },
       {
-        id: 'unscheduled',
-        label: 'Unscheduled',
-        value: jobs.filter((j) => j.status === 'PENDING').length,
-        icon: 'calendar-outline',
-        tone: 'amber',
-        onPress: () => router.push('/jobs'),
+        id: "unscheduled",
+        label: "Unscheduled",
+        value: jobs.filter((j) => j.status === "PENDING").length,
+        icon: "calendar-outline",
+        tone: "amber",
+        onPress: () => router.push("/jobs"),
       },
       {
-        id: 'needs-crew',
-        label: 'Needs crew',
+        id: "needs-crew",
+        label: "Needs crew",
         value: jobs.filter(
           (j) =>
             j.assignments.length === 0 &&
-            (j.status === 'PENDING' || j.status === 'SCHEDULED'),
+            (j.status === "PENDING" || j.status === "SCHEDULED"),
         ).length,
-        icon: 'people-outline',
-        tone: 'blue',
-        onPress: () => router.push('/jobs'),
+        icon: "people-outline",
+        tone: "blue",
+        onPress: () => router.push("/jobs"),
       },
       {
-        id: 'progress',
-        label: 'In progress',
+        id: "progress",
+        label: "In progress",
         value: inProgress,
-        icon: 'flash-outline',
-        tone: 'muted',
+        icon: "flash-outline",
+        tone: "muted",
       },
     ];
   }, [isCrew, jobs, today.length, router]);
@@ -164,13 +176,13 @@ export default function TodayScreen() {
   if (jobsQuery.isLoading) return <LoadingScreen />;
 
   const name = isCrew
-    ? user?.crewMember?.name?.split(' ')[0]
+    ? user?.crewMember?.name?.split(" ")[0]
     : user?.providerProfile?.businessName;
 
   // In-progress work outranks the next scheduled slot — that's what someone is
   // standing in front of right now.
   const upNext =
-    today.find((job) => job.status === 'IN_PROGRESS') ?? today[0] ?? null;
+    today.find((job) => job.status === "IN_PROGRESS") ?? today[0] ?? null;
   const rest = today.filter((job) => job.id !== upNext?.id);
 
   const refresh = async () => {
@@ -196,17 +208,24 @@ export default function TodayScreen() {
         <ScreenHeader
           eyebrow="Today"
           meta={getDateString()}
-          title={`${getGreeting()}${name ? `, ${name}` : ''}`}
+          title={`${getGreeting()}${name ? `, ${name}` : ""}`}
           subtitle={
             isCrew
-              ? 'Jobs assigned to your crew today.'
-              : 'Jobs on the schedule today.'
+              ? "Jobs assigned to your crew today."
+              : "Jobs on the schedule today."
           }
         />
 
         <View className="mt-6">
           <StatTiles tiles={tiles} />
         </View>
+
+        {isCrew ? (
+          <TodayGlanceMap
+            jobs={today}
+            onSelectJob={(jobId) => router.push(`/jobs/${jobId}`)}
+          />
+        ) : null}
 
         {upNext ? (
           <View className="mt-8">
@@ -226,11 +245,11 @@ export default function TodayScreen() {
               title="No jobs today"
               body={
                 isCrew
-                  ? 'When your owner assigns work to your crew, it will show up here.'
-                  : 'Schedule a job or assign a crew from the Jobs tab.'
+                  ? "When your owner assigns work to your crew, it will show up here."
+                  : "Schedule a job or assign a crew from the Jobs tab."
               }
-              actionLabel={isCrew ? undefined : 'Go to jobs'}
-              onAction={isCrew ? undefined : () => router.push('/jobs')}
+              actionLabel={isCrew ? undefined : "Go to jobs"}
+              onAction={isCrew ? undefined : () => router.push("/jobs")}
             />
           ) : rest.length > 0 ? (
             <SectionPanel title="Also today" count={rest.length}>
@@ -257,7 +276,7 @@ function UpNextCard({ job, onOpen }: { job: Job; onOpen: () => void }) {
   const navigate = () => {
     const q = encodeURIComponent(address);
     Linking.openURL(
-      Platform.OS === 'ios'
+      Platform.OS === "ios"
         ? `http://maps.apple.com/?daddr=${q}`
         : `https://www.google.com/maps/dir/?api=1&destination=${q}`,
     );
@@ -285,7 +304,7 @@ function UpNextCard({ job, onOpen }: { job: Job; onOpen: () => void }) {
         <Text className="mt-4 text-lg font-semibold text-white">
           {job.scheduledDate
             ? formatJobDateTime(job.scheduledDate, job.scheduledTime)
-            : 'Not scheduled'}
+            : "Not scheduled"}
         </Text>
         <Text className="mt-1 text-[15px] leading-6 text-slate-300">
           {address}

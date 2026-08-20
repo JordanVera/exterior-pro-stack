@@ -228,6 +228,8 @@ PODS:
     - ExpoModulesCore
   - ExpoLogBox (57.0.3):
     - React-Core
+  - ExpoMaps (57.0.1):
+    - ExpoModulesCore
   - ExpoModulesCore (57.0.11):
     - ExpoModulesJSI
     - hermes-engine
@@ -2485,6 +2487,7 @@ DEPENDENCIES:
   - ExpoLinearGradient (from `../../../node_modules/expo-linear-gradient/ios`)
   - ExpoLinking (from `../node_modules/expo-linking/ios`)
   - "ExpoLogBox (from `../../../node_modules/@expo/log-box`)"
+  - ExpoMaps (from `../../../node_modules/expo-maps/ios/ExpoMaps.podspec`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core/ExpoModulesCore.podspec`)
   - ExpoModulesJSI (from `../../../node_modules/expo-modules-jsi/apple`)
   - ExpoModulesWorklets (from `../node_modules/expo-modules-core/ExpoModulesWorklets.podspec`)
@@ -2628,6 +2631,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/expo-linking/ios"
   ExpoLogBox:
     :path: "../../../node_modules/@expo/log-box"
+  ExpoMaps:
+    :podspec: "../../../node_modules/expo-maps/ios/ExpoMaps.podspec"
   ExpoModulesCore:
     :podspec: "../node_modules/expo-modules-core/ExpoModulesCore.podspec"
   ExpoModulesJSI:
@@ -2842,6 +2847,7 @@ SPEC CHECKSUMS:
   ExpoLinearGradient: 903b3f5fe566c666ff78b2599add51d094483613
   ExpoLinking: 2e8d88a5a386b47325d9500067c8e60dd4a94340
   ExpoLogBox: 2c4225a62f1cfb943e6b2df4fa4fe2d136e06fb6
+  ExpoMaps: 8762d166c08c4db08277c68561cdfab5bda0a2f4
   ExpoModulesCore: c92dbb9ea4458a5d6ea48fe2b0605c09b8064acd
   ExpoModulesJSI: b20fefa4cdd9097e7e6b715466d1900b8c5d4711
   ExpoModulesWorklets: eaf2898a6621e3c9a09c0479c1a4cb5f1b368d53

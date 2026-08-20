@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { Text, View } from "react-native";
+import type { ReactNode } from 'react';
+import { Text, View } from 'react-native';
 
 /**
  * Standard page masthead: lime eyebrow, large title, supporting line.
@@ -20,7 +20,7 @@ export function ScreenHeader({
   right?: ReactNode;
 }) {
   return (
-    <View className="flex-row items-start justify-between gap-4">
+    <View className="flex-row gap-4 justify-between items-start">
       <View className="flex-1">
         <Text className="font-semibold text-xs uppercase tracking-[2px] text-brand-lime">
           {eyebrow}
