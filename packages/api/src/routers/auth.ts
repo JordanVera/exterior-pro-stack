@@ -38,7 +38,7 @@ export const authRouter = router({
         const oneHourAgo = new Date(now - 60 * 60 * 1000);
 
         // Throttle by email. An unthrottled endpoint is both a spam vector
-        // and a way to burn through the Resend quota.
+        // and a way to burn through the Brevo quota.
         const [recent, sendsThisHour] = await Promise.all([
           ctx.db.verificationCode.findFirst({
             where: { email: input.email },
