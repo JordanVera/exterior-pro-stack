@@ -11,6 +11,7 @@ import { adminRouter } from "./routers/admin";
 import { subscriptionRouter } from "./routers/subscription";
 import { paymentRouter } from "./routers/payment";
 import { connectRouter } from "./routers/connect";
+import { messageRouter } from "./routers/message";
 
 export const appRouter = router({
   auth: authRouter,
@@ -25,6 +26,7 @@ export const appRouter = router({
   subscription: subscriptionRouter,
   payment: paymentRouter,
   connect: connectRouter,
+  message: messageRouter,
 });
 
 export type AppRouter = typeof appRouter;

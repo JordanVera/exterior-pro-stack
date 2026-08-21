@@ -88,6 +88,7 @@ enum NotificationType {
   JOB_COMPLETED
   JOB_CANCELLED
   JOB_REMINDER
+  JOB_MESSAGE
   SCHEDULE_CHANGE
   SUBSCRIPTION_CREATED
   SUBSCRIPTION_RENEWED
@@ -134,6 +135,8 @@ model User {
   notifications   Notification[]
   pushTokens      PushToken[]
   jobPhotos       JobPhoto[]
+  jobMessages     JobMessage[]
+  jobThreadReads  JobThreadRead[]
 }
 
 // ─── Profiles ───────────────────────────────────────────────────────────────
@@ -337,6 +340,8 @@ model Job {
   recurringSchedule RecurringSchedule?
   payments          Payment[]
   photos            JobPhoto[]
+  messages          JobMessage[]
+  threadReads       JobThreadRead[]
 }
 
 model JobPhoto {
@@ -352,6 +357,30 @@ model JobPhoto {
   uploadedBy User @relation(fields: [uploadedById], references: [id])
 
   @@index([jobId, kind])
+}
+
+model JobMessage {
+  id        String   @id @default(cuid())
+  jobId     String
+  senderId  String
+  body      String   @db.Text
+  createdAt DateTime @default(now())
+
+  job    Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  sender User @relation(fields: [senderId], references: [id])
+
+  @@index([jobId, createdAt])
+}
+
+model JobThreadRead {
+  jobId      String
+  userId     String
+  lastReadAt DateTime @default(now())
+
+  job  Job  @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([jobId, userId])
 }
 
 model JobBid {

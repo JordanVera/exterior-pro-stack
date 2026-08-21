@@ -31,13 +31,13 @@ import {
 
 function AuthShell({ children }: { children: ReactNode }) {
   return (
-    <div className="relative flex min-h-screen flex-col bg-background text-foreground">
+    <div className="flex relative flex-col min-h-screen bg-background text-foreground">
       <div className="bg-grid-fade pointer-events-none absolute inset-0 opacity-40 [mask-image:radial-gradient(ellipse_at_center,black,transparent_75%)]" />
       <BackgroundBeams className="opacity-40" delay={0} />
 
       <header className="relative z-20 px-4 pt-4">
         <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-black/70">
-          <Link href="/" className="flex items-center gap-2 pl-1">
+          <Link href="/" className="flex gap-2 items-center pl-1">
             <Image
               src="/logos/logo-stacked-lime.png"
               alt="Exterior Pro"
@@ -50,7 +50,7 @@ function AuthShell({ children }: { children: ReactNode }) {
         </nav>
       </header>
 
-      <main className="relative z-10 mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
+      <main className="relative z-10 flex-1 px-4 py-8 mx-auto w-full max-w-6xl sm:px-6 sm:py-10">
         {children}
       </main>
     </div>
@@ -136,7 +136,7 @@ export default function ProfileOnboardingPage() {
     return (
       <AuthShell>
         <div className="flex min-h-[40vh] flex-col items-center justify-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-brand-lime/20 border-t-brand-lime" />
+          <div className="w-8 h-8 rounded-full border-2 animate-spin border-brand-lime/20 border-t-brand-lime" />
           <p className="text-sm text-muted-foreground">Loading</p>
         </div>
       </AuthShell>
@@ -147,7 +147,7 @@ export default function ProfileOnboardingPage() {
     <AuthShell>
       <div className="mb-8 space-y-2">
         <p className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.22em] text-brand-navy dark:text-brand-lime">
-          <span className="h-px w-6 bg-brand-lime" />
+          <span className="w-6 h-px bg-brand-lime" />
           Almost there
         </p>
         <h1 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
@@ -167,7 +167,7 @@ export default function ProfileOnboardingPage() {
       ) : null}
 
       {role === 'CUSTOMER' ? (
-        <Card className="max-w-xl border-border bg-background/80 shadow-none">
+        <Card className="max-w-xl shadow-none border-border bg-background/80">
           <CardContent className="p-5 sm:p-6">
             <form onSubmit={handleCustomerSubmit} className="space-y-4">
               <div className="grid gap-4 sm:grid-cols-2">
@@ -208,7 +208,7 @@ export default function ProfileOnboardingPage() {
                 type="submit"
                 disabled={loading || !firstName || !lastName}
                 size="lg"
-                className="rounded-xl bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
+                className="font-semibold rounded-xl bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
               >
                 {loading ? 'Saving...' : 'Continue'}
               </Button>
@@ -219,15 +219,17 @@ export default function ProfileOnboardingPage() {
 
       {role === 'PROVIDER' ? (
         <form onSubmit={handleProviderSubmit} className="space-y-6">
-          <div className="grid items-start gap-6 lg:grid-cols-2">
-            <Card className="border-border bg-background/80 shadow-none">
+          <div className="grid gap-6 items-start lg:grid-cols-2">
+            <Card className="shadow-none border-border bg-background/80">
               <CardHeader className="p-5 pb-0">
-                <CardTitle className="text-base">Business information</CardTitle>
+                <CardTitle className="text-base">
+                  Business information
+                </CardTitle>
                 <CardDescription>
                   Logo, name, and how customers will reach you.
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4 p-5">
+              <CardContent className="p-5 space-y-4">
                 <ProviderLogoUpload
                   value={logo}
                   onChange={setLogo}
@@ -271,9 +273,11 @@ export default function ProfileOnboardingPage() {
             </Card>
 
             <div className="space-y-6">
-              <Card className="border-border bg-background/80 shadow-none">
+              <Card className="shadow-none border-border bg-background/80">
                 <CardHeader className="p-5 pb-0">
-                  <CardTitle className="text-base">Services you offer</CardTitle>
+                  <CardTitle className="text-base">
+                    Services you offer
+                  </CardTitle>
                   <CardDescription>
                     Choose at least one. Custom prices can be set later.
                   </CardDescription>
@@ -288,7 +292,7 @@ export default function ProfileOnboardingPage() {
                 </CardContent>
               </Card>
 
-              <Card className="border-border bg-background/80 shadow-none">
+              <Card className="shadow-none border-border bg-background/80">
                 <CardHeader className="p-5 pb-0">
                   <CardTitle className="text-base">Service ZIP codes</CardTitle>
                   <CardDescription>
@@ -320,7 +324,7 @@ export default function ProfileOnboardingPage() {
                 serviceIds.length === 0
               }
               size="lg"
-              className="rounded-xl bg-brand-lime px-8 font-semibold text-brand-ink hover:bg-brand-lime/90"
+              className="px-8 font-semibold rounded-xl bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
             >
               {loading ? 'Saving...' : 'Continue'}
             </Button>

@@ -26,3 +26,9 @@ export {
   expireStaleBids,
   sendUpcomingJobReminders,
 } from "./lib/subscription-jobs";
+export {
+  assertJobMessageAccess,
+  listJobMessagesSince,
+  serializeJobMessage,
+} from "./lib/job-messages";
+export { waitForJobMessage } from "./lib/job-message-hub";

@@ -264,6 +264,27 @@ export async function notifySubscriptionCancelled(
   });
 }
 
+/** Notify a job participant of a new in-app message. Push only — not SMS. */
+export async function notifyJobMessage(
+  userId: string,
+  senderName: string,
+  serviceName: string,
+  preview: string,
+  jobId: string,
+) {
+  const clipped =
+    preview.length > 80 ? `${preview.slice(0, 77).trimEnd()}…` : preview;
+
+  return createNotification({
+    userId,
+    type: 'JOB_MESSAGE',
+    title: `${senderName} · ${serviceName}`,
+    body: clipped,
+    sendSms: false,
+    data: { jobId, type: 'JOB_MESSAGE' },
+  });
+}
+
 /** Notify provider that payout was sent */
 export async function notifyPayoutSent(providerId: string, amount: number) {
   return createNotification({

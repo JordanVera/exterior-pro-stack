@@ -14,6 +14,7 @@ import {
   Camera,
   X,
 } from 'lucide-react';
+import { JobMessageCenter } from '@/components/job-message-center';
 import { trpc } from '../../../../../lib/trpc';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -681,6 +682,15 @@ export default function ProviderJobDetailPage() {
           )}
         </div>
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Messages</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <JobMessageCenter jobId={job.id} enabled={job.status !== 'OPEN'} />
+        </CardContent>
+      </Card>
     </div>
   );
 }

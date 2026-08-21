@@ -124,17 +124,16 @@ export async function dismissAllNotificationsAsync(): Promise<void> {
  * Setup notification tap handlers with role-based routing
  */
 export function setupNotificationHandlers(user: Me | null) {
-  // Handle notification tap when app is in foreground or background
   return Notifications.addNotificationResponseReceivedListener((response) => {
     const data = response.notification.request.content.data;
+    const jobId = typeof data?.jobId === 'string' ? data.jobId : null;
+    if (!jobId || !user) return;
 
-    // Route to job detail based on user role
-    if (data.jobId && user) {
-      if (user.role === 'CUSTOMER') {
-        router.push(`/customer/jobs/${data.jobId}`);
-      } else if (user.role === 'PROVIDER' || user.role === 'CREW') {
-        router.push(`/jobs/${data.jobId}`);
-      }
+    if (data?.type === 'JOB_MESSAGE') {
+      router.push(`/jobs/messages/${jobId}`);
+      return;
     }
+
+    router.push(`/jobs/${jobId}`);
   });
 }

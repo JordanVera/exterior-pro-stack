@@ -9,7 +9,7 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { trpc } from '@/lib/trpc';
 import { useAuth } from '@/lib/auth';
@@ -30,6 +30,10 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { EmptyState, LoadingScreen, Screen } from '@/components/Screen';
 import { JobPhotos, hasBeforeAndAfterPhotos } from '@/components/JobPhotos';
 import {
+  applyLiveJobMessage,
+  useJobMessageLive,
+} from '@/lib/job-message-stream';
+import {
   BottomSheet,
   Card,
   Chip,
@@ -49,6 +53,7 @@ function alertError(title: string) {
 
 export default function JobDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const { user, token } = useAuth();
   const isProvider = user?.role === 'PROVIDER';
   const [assignOpen, setAssignOpen] = useState(false);
@@ -59,6 +64,27 @@ export default function JobDetailScreen() {
     enabled: Boolean(id),
   });
   const job = jobQuery.data;
+
+  const unreadQuery = useQuery({
+    queryKey: ['job-message-unread', id],
+    queryFn: () => trpc.message.unreadCount.query({ jobId: id! }),
+    enabled:
+      Boolean(id) &&
+      ['PENDING', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED'].includes(
+        jobQuery.data?.status ?? '',
+      ),
+  });
+
+  useJobMessageLive(
+    id,
+    Boolean(id) &&
+      ['PENDING', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED'].includes(
+        jobQuery.data?.status ?? '',
+      ),
+    (message) => {
+      if (id) applyLiveJobMessage(id, message);
+    },
+  );
 
   const crewsQuery = useQuery({
     queryKey: ['crews'],
@@ -247,6 +273,22 @@ export default function JobDetailScreen() {
               className="flex-1"
             />
           </View>
+          {['PENDING', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED'].includes(
+            job.status,
+          ) ? (
+            <View className="mt-3">
+              <IconButton
+                icon="chatbubble-ellipses-outline"
+                label={
+                  unreadQuery.data?.count
+                    ? `Message (${unreadQuery.data.count})`
+                    : 'Message'
+                }
+                onPress={() => router.push(`/jobs/messages/${id}`)}
+                className="w-full"
+              />
+            </View>
+          ) : null}
         </Card>
 
         {job.customerNotes ? (
