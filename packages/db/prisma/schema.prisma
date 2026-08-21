@@ -89,6 +89,7 @@ enum NotificationType {
   JOB_CANCELLED
   JOB_REMINDER
   JOB_MESSAGE
+  REVIEW_RECEIVED
   SCHEDULE_CHANGE
   SUBSCRIPTION_CREATED
   SUBSCRIPTION_RENEWED
@@ -155,6 +156,7 @@ model CustomerProfile {
   properties    Property[]
   subscriptions CustomerSubscription[]
   payments      Payment[]
+  reviews       JobReview[]
 }
 
 model ProviderProfile {
@@ -180,6 +182,7 @@ model ProviderProfile {
   services      ProviderService[]
   subscriptions CustomerSubscription[]
   transfers     Transfer[]
+  reviews       JobReview[]
 }
 
 // ─── Properties ─────────────────────────────────────────────────────────────
@@ -342,6 +345,7 @@ model Job {
   photos            JobPhoto[]
   messages          JobMessage[]
   threadReads       JobThreadRead[]
+  review            JobReview?
 }
 
 model JobPhoto {
@@ -381,6 +385,23 @@ model JobThreadRead {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([jobId, userId])
+}
+
+model JobReview {
+  id         String   @id @default(cuid())
+  jobId      String   @unique
+  providerId String
+  customerId String
+  rating     Int
+  comment    String?  @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  job      Job             @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  provider ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  customer CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId, createdAt])
 }
 
 model JobBid {

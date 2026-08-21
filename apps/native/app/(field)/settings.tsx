@@ -9,11 +9,14 @@ import {
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import { trpc } from '@/lib/trpc';
 import { Screen } from '@/components/Screen';
 import { ScreenHeader, Card } from '@/components/ui';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { RatingSummary } from '@/components/StarRating';
+import { ReviewList } from '@/components/ReviewList';
 import { colors } from '@/lib/theme';
 
 export default function SettingsScreen() {
@@ -24,6 +27,12 @@ export default function SettingsScreen() {
 
   const isProvider = user?.role === 'PROVIDER';
   const isCrew = user?.role === 'CREW';
+
+  const profileQuery = useQuery({
+    queryKey: ['provider-profile'],
+    queryFn: () => trpc.provider.getProfile.query(),
+    enabled: isProvider,
+  });
 
   const handleEditProfile = () => {
     if (isProvider && user?.providerProfile) {
@@ -179,6 +188,27 @@ export default function SettingsScreen() {
             </Card>
           )}
         </View>
+
+        {isProvider ? (
+          <View className="mb-6">
+            <Text className="mb-3 text-xs font-semibold tracking-wide uppercase text-slate-400">
+              Reviews
+            </Text>
+            <Card className="mb-3">
+              <RatingSummary
+                average={profileQuery.data?.rating.average}
+                count={profileQuery.data?.rating.count}
+              />
+              <Text className="mt-1 text-sm text-slate-400">
+                From completed jobs
+              </Text>
+            </Card>
+            <ReviewList
+              reviews={profileQuery.data?.reviews ?? []}
+              empty="Reviews from customers will show up here."
+            />
+          </View>
+        ) : null}
 
         {/* Crew Info (for crew members) */}
         {isCrew && user?.crewMember?.crew && (

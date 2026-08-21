@@ -47,6 +47,8 @@ import {
 } from '../../_components/job-status';
 import { requestJobPath } from '../../_components/utils';
 import { JobPhotoGallery } from '@/components/job-photo-gallery';
+import { JobReviewForm } from '../../_components/job-review-form';
+import { RatingSummary } from '@/components/star-rating';
 
 const TIMELINE = [
   { key: 'requested', label: 'Requested' },
@@ -269,6 +271,14 @@ export default function JobDetailPage() {
       tone: 'lime',
     });
   }
+  if (job.status === 'COMPLETED' && !job.review) {
+    chips.push({
+      id: 'rate',
+      label: 'Leave a review',
+      tone: 'lime',
+      pulse: true,
+    });
+  }
 
   return (
     <div className="space-y-6">
@@ -355,13 +365,13 @@ export default function JobDetailPage() {
 
                     <div className="flex relative gap-3 justify-between items-start">
                       <div className="flex gap-3 items-start min-w-0">
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted">
+                        <span className="flex overflow-hidden justify-center items-center w-9 h-9 rounded-lg border shrink-0 border-border bg-muted">
                           {bid.provider.logoUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={bid.provider.logoUrl}
                               alt=""
-                              className="h-full w-full object-cover"
+                              className="object-cover w-full h-full"
                             />
                           ) : (
                             <Building2 className="w-4 h-4 text-muted-foreground" />
@@ -369,13 +379,20 @@ export default function JobDetailPage() {
                         </span>
                         <div className="min-w-0">
                           <span className="flex items-center gap-1.5">
-                            <span className="text-sm font-semibold truncate text-foreground">
+                            <Link
+                              href={`/customer/providers/${bid.provider.id}`}
+                              className="text-sm font-semibold truncate text-foreground hover:text-brand-navy dark:hover:text-brand-lime"
+                            >
                               {bid.provider.businessName}
-                            </span>
+                            </Link>
                             {bid.provider.verified && (
                               <BadgeCheck className="w-4 h-4 shrink-0 text-brand-lime" />
                             )}
                           </span>
+                          <RatingSummary
+                            average={bid.provider.rating?.average}
+                            count={bid.provider.rating?.count}
+                          />
                           {bid.provider.description && (
                             <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
                               {bid.provider.description}
@@ -443,10 +460,23 @@ export default function JobDetailPage() {
               <Building2 className="mt-0.5 h-4 w-4 flex-shrink-0" />
             )}
             <span>
-              {job.acceptedBid.provider.businessName}
+              <Link
+                href={`/customer/providers/${job.acceptedBid.provider.id}`}
+                className="font-medium text-foreground hover:text-brand-navy dark:hover:text-brand-lime"
+              >
+                {job.acceptedBid.provider.businessName}
+              </Link>
               <span className="ml-1 font-semibold text-foreground">
                 · ${Number(job.acceptedBid.price).toFixed(2)}
               </span>
+              {job.acceptedBid.provider.rating ? (
+                <span className="inline-flex ml-2 align-middle">
+                  <RatingSummary
+                    average={job.acceptedBid.provider.rating.average}
+                    count={job.acceptedBid.provider.rating.count}
+                  />
+                </span>
+              ) : null}
             </span>
           </div>
         )}
@@ -535,11 +565,37 @@ export default function JobDetailPage() {
         </SectionPanel>
       ) : null}
 
+      {job.status === 'COMPLETED' && job.acceptedBid ? (
+        <SectionPanel title="Your review" bodyClassName="p-5">
+          <JobReviewForm
+            jobId={job.id}
+            providerName={job.acceptedBid.provider.businessName}
+            initial={
+              job.review
+                ? { rating: job.review.rating, comment: job.review.comment }
+                : null
+            }
+            onSaved={(review) =>
+              setJob((current) =>
+                current
+                  ? {
+                      ...current,
+                      review: {
+                        id: current.review?.id ?? 'local',
+                        rating: review.rating,
+                        comment: review.comment,
+                        createdAt: current.review?.createdAt ?? new Date(),
+                      },
+                    }
+                  : current,
+              )
+            }
+          />
+        </SectionPanel>
+      ) : null}
+
       <SectionPanel title="Messages" bodyClassName="p-5">
-        <JobMessageCenter
-          jobId={job.id}
-          enabled={job.status !== 'OPEN'}
-        />
+        <JobMessageCenter jobId={job.id} enabled={job.status !== 'OPEN'} />
       </SectionPanel>
 
       <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>

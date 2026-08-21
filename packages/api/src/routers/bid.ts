@@ -11,6 +11,7 @@ import { notifyBidReceived, notifyBidAccepted } from '../lib/notifications';
 import { assertProviderPayoutReady } from '../lib/connect';
 import { createJobCheckoutSession } from '../lib/payments';
 import { toCents } from '../lib/stripe';
+import { getProviderRatingStats, withRating } from '../lib/reviews';
 
 export const bidRouter = router({
   submit: providerProcedure
@@ -115,6 +116,11 @@ export const bidRouter = router({
         orderBy: { createdAt: 'desc' },
       });
 
+      const stats = await getProviderRatingStats(
+        ctx.db,
+        bids.map((bid) => bid.providerId),
+      );
+
       // Transform to match frontend expectations
       return bids.map((bid) => {
         const { user, ...provider } = bid.provider;
@@ -127,7 +133,10 @@ export const bidRouter = router({
           status: bid.status,
           createdAt: bid.createdAt,
           updatedAt: bid.updatedAt,
-          provider: { ...provider, phone: user.phone },
+          provider: {
+            ...withRating(provider, stats),
+            phone: user.phone,
+          },
         };
       });
     }),

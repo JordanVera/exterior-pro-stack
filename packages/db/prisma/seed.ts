@@ -1319,6 +1319,7 @@ async function main() {
 
   let jobsCreated = 0;
   let bidsCreated = 0;
+  let reviewsCreated = 0;
   let paymentsCreated = 0;
   let transfersCreated = 0;
 
@@ -1344,6 +1345,7 @@ async function main() {
     scheduledTime?: string;
     pendingTransfer?: boolean;
     crewName?: string;
+    review?: { rating: number; comment: string };
   }[] = [
     // OPEN — no bids (Available board)
     {
@@ -1759,6 +1761,10 @@ async function main() {
           status: 'ACCEPTED',
         },
       ],
+      review: {
+        rating: 5,
+        comment: 'Showed up on time and the walkway looks brand new.',
+      },
     },
     {
       customerPhone: '+15551005005',
@@ -1775,6 +1781,10 @@ async function main() {
           status: 'ACCEPTED',
         },
       ],
+      review: {
+        rating: 4,
+        comment: 'Thorough treatment. Beds look cleaner already.',
+      },
     },
     {
       customerPhone: '+15551003003',
@@ -1791,6 +1801,10 @@ async function main() {
           status: 'ACCEPTED',
         },
       ],
+      review: {
+        rating: 5,
+        comment: 'Came after hours as requested. Screens look great.',
+      },
     },
     // CANCELLED
     {
@@ -1894,6 +1908,23 @@ async function main() {
     }
 
     if (
+      scenario.status === 'COMPLETED' &&
+      scenario.review &&
+      acceptedProviderId
+    ) {
+      await prisma.jobReview.create({
+        data: {
+          jobId: job.id,
+          providerId: acceptedProviderId,
+          customerId: custProfile.id,
+          rating: scenario.review.rating,
+          comment: scenario.review.comment,
+        },
+      });
+      reviewsCreated++;
+    }
+
+    if (
       acceptedBidData &&
       scenario.status !== 'OPEN' &&
       scenario.status !== 'PENDING' &&
@@ -1989,6 +2020,7 @@ async function main() {
 
   count('jobs', jobsCreated);
   count('bids', bidsCreated);
+  count('reviews', reviewsCreated);
   count('payments', paymentsCreated);
   count('transfers', transfersCreated);
 

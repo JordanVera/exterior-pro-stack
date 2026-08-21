@@ -147,8 +147,22 @@ export async function notifyJobCompleted(
     userId: customerId,
     type: 'JOB_COMPLETED',
     title: 'Job Completed',
-    body: `Your ${serviceName} job is complete!`,
+    body: `Your ${serviceName} job is complete! Rate the crew in the app.`,
     sendSms: true,
+  });
+}
+
+/** Notify a provider that a customer left a review */
+export async function notifyReviewReceived(
+  providerId: string,
+  serviceName: string,
+  rating: number,
+) {
+  return createNotification({
+    userId: providerId,
+    type: 'REVIEW_RECEIVED',
+    title: 'New review',
+    body: `A customer rated your ${serviceName} job ${rating} out of 5.`,
   });
 }
 

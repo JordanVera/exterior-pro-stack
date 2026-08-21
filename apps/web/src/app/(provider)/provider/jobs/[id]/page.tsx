@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/select';
 import { formatJobDateTime, STATUS_BADGE } from '../../_components/utils';
 import { uploadJobPhotoFile, validateJobPhotoFile } from '@/lib/job-photos';
+import { StarRating } from '@/components/star-rating';
 
 type JobPhotoKind = 'BEFORE' | 'AFTER';
 
@@ -517,6 +518,37 @@ export default function ProviderJobDetailPage() {
               </CardContent>
             </Card>
           )}
+
+          {job.review ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Customer review</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                <StarRating value={job.review.rating} readOnly />
+                {job.review.comment ? (
+                  <p className="text-sm text-muted-foreground">
+                    {job.review.comment}
+                  </p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Rated {job.review.rating} out of 5
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          ) : job.status === 'COMPLETED' ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Customer review</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Waiting for the customer to rate this job.
+                </p>
+              </CardContent>
+            </Card>
+          ) : null}
 
           {/* Provider Notes */}
           <Card>

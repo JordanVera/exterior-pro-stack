@@ -18,6 +18,7 @@ import {
   listMineInput,
   getJobByIdInput,
   deleteJobPhotoInput,
+  submitJobReviewInput,
 } from '@repo/validators';
 import {
   notifyNewJobAvailable,
@@ -25,7 +26,9 @@ import {
   notifyJobInProgress,
   notifyJobCompleted,
   notifyJobCancelled,
+  notifyReviewReceived,
 } from '../lib/notifications';
+import { decorateCustomerJobs } from '../lib/reviews';
 import {
   fieldJobInclude,
   getFieldAccess,
@@ -151,24 +154,28 @@ export const jobRouter = router({
           assignments: { include: { crew: true } },
           recurringSchedule: true,
           payments: true,
+          review: true,
         },
         orderBy: { createdAt: 'desc' },
       });
 
       // Transform bids to include priceCents
-      return jobs.map((job) => ({
-        ...job,
-        bids: job.bids.map((bid) => ({
-          ...bid,
-          priceCents: Math.round(Number(bid.price) * 100),
+      return decorateCustomerJobs(
+        ctx.db,
+        jobs.map((job) => ({
+          ...job,
+          bids: job.bids.map((bid) => ({
+            ...bid,
+            priceCents: Math.round(Number(bid.price) * 100),
+          })),
+          acceptedBid: job.acceptedBid
+            ? {
+                ...job.acceptedBid,
+                priceCents: Math.round(Number(job.acceptedBid.price) * 100),
+              }
+            : null,
         })),
-        acceptedBid: job.acceptedBid
-          ? {
-              ...job.acceptedBid,
-              priceCents: Math.round(Number(job.acceptedBid.price) * 100),
-            }
-          : null,
-      }));
+      );
     }),
 
   /** Customer: get a single job they own */
@@ -197,6 +204,7 @@ export const jobRouter = router({
           recurringSchedule: true,
           payments: true,
           photos: { orderBy: { createdAt: 'asc' } },
+          review: true,
         },
       });
 
@@ -204,20 +212,27 @@ export const jobRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
       }
 
-      // Transform bids to include priceCents
-      return {
-        ...job,
-        bids: job.bids.map((bid) => ({
-          ...bid,
-          priceCents: Math.round(Number(bid.price) * 100),
-        })),
-        acceptedBid: job.acceptedBid
-          ? {
-              ...job.acceptedBid,
-              priceCents: Math.round(Number(job.acceptedBid.price) * 100),
-            }
-          : null,
-      };
+      const [decorated] = await decorateCustomerJobs(ctx.db, [
+        {
+          ...job,
+          bids: job.bids.map((bid) => ({
+            ...bid,
+            priceCents: Math.round(Number(bid.price) * 100),
+          })),
+          acceptedBid: job.acceptedBid
+            ? {
+                ...job.acceptedBid,
+                priceCents: Math.round(Number(job.acceptedBid.price) * 100),
+              }
+            : null,
+        },
+      ]);
+
+      if (!decorated) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
+      }
+
+      return decorated;
     }),
 
   /** Customer: cancel an open job request */
@@ -378,6 +393,7 @@ export const jobRouter = router({
           assignments: { include: { crew: { include: { members: true } } } },
           recurringSchedule: true,
           photos: { orderBy: { createdAt: 'asc' } },
+          review: true,
         },
         orderBy: [{ scheduledDate: 'asc' }, { createdAt: 'desc' }],
       });
@@ -758,5 +774,77 @@ export const jobRouter = router({
       await deleteJobPhotoBlob(photo.url);
       await ctx.db.jobPhoto.delete({ where: { id: photo.id } });
       return { ok: true as const };
+    }),
+
+  /** Customer: rate a completed job. Upserts so they can edit the review. */
+  submitReview: customerProcedure
+    .input(submitJobReviewInput)
+    .mutation(async ({ ctx, input }) => {
+      const profile = await ctx.db.customerProfile.findUnique({
+        where: { userId: ctx.user.userId },
+      });
+
+      if (!profile) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
+      }
+
+      const job = await ctx.db.job.findUnique({
+        where: { id: input.jobId },
+        include: {
+          property: true,
+          service: true,
+          acceptedBid: { include: { provider: true } },
+          review: true,
+        },
+      });
+
+      if (!job || job.property.customerId !== profile.id) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
+      }
+
+      if (job.status !== 'COMPLETED') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'You can only review a completed job',
+        });
+      }
+
+      if (!job.acceptedBid) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'This job has no assigned provider to review',
+        });
+      }
+
+      const comment = input.comment?.trim() ? input.comment.trim() : null;
+      const isFirstReview = !job.review;
+
+      const review = await ctx.db.jobReview.upsert({
+        where: { jobId: job.id },
+        create: {
+          jobId: job.id,
+          providerId: job.acceptedBid.providerId,
+          customerId: profile.id,
+          rating: input.rating,
+          comment,
+        },
+        update: {
+          rating: input.rating,
+          comment,
+        },
+      });
+
+      if (isFirstReview) {
+        notifyReviewReceived(
+          job.acceptedBid.provider.userId,
+          job.service.name,
+          input.rating,
+        ).catch(console.error);
+      }
+
+      return review;
     }),
 });

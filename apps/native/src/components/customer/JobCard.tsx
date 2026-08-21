@@ -12,6 +12,7 @@ type JobCardProps = {
     service: { name: string };
     property: { address: string; city: string; state: string; zip: string };
     bids?: Array<{ id: string; status: string }>;
+    review?: { id: string } | null;
   };
   onPress: () => void;
 };
@@ -61,6 +62,13 @@ export function CustomerJobCard({ job, onPress }: JobCardProps) {
             <Ionicons name="pricetag" size={14} color={colors.lime} />
             <Text className="text-sm font-medium text-brand-lime">
               {pendingBids} bid{pendingBids > 1 ? 's' : ''} to review
+            </Text>
+          </View>
+        ) : job.status === 'COMPLETED' && !job.review ? (
+          <View className="mt-2 flex-row items-center gap-1.5">
+            <Ionicons name="star" size={14} color={colors.lime} />
+            <Text className="text-sm font-medium text-brand-lime">
+              Leave a review
             </Text>
           </View>
         ) : null}

@@ -29,6 +29,7 @@ import { PrimaryButton } from '@/components/PrimaryButton';
 import { StatusBadge } from '@/components/StatusBadge';
 import { EmptyState, LoadingScreen, Screen } from '@/components/Screen';
 import { JobPhotos, hasBeforeAndAfterPhotos } from '@/components/JobPhotos';
+import { StarRating } from '@/components/StarRating';
 import {
   applyLiveJobMessage,
   useJobMessageLive,
@@ -404,6 +405,33 @@ export default function JobDetailScreen() {
         ) : null}
 
         <JobPhotos job={job} token={token} />
+
+        {job.status === 'COMPLETED' ? (
+          <View className="mt-6">
+            <SectionPanel title="Customer review">
+              {job.review ? (
+                <Card>
+                  <StarRating value={job.review.rating} readOnly />
+                  {job.review.comment ? (
+                    <Text className="mt-3 text-sm leading-5 text-slate-300">
+                      {job.review.comment}
+                    </Text>
+                  ) : (
+                    <Text className="mt-3 text-sm text-slate-400">
+                      Rated {job.review.rating} out of 5
+                    </Text>
+                  )}
+                </Card>
+              ) : (
+                <Card>
+                  <Text className="text-sm text-slate-400">
+                    Waiting for the customer to rate this job.
+                  </Text>
+                </Card>
+              )}
+            </SectionPanel>
+          </View>
+        ) : null}
       </ScrollView>
 
       <JobActionBar

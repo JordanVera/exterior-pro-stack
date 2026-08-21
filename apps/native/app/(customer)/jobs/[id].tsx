@@ -21,6 +21,7 @@ import { IconButton } from '@/components/ui/IconButton';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { StatusBadge } from '@/components/StatusBadge';
 import { BidCard } from '@/components/customer/BidCard';
+import { JobReviewForm } from '@/components/customer/JobReviewForm';
 import { colors } from '@/lib/theme';
 import { formatAddress, serviceIcon } from '@/lib/utils';
 import {
@@ -336,6 +337,9 @@ export default function CustomerJobDetailScreen() {
                 bid={bid}
                 onAccept={() => handleAcceptBid(bid.id)}
                 onDecline={() => handleDeclineBid(bid.id)}
+                onPressProvider={() =>
+                  router.push(`/jobs/provider/${bid.provider.id}`)
+                }
                 loading={acceptingBidId === bid.id || decliningBidId === bid.id}
               />
             ))}
@@ -360,14 +364,19 @@ export default function CustomerJobDetailScreen() {
               Accepted Bid
             </Text>
             <View className="flex-row gap-3 justify-between items-start">
-              <View className="flex-1">
+              <Pressable
+                className="flex-1 active:opacity-70"
+                onPress={() =>
+                  router.push(`/jobs/provider/${acceptedBid.provider.id}`)
+                }
+              >
                 <Text className="text-lg font-bold text-white">
                   {acceptedBid.provider.businessName}
                 </Text>
                 <Text className="mt-0.5 text-sm text-slate-400">
                   ${(acceptedBid.priceCents / 100).toFixed(2)}
                 </Text>
-              </View>
+              </Pressable>
             </View>
             <View className="flex-row gap-3 mt-4">
               <IconButton
@@ -459,6 +468,24 @@ export default function CustomerJobDetailScreen() {
               Photos
             </Text>
             <PhotoGallery photos={job.photos} />
+          </View>
+        ) : null}
+
+        {job.status === 'COMPLETED' && acceptedBid ? (
+          <View className="mt-6">
+            <JobReviewForm
+              jobId={job.id}
+              providerName={acceptedBid.provider.businessName}
+              initial={
+                job.review
+                  ? { rating: job.review.rating, comment: job.review.comment }
+                  : null
+              }
+              onSaved={() => {
+                jobQuery.refetch();
+                invalidateJobQueries();
+              }}
+            />
           </View>
         ) : null}
 
