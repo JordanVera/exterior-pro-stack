@@ -97,13 +97,6 @@ export interface PropertySummary {
   };
   activeJobsCount: number;
   openJobsCount: number;
-  lastCompletedJob: {
-    id: string;
-    serviceName: string;
-    completedAt: string;
-    service: { id: string; name: string };
-    property: { id: string };
-  } | null;
 }
 
 export function groupDataByProperty(
@@ -119,9 +112,6 @@ export function groupDataByProperty(
     id: string;
     status: string;
     propertyId: string;
-    completedAt?: string | Date | null;
-    service: { id: string; name: string };
-    property: { id: string };
   }[],
 ): PropertySummary[] {
   return properties.map((property) => {
@@ -134,28 +124,10 @@ export function groupDataByProperty(
       (j) => j.status === 'OPEN' || j.status === 'PENDING',
     ).length;
 
-    const completedJobs = propertyJobs
-      .filter((j) => j.status === 'COMPLETED' && j.completedAt)
-      .sort(
-        (a, b) =>
-          new Date(b.completedAt!).getTime() -
-          new Date(a.completedAt!).getTime(),
-      );
-    const lastCompletedJob = completedJobs[0]
-      ? {
-          id: completedJobs[0].id,
-          serviceName: completedJobs[0].service.name,
-          completedAt: String(completedJobs[0].completedAt!),
-          service: completedJobs[0].service,
-          property: completedJobs[0].property,
-        }
-      : null;
-
     return {
       property,
       activeJobsCount,
       openJobsCount,
-      lastCompletedJob,
     };
   });
 }

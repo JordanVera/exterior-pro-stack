@@ -40,6 +40,7 @@ export function Carousel({
     startScroll: 0,
     moved: 0,
   });
+  const DRAG_THRESHOLD = 6;
 
   const syncArrows = useCallback(() => {
     const el = trackRef.current;
@@ -74,7 +75,8 @@ export function Carousel({
       startScroll: el.scrollLeft,
       moved: 0,
     };
-    el.setPointerCapture(e.pointerId);
+    // Capture only after the pointer actually moves. Capturing on pointerdown
+    // retargets pointerup to the track and swallows clicks on child links.
   };
 
   const onPointerMove = (e: React.PointerEvent) => {
@@ -82,6 +84,10 @@ export function Carousel({
     if (!el || !dragState.current.active) return;
     const delta = e.clientX - dragState.current.startX;
     dragState.current.moved = Math.abs(delta);
+    if (dragState.current.moved <= DRAG_THRESHOLD) return;
+    if (!el.hasPointerCapture(e.pointerId)) {
+      el.setPointerCapture(e.pointerId);
+    }
     el.scrollLeft = dragState.current.startScroll - delta;
   };
 
@@ -89,17 +95,18 @@ export function Carousel({
     const el = trackRef.current;
     if (!el || !dragState.current.active) return;
     dragState.current.active = false;
-    if (el.hasPointerCapture(e.pointerId))
+    if (el.hasPointerCapture(e.pointerId)) {
       el.releasePointerCapture(e.pointerId);
+    }
   };
 
   // A drag that travelled far enough should not also trigger the card's link.
   const onClickCapture = (e: React.MouseEvent) => {
-    if (dragState.current.moved > 6) {
+    if (dragState.current.moved > DRAG_THRESHOLD) {
       e.preventDefault();
       e.stopPropagation();
-      dragState.current.moved = 0;
     }
+    dragState.current.moved = 0;
   };
 
   return (
