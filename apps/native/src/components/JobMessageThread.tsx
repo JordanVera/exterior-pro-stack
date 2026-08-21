@@ -15,6 +15,10 @@ import { trpc } from '@/lib/trpc';
 import { queryClient } from '@/lib/query';
 import { colors } from '@/lib/theme';
 import { EmptyState } from '@/components/Screen';
+import {
+  applyLiveJobMessage,
+  useJobMessageLive,
+} from '@/lib/job-message-stream';
 
 type JobMessage = {
   id: string;
@@ -87,7 +91,10 @@ export function JobMessageThread({ jobId }: { jobId: string }) {
     queryKey: ['job-messages', jobId],
     queryFn: () => trpc.message.list.query({ jobId }),
     enabled: Boolean(jobId),
-    refetchInterval: 4000,
+  });
+
+  useJobMessageLive(jobId, Boolean(jobId), (message) => {
+    applyLiveJobMessage(jobId, message);
   });
 
   const sendMutation = useMutation({

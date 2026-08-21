@@ -72,6 +72,52 @@ export function senderDisplayName(sender: SenderRecord) {
   return 'Team member';
 }
 
+export type SerializedJobMessage = {
+  id: string;
+  body: string;
+  createdAt: Date;
+  mine: boolean;
+  sender: { id: string; role: string | null; name: string };
+};
+
+type MessageWithSender = {
+  id: string;
+  body: string;
+  createdAt: Date;
+  senderId: string;
+  sender: SenderRecord;
+};
+
+export function serializeJobMessage(
+  message: MessageWithSender,
+  viewerId: string,
+): SerializedJobMessage {
+  return {
+    id: message.id,
+    body: message.body,
+    createdAt: message.createdAt,
+    mine: message.senderId === viewerId,
+    sender: {
+      id: message.senderId,
+      role: message.sender.role,
+      name: senderDisplayName(message.sender),
+    },
+  };
+}
+
+export async function listJobMessagesSince(
+  ctx: AuthedCtx,
+  jobId: string,
+  since: Date,
+) {
+  return ctx.db.jobMessage.findMany({
+    where: { jobId, createdAt: { gt: since } },
+    include: { sender: { select: senderInclude } },
+    orderBy: { createdAt: 'asc' },
+    take: 50,
+  });
+}
+
 export async function assertJobMessageAccess(
   ctx: AuthedCtx,
   jobId: string,

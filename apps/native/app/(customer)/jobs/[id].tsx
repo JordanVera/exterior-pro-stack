@@ -23,6 +23,10 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { BidCard } from '@/components/customer/BidCard';
 import { colors } from '@/lib/theme';
 import { formatAddress, serviceIcon } from '@/lib/utils';
+import {
+  applyLiveJobMessage,
+  useJobMessageLive,
+} from '@/lib/job-message-stream';
 
 function PhotoGallery({
   photos,
@@ -109,8 +113,18 @@ export default function CustomerJobDetailScreen() {
       ['PENDING', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED'].includes(
         jobQuery.data?.status ?? '',
       ),
-    refetchInterval: 15000,
   });
+
+  useJobMessageLive(
+    id,
+    Boolean(id) &&
+      ['PENDING', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED'].includes(
+        jobQuery.data?.status ?? '',
+      ),
+    (message) => {
+      if (id) applyLiveJobMessage(id, message);
+    },
+  );
 
   const bidsQuery = useQuery({
     queryKey: ['bids', id],

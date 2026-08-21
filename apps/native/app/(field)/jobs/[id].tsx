@@ -30,6 +30,10 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { EmptyState, LoadingScreen, Screen } from '@/components/Screen';
 import { JobPhotos, hasBeforeAndAfterPhotos } from '@/components/JobPhotos';
 import {
+  applyLiveJobMessage,
+  useJobMessageLive,
+} from '@/lib/job-message-stream';
+import {
   BottomSheet,
   Card,
   Chip,
@@ -69,8 +73,18 @@ export default function JobDetailScreen() {
       ['PENDING', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED'].includes(
         jobQuery.data?.status ?? '',
       ),
-    refetchInterval: 15000,
   });
+
+  useJobMessageLive(
+    id,
+    Boolean(id) &&
+      ['PENDING', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED'].includes(
+        jobQuery.data?.status ?? '',
+      ),
+    (message) => {
+      if (id) applyLiveJobMessage(id, message);
+    },
+  );
 
   const crewsQuery = useQuery({
     queryKey: ['crews'],

@@ -6,12 +6,14 @@ import {
   jobMessageUnreadInput,
 } from '@repo/validators';
 import { notifyJobMessage } from '../lib/notifications';
+import { publishJobMessage } from '../lib/job-message-hub';
 import {
   assertJobMessageAccess,
   markJobThreadRead,
   participantUserIds,
   senderDisplayName,
   senderInclude,
+  serializeJobMessage,
   unreadCountForJob,
 } from '../lib/job-messages';
 
@@ -31,17 +33,9 @@ export const messageRouter = router({
         take: MESSAGE_PAGE_SIZE,
       });
 
-      const messages = rows.reverse().map((message) => ({
-        id: message.id,
-        body: message.body,
-        createdAt: message.createdAt,
-        mine: message.senderId === ctx.user.userId,
-        sender: {
-          id: message.senderId,
-          role: message.sender.role,
-          name: senderDisplayName(message.sender),
-        },
-      }));
+      const messages = rows
+        .reverse()
+        .map((message) => serializeJobMessage(message, ctx.user.userId));
 
       return {
         jobId: job.id,
@@ -88,6 +82,7 @@ export const messageRouter = router({
       });
 
       await markJobThreadRead(ctx, input.jobId);
+      publishJobMessage(input.jobId);
 
       const senderName = senderDisplayName(created.sender);
       const recipients = participantUserIds(job, ctx.user.userId);
@@ -101,16 +96,6 @@ export const messageRouter = router({
         ).catch(console.error);
       }
 
-      return {
-        id: created.id,
-        body: created.body,
-        createdAt: created.createdAt,
-        mine: true,
-        sender: {
-          id: created.senderId,
-          role: created.sender.role,
-          name: senderName,
-        },
-      };
+      return serializeJobMessage(created, ctx.user.userId);
     }),
 });

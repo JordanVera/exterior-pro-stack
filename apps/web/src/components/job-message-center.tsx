@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { EmptyState } from '@/components/dashboard/empty-state';
+import { useJobMessageLive } from '@/lib/job-message-stream';
 
 type JobMessage = {
   id: string;
@@ -81,11 +82,14 @@ export function JobMessageCenter({
     }
     void loadMessages();
     void trpc.message.markRead.mutate({ jobId }).catch(() => undefined);
-    const timer = window.setInterval(() => {
-      void loadMessages();
-    }, 5000);
-    return () => window.clearInterval(timer);
   }, [enabled, jobId, loadMessages]);
+
+  useJobMessageLive(jobId, enabled, (message) => {
+    setMessages((current) => {
+      if (current.some((row) => row.id === message.id)) return current;
+      return [...current, message];
+    });
+  });
 
   useEffect(() => {
     scrollToBottom();
@@ -125,7 +129,7 @@ export function JobMessageCenter({
         className="flex max-h-[420px] min-h-[260px] flex-1 flex-col gap-3 overflow-y-auto px-1 py-1"
       >
         {loading ? (
-          <p className="py-10 text-center text-sm text-muted-foreground">
+          <p className="py-10 text-sm text-center text-muted-foreground">
             Loading messages…
           </p>
         ) : messages.length === 0 ? (
@@ -157,7 +161,9 @@ export function JobMessageCenter({
                     : 'rounded-bl-md bg-muted text-foreground',
                 )}
               >
-                <p className="whitespace-pre-wrap break-words">{message.body}</p>
+                <p className="whitespace-pre-wrap break-words">
+                  {message.body}
+                </p>
               </div>
               <span className="px-1 text-[10px] text-muted-foreground">
                 {formatMessageTime(message.createdAt)}
@@ -167,7 +173,7 @@ export function JobMessageCenter({
         )}
       </div>
 
-      <div className="mt-4 flex items-end gap-2 border-t border-border pt-4">
+      <div className="flex gap-2 items-end pt-4 mt-4 border-t border-border">
         <Textarea
           value={draft}
           onChange={(event) => setDraft(event.target.value)}
@@ -178,9 +184,7 @@ export function JobMessageCenter({
             }
           }}
           placeholder={
-            canSend
-              ? 'Write a message…'
-              : 'Messaging is closed for this job'
+            canSend ? 'Write a message…' : 'Messaging is closed for this job'
           }
           disabled={!canSend || sending}
           rows={2}
@@ -191,9 +195,9 @@ export function JobMessageCenter({
           size="icon"
           disabled={!canSend || sending || !draft.trim()}
           onClick={() => void handleSend()}
-          className="h-10 w-10 shrink-0 rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
+          className="w-10 h-10 rounded-full shrink-0 bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
         >
-          <Send className="h-4 w-4" />
+          <Send className="w-4 h-4" />
           <span className="sr-only">Send</span>
         </Button>
       </div>
