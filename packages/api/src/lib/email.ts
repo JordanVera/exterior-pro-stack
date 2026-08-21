@@ -1,14 +1,16 @@
-import { Resend } from 'resend';
 import chalk from 'chalk';
 
-const resend = process.env.RESEND_API_KEY
-  ? new Resend(process.env.RESEND_API_KEY)
-  : null;
+const DEFAULT_FROM = 'Exterior Pro <noreply@exteriorpro.app>';
 
-const fromAddress =
-  process.env.RESEND_FROM ||
-  process.env.RESEND_FROM_EMAIL ||
-  'Exterior Pro <noreply@exteriorpro.app>';
+function parseSender(raw: string): { name?: string; email: string } {
+  const match = raw.match(/^(.*?)\s*<([^>]+)>$/);
+  if (match) {
+    const name = match[1].trim();
+    const email = match[2].trim();
+    return name ? { name, email } : { email };
+  }
+  return { email: raw.trim() };
+}
 
 export async function sendEmail(opts: {
   to: string;
@@ -16,7 +18,9 @@ export async function sendEmail(opts: {
   text: string;
   html?: string;
 }) {
-  if (!resend || !opts.to) {
+  const apiKey = process.env.BREVO_API_KEY;
+
+  if (!apiKey || !opts.to) {
     console.log(
       chalk.cyan(
         `${chalk.red('[email:skipped]')} ${chalk.yellow(opts.subject)} → ${opts.to}`,
@@ -26,14 +30,32 @@ export async function sendEmail(opts: {
     return;
   }
 
+  const sender = parseSender(process.env.BREVO_FROM || DEFAULT_FROM);
+
   try {
-    await resend.emails.send({
-      from: fromAddress,
-      to: opts.to,
-      subject: opts.subject,
-      text: opts.text,
-      html: opts.html ?? `<p>${opts.text}</p>`,
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        accept: 'application/json',
+        'api-key': apiKey,
+        'content-type': 'application/json',
+      },
+      body: JSON.stringify({
+        sender,
+        to: [{ email: opts.to }],
+        subject: opts.subject,
+        textContent: opts.text,
+        htmlContent: opts.html ?? `<p>${opts.text}</p>`,
+      }),
     });
+
+    if (!response.ok) {
+      const body = await response.text();
+      console.error(
+        `Failed to send email: Brevo ${response.status} ${response.statusText}`,
+        body,
+      );
+    }
   } catch (err) {
     console.error('Failed to send email:', err);
   }
