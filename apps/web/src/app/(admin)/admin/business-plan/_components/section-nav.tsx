@@ -12,7 +12,7 @@ export function SectionNav({
   onSelect: (id: string) => void;
 }) {
   return (
-    <>
+    <div className="lg:sticky lg:top-8 lg:self-start lg:max-h-[calc(100vh-4rem)] lg:overflow-y-auto">
       <div className="print:hidden lg:hidden">
         <FilterPills
           value={activeId}
@@ -26,7 +26,7 @@ export function SectionNav({
 
       <nav
         aria-label="Plan sections"
-        className="sticky top-6 hidden print:hidden lg:block"
+        className="hidden print:hidden lg:block"
       >
         <p className="mb-3 text-xs font-medium uppercase tracking-[0.12em] text-muted-foreground">
           Contents
@@ -57,6 +57,6 @@ export function SectionNav({
           })}
         </ul>
       </nav>
-    </>
+    </div>
   );
 }
