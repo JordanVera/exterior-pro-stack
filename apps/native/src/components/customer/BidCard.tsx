@@ -14,7 +14,7 @@ type BidCardProps = {
     provider: {
       id: string;
       businessName: string;
-      phone: string;
+      phone: string | null;
     };
   };
   onAccept?: () => void;

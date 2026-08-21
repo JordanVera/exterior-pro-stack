@@ -29,6 +29,7 @@ import {
   Users,
   X,
 } from 'lucide-react';
+import { JobMessageCenter } from '@/components/job-message-center';
 import {
   Dialog,
   DialogContent,
@@ -533,6 +534,13 @@ export default function JobDetailPage() {
           <JobPhotoGallery photos={job.photos} />
         </SectionPanel>
       ) : null}
+
+      <SectionPanel title="Messages" bodyClassName="p-5">
+        <JobMessageCenter
+          jobId={job.id}
+          enabled={job.status !== 'OPEN'}
+        />
+      </SectionPanel>
 
       <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
         <DialogContent className="sm:max-w-md">

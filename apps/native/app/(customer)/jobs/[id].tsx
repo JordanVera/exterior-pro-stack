@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import {
   Alert,
+  Image,
   Linking,
+  Modal,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -14,12 +16,11 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { trpc } from '@/lib/trpc';
 import { queryClient } from '@/lib/query';
 import { LoadingScreen, Screen } from '@/components/Screen';
-import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { Card } from '@/components/ui/Card';
+import { IconButton } from '@/components/ui/IconButton';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { StatusBadge } from '@/components/StatusBadge';
 import { BidCard } from '@/components/customer/BidCard';
-import { Image, Modal } from 'react-native';
 import { colors } from '@/lib/theme';
 import { formatAddress, serviceIcon } from '@/lib/utils';
 
@@ -98,6 +99,17 @@ export default function CustomerJobDetailScreen() {
     queryKey: ['job', id],
     queryFn: () => trpc.job.getForCustomer.query({ jobId: id! }),
     enabled: !!id,
+  });
+
+  const unreadQuery = useQuery({
+    queryKey: ['job-message-unread', id],
+    queryFn: () => trpc.message.unreadCount.query({ jobId: id! }),
+    enabled:
+      Boolean(id) &&
+      ['PENDING', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED'].includes(
+        jobQuery.data?.status ?? '',
+      ),
+    refetchInterval: 15000,
   });
 
   const bidsQuery = useQuery({
@@ -203,7 +215,11 @@ export default function CustomerJobDetailScreen() {
     );
   };
 
-  const handleCallProvider = (phone: string) => {
+  const handleCallProvider = (phone?: string | null) => {
+    if (!phone) {
+      Alert.alert('No phone number', 'This provider has no phone on file.');
+      return;
+    }
     Linking.openURL(`tel:${phone}`);
   };
 
@@ -338,12 +354,28 @@ export default function CustomerJobDetailScreen() {
                   ${(acceptedBid.priceCents / 100).toFixed(2)}
                 </Text>
               </View>
-              <PrimaryButton
+            </View>
+            <View className="flex-row gap-3 mt-4">
+              <IconButton
+                icon="call-outline"
                 label="Call"
-                icon="call"
                 onPress={() => handleCallProvider(acceptedBid.provider.phone)}
-                variant="secondary"
+                className="flex-1"
               />
+              {['PENDING', 'SCHEDULED', 'IN_PROGRESS', 'COMPLETED'].includes(
+                job.status,
+              ) ? (
+                <IconButton
+                  icon="chatbubble-ellipses-outline"
+                  label={
+                    unreadQuery.data?.count
+                      ? `Message (${unreadQuery.data.count})`
+                      : 'Message'
+                  }
+                  onPress={() => router.push(`/jobs/messages/${id}`)}
+                  className="flex-1"
+                />
+              ) : null}
             </View>
           </Card>
         ) : null}
@@ -412,7 +444,7 @@ export default function CustomerJobDetailScreen() {
             <Text className="mb-3 text-sm font-bold tracking-wider uppercase text-slate-400">
               Photos
             </Text>
-            <JobPhotos photos={job.photos} />
+            <PhotoGallery photos={job.photos} />
           </View>
         ) : null}
 

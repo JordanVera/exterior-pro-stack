@@ -109,22 +109,27 @@ export const bidRouter = router({
 
       const bids = await ctx.db.jobBid.findMany({
         where: { jobId: input.jobId },
-        include: { provider: true },
+        include: {
+          provider: { include: { user: { select: { phone: true } } } },
+        },
         orderBy: { createdAt: 'desc' },
       });
 
       // Transform to match frontend expectations
-      return bids.map((bid) => ({
-        id: bid.id,
-        jobId: bid.jobId,
-        providerId: bid.providerId,
-        priceCents: Math.round(Number(bid.price) * 100),
-        notes: bid.notes,
-        status: bid.status,
-        createdAt: bid.createdAt,
-        updatedAt: bid.updatedAt,
-        provider: bid.provider,
-      }));
+      return bids.map((bid) => {
+        const { user, ...provider } = bid.provider;
+        return {
+          id: bid.id,
+          jobId: bid.jobId,
+          providerId: bid.providerId,
+          priceCents: Math.round(Number(bid.price) * 100),
+          notes: bid.notes,
+          status: bid.status,
+          createdAt: bid.createdAt,
+          updatedAt: bid.updatedAt,
+          provider: { ...provider, phone: user.phone },
+        };
+      });
     }),
 
   /**

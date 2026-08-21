@@ -14,6 +14,7 @@ export default function JobsLayout() {
     >
       <Stack.Screen name="index" options={{ headerShown: false }} />
       <Stack.Screen name="[id]" options={{ title: 'Job' }} />
+      <Stack.Screen name="messages/[id]" options={{ headerShown: false }} />
     </Stack>
   );
 }
