@@ -1,5 +1,6 @@
 import './globals.css';
 import { Outfit } from 'next/font/google';
+import { Analytics } from '@vercel/analytics/next';
 import { Toaster } from '@/components/ui/sonner';
 
 const outfit = Outfit({
@@ -42,6 +43,7 @@ export default function RootLayout({
       >
         <Toaster />
         {children}
+        <Analytics />
       </body>
     </html>
   );
