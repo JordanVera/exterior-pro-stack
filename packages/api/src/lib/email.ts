@@ -20,7 +20,7 @@ export async function sendEmail(opts: {
 }) {
   const apiKey = process.env.BREVO_API_KEY;
 
-  if (!apiKey || !opts.to) {
+  if (process.env.NODE_ENV === 'development' || !apiKey || !opts.to) {
     console.log(
       chalk.cyan(
         `${chalk.red('[email:skipped]')} ${chalk.yellow(opts.subject)} → ${opts.to}`,
