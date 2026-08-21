@@ -27,10 +27,12 @@ export type CustomerJob = {
     price: unknown;
     notes?: string | null;
     provider: {
+      id: string;
       businessName: string;
       verified?: boolean;
       description?: string | null;
       logoUrl?: string | null;
+      rating?: { average: number | null; count: number };
     };
   } | null;
   bids?: {
@@ -39,10 +41,12 @@ export type CustomerJob = {
     notes?: string | null;
     status: string;
     provider: {
+      id: string;
       businessName: string;
       verified?: boolean;
       description?: string | null;
       logoUrl?: string | null;
+      rating?: { average: number | null; count: number };
     };
   }[];
   assignments?: { crew: { name: string } }[];
@@ -61,6 +65,12 @@ export type CustomerJob = {
     url: string;
     kind: 'BEFORE' | 'AFTER' | string;
   }[];
+  review?: {
+    id: string;
+    rating: number;
+    comment: string | null;
+    createdAt: string | Date;
+  } | null;
 };
 
 export const STATUS_DOT: Record<string, string> = {
@@ -112,6 +122,20 @@ export function getPendingBids(job: CustomerJob) {
   return job.bids?.filter((bid) => bid.status === 'PENDING') ?? [];
 }
 
+export function getSucceededTip(job: CustomerJob) {
+  return job.payments?.find(
+    (payment) => payment.kind === 'TIP' && payment.status === 'SUCCEEDED',
+  );
+}
+
+export function getJobPayment(job: CustomerJob) {
+  return job.payments?.find(
+    (payment) =>
+      payment.status === 'SUCCEEDED' &&
+      (payment.kind === 'JOB' || payment.kind === 'SUBSCRIPTION'),
+  );
+}
+
 export function formatJobDate(
   date: string | Date,
   opts?: { weekday?: boolean; year?: boolean },
@@ -124,10 +148,7 @@ export function formatJobDate(
   });
 }
 
-export function formatJobDateTime(
-  date: string | Date,
-  time?: string | null,
-) {
+export function formatJobDateTime(date: string | Date, time?: string | null) {
   const formatted = formatJobDate(date, { weekday: true });
   return time ? `${formatted} at ${time}` : formatted;
 }
@@ -149,6 +170,8 @@ export function getJobNextAction(job: CustomerJob): string {
     case 'IN_PROGRESS':
       return 'In progress';
     case 'COMPLETED':
+      if (!job.review) return 'Leave a review';
+      if (!getSucceededTip(job)) return 'Add a tip';
       return job.completedAt
         ? `Completed ${formatJobDate(job.completedAt)}`
         : 'Completed';
@@ -164,6 +187,10 @@ export function getJobCta(job: CustomerJob): string {
     return 'Review bids';
   }
   if (job.status === 'OPEN') return 'View request';
-  if (job.status === 'COMPLETED') return 'View';
+  if (job.status === 'COMPLETED') {
+    if (!job.review) return 'Leave a review';
+    if (!getSucceededTip(job)) return 'Add a tip';
+    return 'Book again';
+  }
   return 'View job';
 }

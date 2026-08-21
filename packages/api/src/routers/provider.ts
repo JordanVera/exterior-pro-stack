@@ -2,6 +2,12 @@ import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { router, publicProcedure, providerProcedure } from "../trpc";
 import { updateProviderProfileInput, setProviderServicesInput } from "@repo/validators";
+import {
+  EMPTY_RATING,
+  getProviderRatingStats,
+  listProviderReviews,
+  withRating,
+} from "../lib/reviews";
 
 export const providerRouter = router({
   /** Public: list verified providers, optionally by service */
@@ -13,7 +19,7 @@ export const providerRouter = router({
       }).optional()
     )
     .query(async ({ ctx, input }) => {
-      return ctx.db.providerProfile.findMany({
+      const providers = await ctx.db.providerProfile.findMany({
         where: {
           verified: true,
           ...(input?.search
@@ -32,18 +38,39 @@ export const providerRouter = router({
         },
         orderBy: { businessName: "asc" },
       });
+
+      const stats = await getProviderRatingStats(
+        ctx.db,
+        providers.map((provider) => provider.id),
+      );
+
+      return providers.map((provider) => withRating(provider, stats));
     }),
 
   /** Public: get a provider by ID */
   getById: publicProcedure
     .input(z.object({ id: z.string().cuid() }))
     .query(async ({ ctx, input }) => {
-      return ctx.db.providerProfile.findUnique({
+      const profile = await ctx.db.providerProfile.findUnique({
         where: { id: input.id },
         include: {
           services: { include: { service: { include: { category: true } } } },
         },
       });
+
+      if (!profile) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Provider not found" });
+      }
+
+      const [stats, reviews] = await Promise.all([
+        getProviderRatingStats(ctx.db, [profile.id]),
+        listProviderReviews(ctx.db, profile.id),
+      ]);
+
+      return {
+        ...withRating(profile, stats),
+        reviews,
+      };
     }),
 
   /** Provider: get own profile */
@@ -60,7 +87,15 @@ export const providerRouter = router({
       throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
     }
 
-    return profile;
+    const [stats, reviews] = await Promise.all([
+      getProviderRatingStats(ctx.db, [profile.id]),
+      listProviderReviews(ctx.db, profile.id),
+    ]);
+
+    return {
+      ...withRating(profile, stats),
+      reviews,
+    };
   }),
 
   /** Provider: update own profile */
@@ -122,7 +157,7 @@ export const providerRouter = router({
       throw new TRPCError({ code: "NOT_FOUND", message: "Profile not found" });
     }
 
-    const [pendingBids, activeJobs, completedJobs, totalCrews] =
+    const [pendingBids, activeJobs, completedJobs, totalCrews, stats] =
       await Promise.all([
         ctx.db.jobBid.count({
           where: { providerId: profile.id, status: "PENDING" },
@@ -142,8 +177,15 @@ export const providerRouter = router({
         ctx.db.crew.count({
           where: { providerId: profile.id },
         }),
+        getProviderRatingStats(ctx.db, [profile.id]),
       ]);
 
-    return { pendingBids, activeJobs, completedJobs, totalCrews };
+    return {
+      pendingBids,
+      activeJobs,
+      completedJobs,
+      totalCrews,
+      rating: stats.get(profile.id) ?? EMPTY_RATING,
+    };
   }),
 });

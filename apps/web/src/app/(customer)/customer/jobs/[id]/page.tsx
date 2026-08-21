@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useSearchParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { trpc } from '../../../../../lib/trpc';
 import { cn } from '@/lib/utils';
@@ -23,6 +23,7 @@ import {
   Check,
   Clock,
   FileQuestion,
+  Heart,
   MapPin,
   Repeat,
   RotateCcw,
@@ -42,11 +43,15 @@ import {
   STATUS_BADGE,
   formatJobDate,
   formatJobDateTime,
+  getJobPayment,
   getPendingBids,
+  getSucceededTip,
   type CustomerJob,
 } from '../../_components/job-status';
-import { requestJobPath } from '../../_components/utils';
 import { JobPhotoGallery } from '@/components/job-photo-gallery';
+import { JobReviewForm } from '../../_components/job-review-form';
+import { JobTipForm } from '../../_components/job-tip-form';
+import { RatingSummary } from '@/components/star-rating';
 
 const TIMELINE = [
   { key: 'requested', label: 'Requested' },
@@ -152,7 +157,7 @@ function JobTimeline({ job }: { job: CustomerJob }) {
 
 export default function JobDetailPage() {
   const params = useParams();
-  const router = useRouter();
+  const searchParams = useSearchParams();
   const jobId = String(params.id ?? '');
 
   const [job, setJob] = useState<CustomerJob | null>(null);
@@ -161,6 +166,8 @@ export default function JobDetailPage() {
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  const [rebookOpen, setRebookOpen] = useState(false);
+  const [rebooking, setRebooking] = useState(false);
 
   const fetchJob = useCallback(() => {
     if (!jobId) return;
@@ -174,6 +181,15 @@ export default function JobDetailPage() {
   useEffect(() => {
     fetchJob();
   }, [fetchJob]);
+
+  useEffect(() => {
+    const tip = searchParams.get('tip');
+    const checkout = searchParams.get('checkout');
+    if (tip === 'success') toast.success('Tip sent. Thank you!');
+    if (checkout === 'success') {
+      toast.success('You are booked. The provider can schedule now.');
+    }
+  }, [searchParams]);
 
   const handleAcceptBid = async (bidId: string) => {
     setActionLoading(bidId);
@@ -219,6 +235,22 @@ export default function JobDetailPage() {
     }
   };
 
+  const handleRebook = async () => {
+    setRebooking(true);
+    try {
+      const result = await trpc.job.rebook.mutate({ jobId });
+      if (result.checkoutUrl) {
+        window.location.href = result.checkoutUrl;
+        return;
+      }
+      toast.error('Could not start checkout');
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to book again');
+    } finally {
+      setRebooking(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -249,7 +281,8 @@ export default function JobDetailPage() {
 
   const badge = STATUS_BADGE[job.status] || STATUS_BADGE.PENDING;
   const pendingBids = getPendingBids(job);
-  const payment = job.payments?.find((p) => p.status === 'SUCCEEDED');
+  const payment = getJobPayment(job);
+  const tip = getSucceededTip(job);
 
   const chips: HeroChip[] = [
     {
@@ -266,6 +299,20 @@ export default function JobDetailPage() {
     chips.push({
       id: 'bids',
       label: `${pendingBids.length} bid${pendingBids.length === 1 ? '' : 's'} to review`,
+      tone: 'lime',
+    });
+  }
+  if (job.status === 'COMPLETED' && !job.review) {
+    chips.push({
+      id: 'rate',
+      label: 'Leave a review',
+      tone: 'lime',
+      pulse: true,
+    });
+  } else if (job.status === 'COMPLETED' && job.acceptedBid && !tip) {
+    chips.push({
+      id: 'tip',
+      label: 'Add a tip',
       tone: 'lime',
     });
   }
@@ -288,20 +335,13 @@ export default function JobDetailPage() {
             >
               Cancel request
             </Button>
-          ) : job.status === 'COMPLETED' ? (
+          ) : job.status === 'COMPLETED' && job.acceptedBid ? (
             <Button
               className="font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
-              onClick={() =>
-                router.push(
-                  requestJobPath({
-                    serviceId: job.service.id,
-                    propertyId: job.property.id,
-                  }),
-                )
-              }
+              onClick={() => setRebookOpen(true)}
             >
               <RotateCcw className="w-4 h-4" />
-              Book again
+              Book {job.acceptedBid.provider.businessName} again
             </Button>
           ) : null
         }
@@ -355,13 +395,13 @@ export default function JobDetailPage() {
 
                     <div className="flex relative gap-3 justify-between items-start">
                       <div className="flex gap-3 items-start min-w-0">
-                        <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-muted">
+                        <span className="flex overflow-hidden justify-center items-center w-9 h-9 rounded-lg border shrink-0 border-border bg-muted">
                           {bid.provider.logoUrl ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
                               src={bid.provider.logoUrl}
                               alt=""
-                              className="h-full w-full object-cover"
+                              className="object-cover w-full h-full"
                             />
                           ) : (
                             <Building2 className="w-4 h-4 text-muted-foreground" />
@@ -369,13 +409,20 @@ export default function JobDetailPage() {
                         </span>
                         <div className="min-w-0">
                           <span className="flex items-center gap-1.5">
-                            <span className="text-sm font-semibold truncate text-foreground">
+                            <Link
+                              href={`/customer/providers/${bid.provider.id}`}
+                              className="text-sm font-semibold truncate text-foreground hover:text-brand-navy dark:hover:text-brand-lime"
+                            >
                               {bid.provider.businessName}
-                            </span>
+                            </Link>
                             {bid.provider.verified && (
                               <BadgeCheck className="w-4 h-4 shrink-0 text-brand-lime" />
                             )}
                           </span>
+                          <RatingSummary
+                            average={bid.provider.rating?.average}
+                            count={bid.provider.rating?.count}
+                          />
                           {bid.provider.description && (
                             <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
                               {bid.provider.description}
@@ -443,10 +490,23 @@ export default function JobDetailPage() {
               <Building2 className="mt-0.5 h-4 w-4 flex-shrink-0" />
             )}
             <span>
-              {job.acceptedBid.provider.businessName}
+              <Link
+                href={`/customer/providers/${job.acceptedBid.provider.id}`}
+                className="font-medium text-foreground hover:text-brand-navy dark:hover:text-brand-lime"
+              >
+                {job.acceptedBid.provider.businessName}
+              </Link>
               <span className="ml-1 font-semibold text-foreground">
                 · ${Number(job.acceptedBid.price).toFixed(2)}
               </span>
+              {job.acceptedBid.provider.rating ? (
+                <span className="inline-flex ml-2 align-middle">
+                  <RatingSummary
+                    average={job.acceptedBid.provider.rating.average}
+                    count={job.acceptedBid.provider.rating.count}
+                  />
+                </span>
+              ) : null}
             </span>
           </div>
         )}
@@ -505,6 +565,15 @@ export default function JobDetailPage() {
             <span className="font-semibold text-foreground">
               ${(payment.amountCents / 100).toFixed(2)}
             </span>
+            {tip ? (
+              <>
+                {' '}
+                · Tip{' '}
+                <span className="font-semibold text-foreground">
+                  ${(tip.amountCents / 100).toFixed(2)}
+                </span>
+              </>
+            ) : null}
           </div>
         )}
 
@@ -535,11 +604,58 @@ export default function JobDetailPage() {
         </SectionPanel>
       ) : null}
 
+      {job.status === 'COMPLETED' && job.acceptedBid ? (
+        <SectionPanel title="Your review" bodyClassName="p-5">
+          <JobReviewForm
+            jobId={job.id}
+            providerName={job.acceptedBid.provider.businessName}
+            initial={
+              job.review
+                ? { rating: job.review.rating, comment: job.review.comment }
+                : null
+            }
+            onSaved={(review) =>
+              setJob((current) =>
+                current
+                  ? {
+                      ...current,
+                      review: {
+                        id: current.review?.id ?? 'local',
+                        rating: review.rating,
+                        comment: review.comment,
+                        createdAt: current.review?.createdAt ?? new Date(),
+                      },
+                    }
+                  : current,
+              )
+            }
+          />
+        </SectionPanel>
+      ) : null}
+
+      {job.status === 'COMPLETED' && job.acceptedBid ? (
+        <SectionPanel
+          title="Tip"
+          bodyClassName="p-5"
+          headerSlot={
+            tip ? (
+              <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+                <Heart className="h-3.5 w-3.5 text-brand-lime" />
+                Sent
+              </span>
+            ) : null
+          }
+        >
+          <JobTipForm
+            jobId={job.id}
+            providerName={job.acceptedBid.provider.businessName}
+            existingCents={tip?.amountCents}
+          />
+        </SectionPanel>
+      ) : null}
+
       <SectionPanel title="Messages" bodyClassName="p-5">
-        <JobMessageCenter
-          jobId={job.id}
-          enabled={job.status !== 'OPEN'}
-        />
+        <JobMessageCenter jobId={job.id} enabled={job.status !== 'OPEN'} />
       </SectionPanel>
 
       <Dialog open={cancelOpen} onOpenChange={setCancelOpen}>
@@ -565,6 +681,39 @@ export default function JobDetailPage() {
               className="text-white bg-red-500 rounded-full hover:bg-red-500/90"
             >
               {cancelling ? 'Cancelling…' : 'Cancel request'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={rebookOpen} onOpenChange={setRebookOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              Book {job.acceptedBid?.provider.businessName} again?
+            </DialogTitle>
+            <DialogDescription>
+              Same {job.service.name.toLowerCase()} at {job.property.address}{' '}
+              for ${Number(job.acceptedBid?.price ?? 0).toFixed(2)}. You pay
+              now and they can schedule the visit — no waiting for new bids.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setRebookOpen(false)}
+              className="rounded-full"
+            >
+              Not now
+            </Button>
+            <Button
+              onClick={handleRebook}
+              disabled={rebooking}
+              className="rounded-full font-semibold bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
+            >
+              {rebooking
+                ? 'Opening checkout…'
+                : `Pay $${Number(job.acceptedBid?.price ?? 0).toFixed(2)}`}
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -6,6 +6,7 @@ import { colors } from '@/lib/theme';
 type PaymentCardProps = {
   payment: {
     id: string;
+    kind?: string;
     amountCents: number;
     status: string;
     createdAt: string | Date;
@@ -37,11 +38,16 @@ export function PaymentCard({ payment }: PaymentCardProps) {
         ? { bg: 'bg-yellow-500/30', text: 'text-yellow-200', label: 'Pending' }
         : { bg: 'bg-slate-500/30', text: 'text-slate-200', label: payment.status };
 
-  const title = payment.job
-    ? payment.job.service.name
-    : payment.subscription
-      ? payment.subscription.plan.name
-      : 'Payment';
+  const title =
+    payment.kind === 'TIP'
+      ? payment.job
+        ? `Tip · ${payment.job.service.name}`
+        : 'Tip'
+      : payment.job
+        ? payment.job.service.name
+        : payment.subscription
+          ? payment.subscription.plan.name
+          : 'Payment';
 
   const subtitle = payment.job
     ? payment.job.property.address

@@ -147,7 +147,50 @@ export async function notifyJobCompleted(
     userId: customerId,
     type: 'JOB_COMPLETED',
     title: 'Job Completed',
-    body: `Your ${serviceName} job is complete!`,
+    body: `Your ${serviceName} job is complete! Rate the crew in the app.`,
+    sendSms: true,
+  });
+}
+
+/** Notify a provider that a customer left a review */
+export async function notifyReviewReceived(
+  providerId: string,
+  serviceName: string,
+  rating: number,
+) {
+  return createNotification({
+    userId: providerId,
+    type: 'REVIEW_RECEIVED',
+    title: 'New review',
+    body: `A customer rated your ${serviceName} job ${rating} out of 5.`,
+  });
+}
+
+/** Notify a provider that a customer booked them again at the last price */
+export async function notifyDirectBook(
+  providerId: string,
+  serviceName: string,
+) {
+  return createNotification({
+    userId: providerId,
+    type: 'BID_ACCEPTED',
+    title: 'Customer booked you again',
+    body: `A customer booked you again for ${serviceName}. Schedule the visit when you are ready.`,
+    sendSms: true,
+  });
+}
+
+/** Notify a provider that a customer sent a tip */
+export async function notifyTipReceived(
+  providerId: string,
+  serviceName: string,
+  amountCents: number,
+) {
+  return createNotification({
+    userId: providerId,
+    type: 'TIP_RECEIVED',
+    title: 'You received a tip',
+    body: `A customer tipped $${(amountCents / 100).toFixed(2)} on your ${serviceName} job.`,
     sendSms: true,
   });
 }

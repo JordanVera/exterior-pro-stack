@@ -17,7 +17,12 @@ import {
   toCents,
 } from './stripe';
 import { sendJobConfirmationEmail, sendPaymentReceiptEmail } from './email';
-import { notifyBidAccepted, notifySubscriptionCreated } from './notifications';
+import {
+  notifyBidAccepted,
+  notifyDirectBook,
+  notifySubscriptionCreated,
+  notifyTipReceived,
+} from './notifications';
 
 export async function getOrCreateStripeCustomer(opts: {
   customerId: string;
@@ -370,6 +375,9 @@ export async function createJobCheckoutSession(opts: {
   name: string;
   phone?: string | null;
   stripeCustomerId?: string | null;
+  successUrl?: string;
+  cancelUrl?: string;
+  extraMetadata?: Record<string, string>;
 }) {
   const client = requireStripe();
   const stripeCustomerId = await getOrCreateStripeCustomer({
@@ -399,8 +407,10 @@ export async function createJobCheckoutSession(opts: {
         },
       },
     ],
-    success_url: `${appUrl}/customer/jobs?checkout=success`,
-    cancel_url: `${appUrl}/customer/jobs?checkout=canceled`,
+    success_url:
+      opts.successUrl || `${appUrl}/customer/jobs?checkout=success`,
+    cancel_url:
+      opts.cancelUrl || `${appUrl}/customer/jobs?checkout=canceled`,
     metadata: {
       kind: 'job',
       jobId: opts.jobId,
@@ -410,6 +420,7 @@ export async function createJobCheckoutSession(opts: {
       platformFeeCents: String(platformFeeCents),
       stripeFeeCents: String(stripeFeeCents),
       transferAmountCents: String(transferAmountCents),
+      ...opts.extraMetadata,
     },
     integration_identifier: `job_pay_${randomSuffix()}`,
   });
@@ -493,9 +504,9 @@ export async function fulfillJobCheckout(opts: {
       }),
     ]);
 
-    notifyBidAccepted(bid.provider.userId, job.service.name).catch(
-      console.error,
-    );
+    const notify =
+      opts.metadata.rebook === 'true' ? notifyDirectBook : notifyBidAccepted;
+    notify(bid.provider.userId, job.service.name).catch(console.error);
 
     const customer = job.property.customer;
     if (customer.email) {
@@ -685,7 +696,11 @@ export async function payoutForCompletedJob(jobId: string) {
     return null;
   }
 
-  let payment = job.payments.find((p) => p.status === 'SUCCEEDED');
+  let payment = job.payments.find(
+    (p) =>
+      p.status === 'SUCCEEDED' &&
+      (p.kind === 'JOB' || p.kind === 'SUBSCRIPTION'),
+  );
 
   if (!payment && job.type === 'SUBSCRIPTION') {
     const amountCents = toCents(job.acceptedBid.price);
@@ -746,6 +761,243 @@ export async function payoutForCompletedJob(jobId: string) {
     });
   } catch (err) {
     console.error(`Transfer failed for job ${jobId}:`, err);
+    await db.transfer.update({
+      where: { id: record.id },
+      data: { status: 'FAILED' },
+    });
+    throw err;
+  }
+}
+
+export async function createTipCheckoutSession(opts: {
+  customerId: string;
+  jobId: string;
+  providerId: string;
+  amountCents: number;
+  description: string;
+  email?: string | null;
+  name: string;
+  phone?: string | null;
+  stripeCustomerId?: string | null;
+}) {
+  const client = requireStripe();
+  const stripeCustomerId = await getOrCreateStripeCustomer({
+    customerId: opts.customerId,
+    email: opts.email,
+    name: opts.name,
+    phone: opts.phone,
+    existingStripeCustomerId: opts.stripeCustomerId,
+  });
+
+  const split = splitCharge(opts.amountCents, 0);
+  const appUrl = getAppUrl();
+
+  const session = await client.checkout.sessions.create({
+    mode: 'payment',
+    customer: stripeCustomerId,
+    client_reference_id: opts.customerId,
+    line_items: [
+      {
+        quantity: 1,
+        price_data: {
+          currency: 'usd',
+          unit_amount: opts.amountCents,
+          product_data: { name: opts.description },
+        },
+      },
+    ],
+    success_url: `${appUrl}/customer/jobs/${opts.jobId}?tip=success`,
+    cancel_url: `${appUrl}/customer/jobs/${opts.jobId}?tip=canceled`,
+    metadata: {
+      kind: 'tip',
+      jobId: opts.jobId,
+      customerId: opts.customerId,
+      providerId: opts.providerId,
+      amountCents: String(opts.amountCents),
+      platformFeeCents: String(split.platformFeeCents),
+      stripeFeeCents: String(split.stripeFeeCents),
+      transferAmountCents: String(split.transferAmountCents),
+    },
+    integration_identifier: `job_tip_${randomSuffix()}`,
+  });
+
+  if (!session.url) {
+    throw new TRPCError({
+      code: 'INTERNAL_SERVER_ERROR',
+      message: 'Failed to create checkout session',
+    });
+  }
+
+  await db.payment.create({
+    data: {
+      kind: 'TIP',
+      status: 'PENDING',
+      amountCents: opts.amountCents,
+      ...split,
+      stripeCheckoutSessionId: session.id,
+      customerId: opts.customerId,
+      jobId: opts.jobId,
+    },
+  });
+
+  return { checkoutUrl: session.url, sessionId: session.id };
+}
+
+export async function fulfillTipCheckout(opts: {
+  sessionId: string;
+  paymentIntentId: string | null;
+  customerStripeId: string | null;
+  metadata: Record<string, string>;
+}) {
+  const { jobId, customerId, providerId } = opts.metadata;
+  if (!jobId || !customerId || !providerId) return;
+
+  const existingTip = await db.payment.findFirst({
+    where: {
+      jobId,
+      kind: 'TIP',
+      status: 'SUCCEEDED',
+    },
+  });
+  if (existingTip && existingTip.stripeCheckoutSessionId !== opts.sessionId) {
+    return;
+  }
+
+  const job = await db.job.findUnique({
+    where: { id: jobId },
+    include: {
+      property: { include: { customer: { include: { user: true } } } },
+      service: true,
+      acceptedBid: { include: { provider: { include: { user: true } } } },
+    },
+  });
+  if (!job) return;
+
+  const existing = await db.payment.findUnique({
+    where: { stripeCheckoutSessionId: opts.sessionId },
+  });
+
+  const resolvedAmount =
+    existing?.amountCents || Number(opts.metadata.amountCents) || 0;
+  if (resolvedAmount <= 0) return;
+
+  const resolvedSplit = splitCharge(resolvedAmount, 0);
+  const receiptUrl = await getReceiptUrl(opts.paymentIntentId);
+
+  const payment = existing
+    ? await db.payment.update({
+        where: { id: existing.id },
+        data: {
+          status: 'SUCCEEDED',
+          stripePaymentIntentId: opts.paymentIntentId,
+          receiptUrl,
+          amountCents: resolvedAmount,
+          ...resolvedSplit,
+        },
+      })
+    : await db.payment.create({
+        data: {
+          kind: 'TIP',
+          status: 'SUCCEEDED',
+          amountCents: resolvedAmount,
+          ...resolvedSplit,
+          stripeCheckoutSessionId: opts.sessionId,
+          stripePaymentIntentId: opts.paymentIntentId,
+          receiptUrl,
+          customerId,
+          jobId,
+        },
+      });
+
+  if (opts.customerStripeId) {
+    await db.customerProfile.update({
+      where: { id: customerId },
+      data: { stripeCustomerId: opts.customerStripeId },
+    });
+  }
+
+  const customer = job.property.customer;
+  if (customer.email) {
+    sendPaymentReceiptEmail({
+      to: customer.email,
+      name: customer.firstName,
+      description: `Tip for ${job.service.name}`,
+      amountCents: resolvedAmount,
+      receiptUrl,
+    }).catch(console.error);
+  }
+
+  const provider = job.acceptedBid?.provider;
+  if (provider) {
+    notifyTipReceived(provider.userId, job.service.name, resolvedAmount).catch(
+      console.error,
+    );
+  }
+
+  await payoutTip(payment.id, job.id, providerId);
+}
+
+export async function payoutTip(
+  paymentId: string,
+  jobId: string,
+  providerId: string,
+) {
+  const payment = await db.payment.findUnique({
+    where: { id: paymentId },
+    include: { transfers: true },
+  });
+  if (!payment || payment.kind !== 'TIP' || payment.status !== 'SUCCEEDED') {
+    return null;
+  }
+  if (payment.transfers.some((t) => t.status === 'PAID')) {
+    return payment.transfers[0];
+  }
+
+  const provider = await db.providerProfile.findUnique({
+    where: { id: providerId },
+  });
+  if (!provider?.stripeAccountId || !provider.stripeTransfersEnabled) {
+    console.warn(
+      `Skipping tip payout for job ${jobId}: provider is not payout-ready`,
+    );
+    return null;
+  }
+
+  const amountCents =
+    payment.transferAmountCents > 0
+      ? payment.transferAmountCents
+      : splitCharge(payment.amountCents, 0).transferAmountCents;
+  if (amountCents <= 0) return null;
+
+  const record = await db.transfer.create({
+    data: {
+      paymentId: payment.id,
+      providerId: provider.id,
+      amountCents,
+      status: 'PENDING',
+    },
+  });
+
+  try {
+    const transfer = await stripe.transfers.create({
+      amount: amountCents,
+      currency: 'usd',
+      destination: provider.stripeAccountId,
+      transfer_group: jobId,
+      metadata: {
+        jobId,
+        paymentId: payment.id,
+        providerId: provider.id,
+        kind: 'tip',
+      },
+    });
+
+    return db.transfer.update({
+      where: { id: record.id },
+      data: { status: 'PAID', stripeTransferId: transfer.id },
+    });
+  } catch (err) {
+    console.error(`Tip transfer failed for job ${jobId}:`, err);
     await db.transfer.update({
       where: { id: record.id },
       data: { status: 'FAILED' },

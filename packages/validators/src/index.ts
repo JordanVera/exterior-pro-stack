@@ -9,3 +9,4 @@ export * from "./notification";
 export * from "./provider";
 export * from "./subscription";
 export * from "./message";
+export * from "./review";

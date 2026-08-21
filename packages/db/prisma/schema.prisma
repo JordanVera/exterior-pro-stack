@@ -89,6 +89,8 @@ enum NotificationType {
   JOB_CANCELLED
   JOB_REMINDER
   JOB_MESSAGE
+  REVIEW_RECEIVED
+  TIP_RECEIVED
   SCHEDULE_CHANGE
   SUBSCRIPTION_CREATED
   SUBSCRIPTION_RENEWED
@@ -101,6 +103,7 @@ enum NotificationType {
 enum PaymentKind {
   SUBSCRIPTION
   JOB
+  TIP
 }
 
 enum PaymentStatus {
@@ -155,6 +158,7 @@ model CustomerProfile {
   properties    Property[]
   subscriptions CustomerSubscription[]
   payments      Payment[]
+  reviews       JobReview[]
 }
 
 model ProviderProfile {
@@ -180,6 +184,8 @@ model ProviderProfile {
   services      ProviderService[]
   subscriptions CustomerSubscription[]
   transfers     Transfer[]
+  reviews       JobReview[]
+  invitedJobs   Job[]                  @relation("JobInvitedProvider")
 }
 
 // ─── Properties ─────────────────────────────────────────────────────────────
@@ -322,9 +328,10 @@ model Job {
   type           JobType   @default(ONE_TIME)
   status         JobStatus @default(OPEN)
   subscriptionId String?
-  acceptedBidId  String?   @unique
-  customerNotes  String?   @db.Text
-  scheduledDate  DateTime?
+  acceptedBidId      String?   @unique
+  invitedProviderId  String?
+  customerNotes      String?   @db.Text
+  scheduledDate      DateTime?
   scheduledTime  String?
   completedAt    DateTime?
   notes          String?   @db.Text
@@ -335,6 +342,7 @@ model Job {
   service           Service               @relation(fields: [serviceId], references: [id])
   subscription      CustomerSubscription? @relation(fields: [subscriptionId], references: [id])
   acceptedBid       JobBid?               @relation("AcceptedBid", fields: [acceptedBidId], references: [id])
+  invitedProvider   ProviderProfile?      @relation("JobInvitedProvider", fields: [invitedProviderId], references: [id], onDelete: SetNull)
   bids              JobBid[]              @relation("JobBids")
   assignments       JobAssignment[]
   recurringSchedule RecurringSchedule?
@@ -342,6 +350,9 @@ model Job {
   photos            JobPhoto[]
   messages          JobMessage[]
   threadReads       JobThreadRead[]
+  review            JobReview?
+
+  @@index([invitedProviderId])
 }
 
 model JobPhoto {
@@ -381,6 +392,23 @@ model JobThreadRead {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([jobId, userId])
+}
+
+model JobReview {
+  id         String   @id @default(cuid())
+  jobId      String   @unique
+  providerId String
+  customerId String
+  rating     Int
+  comment    String?  @db.Text
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  job      Job             @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  provider ProviderProfile @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  customer CustomerProfile @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId, createdAt])
 }
 
 model JobBid {

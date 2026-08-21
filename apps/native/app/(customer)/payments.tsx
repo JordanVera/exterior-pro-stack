@@ -9,12 +9,13 @@ import { PaymentCard } from '@/components/customer/PaymentCard';
 import { Card } from '@/components/ui/Card';
 import { colors } from '@/lib/theme';
 
-type PaymentFilter = 'all' | 'job' | 'subscription';
+type PaymentFilter = 'all' | 'job' | 'subscription' | 'tip';
 
 const FILTER_OPTIONS: FilterOption<PaymentFilter>[] = [
   { value: 'all', label: 'All' },
   { value: 'job', label: 'Jobs' },
   { value: 'subscription', label: 'Subscriptions' },
+  { value: 'tip', label: 'Tips' },
 ];
 
 export default function PaymentsScreen() {
@@ -38,9 +39,10 @@ export default function PaymentsScreen() {
   const filteredPayments = useMemo(() => {
     if (filter === 'all') return payments;
     if (filter === 'job')
-      return payments.filter((p: any) => p.job && !p.subscription);
+      return payments.filter((p: any) => p.kind === 'JOB');
     if (filter === 'subscription')
-      return payments.filter((p: any) => p.subscription);
+      return payments.filter((p: any) => p.kind === 'SUBSCRIPTION');
+    if (filter === 'tip') return payments.filter((p: any) => p.kind === 'TIP');
     return payments;
   }, [payments, filter]);
 
@@ -72,8 +74,10 @@ export default function PaymentsScreen() {
           opt.value === 'all'
             ? payments.length
             : opt.value === 'job'
-              ? payments.filter((p: any) => p.job && !p.subscription).length
-              : payments.filter((p: any) => p.subscription).length,
+              ? payments.filter((p: any) => p.kind === 'JOB').length
+              : opt.value === 'subscription'
+                ? payments.filter((p: any) => p.kind === 'SUBSCRIPTION').length
+                : payments.filter((p: any) => p.kind === 'TIP').length,
       })),
     [payments],
   );

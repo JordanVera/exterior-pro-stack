@@ -16,6 +16,11 @@ export const fieldJobInclude = {
   acceptedBid: true,
   assignments: { include: { crew: { include: { members: true } } } },
   photos: { orderBy: { createdAt: "asc" } },
+  review: true,
+  payments: {
+    where: { kind: "TIP", status: "SUCCEEDED" },
+    select: { id: true, amountCents: true, kind: true, status: true },
+  },
 } satisfies Prisma.JobInclude;
 
 type AuthedCtx = {

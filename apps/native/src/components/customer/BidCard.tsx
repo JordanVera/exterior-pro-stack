@@ -1,7 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { Card } from '../ui/Card';
 import { PrimaryButton } from '../PrimaryButton';
+import { RatingSummary } from '@/components/StarRating';
 import { colors } from '@/lib/theme';
 
 type BidCardProps = {
@@ -15,27 +16,51 @@ type BidCardProps = {
       id: string;
       businessName: string;
       phone: string | null;
+      rating?: { average: number | null; count: number };
     };
   };
   onAccept?: () => void;
   onDecline?: () => void;
+  onPressProvider?: () => void;
   loading?: boolean;
 };
 
-export function BidCard({ bid, onAccept, onDecline, loading }: BidCardProps) {
+export function BidCard({
+  bid,
+  onAccept,
+  onDecline,
+  onPressProvider,
+  loading,
+}: BidCardProps) {
   const price = (bid.priceCents / 100).toFixed(2);
   const createdDate = new Date(bid.createdAt).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
   });
 
+  const name = (
+    <Text className="text-lg font-semibold text-white">
+      {bid.provider.businessName}
+    </Text>
+  );
+
   return (
     <Card className="mb-3">
       <View className="flex-row gap-3 justify-between items-start mb-3">
         <View className="flex-1">
-          <Text className="text-lg font-semibold text-white">
-            {bid.provider.businessName}
-          </Text>
+          {onPressProvider ? (
+            <Pressable onPress={onPressProvider} className="active:opacity-70">
+              {name}
+            </Pressable>
+          ) : (
+            name
+          )}
+          <View className="mt-1">
+            <RatingSummary
+              average={bid.provider.rating?.average}
+              count={bid.provider.rating?.count}
+            />
+          </View>
           <View className="mt-1 flex-row items-center gap-1.5">
             <Ionicons name="calendar-outline" size={13} color={colors.muted} />
             <Text className="text-sm text-slate-400">Bid on {createdDate}</Text>

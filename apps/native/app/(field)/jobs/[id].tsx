@@ -29,6 +29,7 @@ import { PrimaryButton } from '@/components/PrimaryButton';
 import { StatusBadge } from '@/components/StatusBadge';
 import { EmptyState, LoadingScreen, Screen } from '@/components/Screen';
 import { JobPhotos, hasBeforeAndAfterPhotos } from '@/components/JobPhotos';
+import { StarRating } from '@/components/StarRating';
 import {
   applyLiveJobMessage,
   useJobMessageLive,
@@ -182,6 +183,10 @@ export default function JobDetailScreen() {
   const customerName = `${job.property.customer.firstName} ${job.property.customer.lastName}`;
   const assignedCrew = job.assignments[0]?.crew;
   const canComplete = hasBeforeAndAfterPhotos(job.photos ?? []);
+  const tipPayment = job.payments?.find(
+    (p: { kind: string; status: string }) =>
+      p.kind === 'TIP' && p.status === 'SUCCEEDED',
+  );
 
   // The mutation force-sets SCHEDULED, so exposing it on an in-progress job
   // would quietly knock the job backwards.
@@ -404,6 +409,42 @@ export default function JobDetailScreen() {
         ) : null}
 
         <JobPhotos job={job} token={token} />
+
+        {job.status === 'COMPLETED' ? (
+          <View className="mt-6">
+            <SectionPanel title="Customer review">
+              {job.review ? (
+                <Card>
+                  <StarRating value={job.review.rating} readOnly />
+                  {job.review.comment ? (
+                    <Text className="mt-3 text-sm leading-5 text-slate-300">
+                      {job.review.comment}
+                    </Text>
+                  ) : (
+                    <Text className="mt-3 text-sm text-slate-400">
+                      Rated {job.review.rating} out of 5
+                    </Text>
+                  )}
+                </Card>
+              ) : (
+                <Card>
+                  <Text className="text-sm text-slate-400">
+                    Waiting for the customer to rate this job.
+                  </Text>
+                </Card>
+              )}
+            </SectionPanel>
+            {tipPayment ? (
+              <View className="mt-3">
+                <Card>
+                  <Text className="text-sm font-semibold text-brand-lime">
+                    Customer tipped ${(tipPayment.amountCents / 100).toFixed(2)}
+                  </Text>
+                </Card>
+              </View>
+            ) : null}
+          </View>
+        ) : null}
       </ScrollView>
 
       <JobActionBar

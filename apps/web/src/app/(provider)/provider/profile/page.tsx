@@ -19,6 +19,8 @@ import {
   ProviderLogoUpload,
   type ProviderLogoValue,
 } from '@/components/provider-logo-upload';
+import { RatingSummary } from '@/components/star-rating';
+import { ReviewList, type PublicReview } from '@/components/review-list';
 
 export default function ProviderProfilePage() {
   const router = useRouter();
@@ -130,6 +132,24 @@ export default function ProviderProfilePage() {
           )}
         </p>
       </div>
+
+      <Card className="shadow-none border-border bg-background/80">
+        <CardHeader className="p-5 pb-0">
+          <CardTitle className="text-base">Customer reviews</CardTitle>
+        </CardHeader>
+        <CardContent className="p-5 space-y-4">
+          <RatingSummary
+            average={profile?.rating?.average}
+            count={profile?.rating?.count}
+            size="md"
+            emptyLabel="No ratings yet"
+          />
+          <ReviewList
+            reviews={(profile?.reviews ?? []) as PublicReview[]}
+            empty="Reviews from completed jobs will show up here."
+          />
+        </CardContent>
+      </Card>
 
       <Card className="shadow-none border-border bg-background/80">
         <CardHeader className="p-5 pb-0">
