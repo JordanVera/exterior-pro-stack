@@ -166,6 +166,35 @@ export async function notifyReviewReceived(
   });
 }
 
+/** Notify a provider that a customer booked them again at the last price */
+export async function notifyDirectBook(
+  providerId: string,
+  serviceName: string,
+) {
+  return createNotification({
+    userId: providerId,
+    type: 'BID_ACCEPTED',
+    title: 'Customer booked you again',
+    body: `A customer booked you again for ${serviceName}. Schedule the visit when you are ready.`,
+    sendSms: true,
+  });
+}
+
+/** Notify a provider that a customer sent a tip */
+export async function notifyTipReceived(
+  providerId: string,
+  serviceName: string,
+  amountCents: number,
+) {
+  return createNotification({
+    userId: providerId,
+    type: 'TIP_RECEIVED',
+    title: 'You received a tip',
+    body: `A customer tipped $${(amountCents / 100).toFixed(2)} on your ${serviceName} job.`,
+    sendSms: true,
+  });
+}
+
 /** Notify a provider that a job they bid on was cancelled */
 export async function notifyJobCancelled(
   providerId: string,

@@ -5,6 +5,7 @@ import {
   fulfillJobCheckout,
   fulfillPlanSubscriptionFromStripe,
   fulfillSubscriptionCheckout,
+  fulfillTipCheckout,
   reverseTransfersForPayment,
 } from "./payments";
 import { syncProviderConnectStatus } from "./connect";
@@ -35,6 +36,13 @@ export async function handleStripeEvent(event: Stripe.Event) {
 
       if (kind === "job") {
         await fulfillJobCheckout({
+          sessionId: session.id,
+          paymentIntentId,
+          customerStripeId: customerId,
+          metadata,
+        });
+      } else if (kind === "tip") {
+        await fulfillTipCheckout({
           sessionId: session.id,
           paymentIntentId,
           customerStripeId: customerId,

@@ -62,6 +62,20 @@ export const deleteJobPhotoInput = z.object({
   photoId: z.string().cuid(),
 });
 
+export const rebookJobInput = z.object({
+  jobId: z.string().cuid(),
+  customerNotes: z.string().max(2000).optional(),
+});
+
+export const createJobTipInput = z.object({
+  jobId: z.string().cuid(),
+  amountCents: z
+    .number()
+    .int()
+    .min(100, "Tip must be at least $1")
+    .max(50_000, "Tip cannot exceed $500"),
+});
+
 export type CreateJobInput = z.infer<typeof createJobInput>;
 export type ScheduleJobInput = z.infer<typeof scheduleJobInput>;
 export type AssignCrewInput = z.infer<typeof assignCrewInput>;
@@ -72,3 +86,5 @@ export type CancelJobInput = z.infer<typeof cancelJobInput>;
 export type ListMineInput = z.infer<typeof listMineInput>;
 export type GetJobByIdInput = z.infer<typeof getJobByIdInput>;
 export type DeleteJobPhotoInput = z.infer<typeof deleteJobPhotoInput>;
+export type RebookJobInput = z.infer<typeof rebookJobInput>;
+export type CreateJobTipInput = z.infer<typeof createJobTipInput>;

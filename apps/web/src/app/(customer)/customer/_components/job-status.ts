@@ -122,6 +122,20 @@ export function getPendingBids(job: CustomerJob) {
   return job.bids?.filter((bid) => bid.status === 'PENDING') ?? [];
 }
 
+export function getSucceededTip(job: CustomerJob) {
+  return job.payments?.find(
+    (payment) => payment.kind === 'TIP' && payment.status === 'SUCCEEDED',
+  );
+}
+
+export function getJobPayment(job: CustomerJob) {
+  return job.payments?.find(
+    (payment) =>
+      payment.status === 'SUCCEEDED' &&
+      (payment.kind === 'JOB' || payment.kind === 'SUBSCRIPTION'),
+  );
+}
+
 export function formatJobDate(
   date: string | Date,
   opts?: { weekday?: boolean; year?: boolean },
@@ -134,10 +148,7 @@ export function formatJobDate(
   });
 }
 
-export function formatJobDateTime(
-  date: string | Date,
-  time?: string | null,
-) {
+export function formatJobDateTime(date: string | Date, time?: string | null) {
   const formatted = formatJobDate(date, { weekday: true });
   return time ? `${formatted} at ${time}` : formatted;
 }
@@ -160,6 +171,7 @@ export function getJobNextAction(job: CustomerJob): string {
       return 'In progress';
     case 'COMPLETED':
       if (!job.review) return 'Leave a review';
+      if (!getSucceededTip(job)) return 'Add a tip';
       return job.completedAt
         ? `Completed ${formatJobDate(job.completedAt)}`
         : 'Completed';
@@ -176,7 +188,9 @@ export function getJobCta(job: CustomerJob): string {
   }
   if (job.status === 'OPEN') return 'View request';
   if (job.status === 'COMPLETED') {
-    return job.review ? 'View' : 'Leave a review';
+    if (!job.review) return 'Leave a review';
+    if (!getSucceededTip(job)) return 'Add a tip';
+    return 'Book again';
   }
   return 'View job';
 }

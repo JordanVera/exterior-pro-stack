@@ -223,6 +223,11 @@ export default function ProviderJobDetailPage() {
     );
   }
 
+  const tipPayment = job.payments?.find(
+    (p: { kind: string; status: string }) =>
+      p.kind === 'TIP' && p.status === 'SUCCEEDED',
+  );
+
   const badge = STATUS_BADGE[job.status] || STATUS_BADGE.PENDING;
   const customer = job.property.customer;
   const beforePhotos = job.photos.filter((p: any) => p.kind === 'BEFORE');
@@ -545,6 +550,19 @@ export default function ProviderJobDetailPage() {
               <CardContent>
                 <p className="text-sm text-muted-foreground">
                   Waiting for the customer to rate this job.
+                </p>
+              </CardContent>
+            </Card>
+          ) : null}
+
+          {tipPayment ? (
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-base">Tip</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm font-semibold text-foreground">
+                  Customer tipped ${(tipPayment.amountCents / 100).toFixed(2)}
                 </p>
               </CardContent>
             </Card>

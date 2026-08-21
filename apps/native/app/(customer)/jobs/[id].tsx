@@ -22,6 +22,7 @@ import { PrimaryButton } from '@/components/PrimaryButton';
 import { StatusBadge } from '@/components/StatusBadge';
 import { BidCard } from '@/components/customer/BidCard';
 import { JobReviewForm } from '@/components/customer/JobReviewForm';
+import { JobTipForm } from '@/components/customer/JobTipForm';
 import { colors } from '@/lib/theme';
 import { formatAddress, serviceIcon } from '@/lib/utils';
 import {
@@ -178,6 +179,18 @@ export default function CustomerJobDetailScreen() {
     },
   });
 
+  const rebookJob = useMutation({
+    mutationFn: () => trpc.job.rebook.mutate({ jobId: id! }),
+    onSuccess: (data) => {
+      if (data.checkoutUrl) {
+        Linking.openURL(data.checkoutUrl);
+      }
+    },
+    onError: (error: any) => {
+      Alert.alert('Error', error.message);
+    },
+  });
+
   const onRefresh = async () => {
     setRefreshing(true);
     await Promise.all([jobQuery.refetch(), bidsQuery.refetch()]);
@@ -241,7 +254,16 @@ export default function CustomerJobDetailScreen() {
   if (jobQuery.isLoading || !job) return <LoadingScreen />;
 
   const pendingBids = bids.filter((b: any) => b.status === 'PENDING');
-  const acceptedBid = bids.find((b: any) => b.status === 'ACCEPTED');
+  const acceptedBid =
+    bids.find((b: any) => b.status === 'ACCEPTED') ?? job.acceptedBid;
+  const jobPayment = job.payments?.find(
+    (p: { kind: string; status: string }) =>
+      p.status === 'SUCCEEDED' && (p.kind === 'JOB' || p.kind === 'SUBSCRIPTION'),
+  );
+  const tipPayment = job.payments?.find(
+    (p: { kind: string; status: string }) =>
+      p.kind === 'TIP' && p.status === 'SUCCEEDED',
+  );
   const scheduledDate = job.scheduledDate
     ? new Date(job.scheduledDate).toLocaleDateString('en-US', {
         weekday: 'long',
@@ -250,6 +272,24 @@ export default function CustomerJobDetailScreen() {
         year: 'numeric',
       })
     : null;
+
+  const handleRebook = () => {
+    const providerName = acceptedBid?.provider.businessName ?? 'this provider';
+    const price = acceptedBid
+      ? `$${(acceptedBid.priceCents / 100).toFixed(2)}`
+      : '';
+    Alert.alert(
+      `Book ${providerName} again?`,
+      `Same ${job.service.name.toLowerCase()} at this property for ${price}. You pay now and they can schedule — no waiting for new bids.`,
+      [
+        { text: 'Not now', style: 'cancel' },
+        {
+          text: `Pay ${price}`,
+          onPress: () => rebookJob.mutate(),
+        },
+      ],
+    );
+  };
 
   return (
     <Screen>
@@ -434,7 +474,7 @@ export default function CustomerJobDetailScreen() {
           </Card>
         ) : null}
 
-        {job.payments && job.payments.length > 0 ? (
+        {jobPayment ? (
           <Card className="mt-6">
             <Text className="mb-3 text-sm font-bold tracking-wider uppercase text-slate-400">
               Payment
@@ -442,19 +482,22 @@ export default function CustomerJobDetailScreen() {
             <View className="flex-row gap-3 justify-between items-start">
               <View className="flex-1">
                 <Text className="text-2xl font-bold text-brand-lime">
-                  ${(job.payments[0].amountCents / 100).toFixed(2)}
+                  ${(jobPayment.amountCents / 100).toFixed(2)}
                 </Text>
                 <Text className="mt-0.5 text-sm text-slate-400">
-                  {job.payments[0].status === 'SUCCEEDED'
-                    ? 'Paid'
-                    : job.payments[0].status}
+                  {jobPayment.status === 'SUCCEEDED' ? 'Paid' : jobPayment.status}
                 </Text>
+                {tipPayment ? (
+                  <Text className="mt-2 text-sm text-slate-300">
+                    Tip ${(tipPayment.amountCents / 100).toFixed(2)}
+                  </Text>
+                ) : null}
               </View>
-              {job.payments[0].receiptUrl ? (
+              {jobPayment.receiptUrl ? (
                 <PrimaryButton
                   label="Receipt"
                   icon="receipt-outline"
-                  onPress={() => Linking.openURL(job.payments[0].receiptUrl!)}
+                  onPress={() => Linking.openURL(jobPayment.receiptUrl!)}
                   variant="secondary"
                 />
               ) : null}
@@ -489,6 +532,16 @@ export default function CustomerJobDetailScreen() {
           </View>
         ) : null}
 
+        {job.status === 'COMPLETED' && acceptedBid ? (
+          <View className="mt-6">
+            <JobTipForm
+              jobId={job.id}
+              providerName={acceptedBid.provider.businessName}
+              existingCents={tipPayment?.amountCents}
+            />
+          </View>
+        ) : null}
+
         {job.status === 'OPEN' ? (
           <View className="mt-6">
             <PrimaryButton
@@ -501,20 +554,13 @@ export default function CustomerJobDetailScreen() {
           </View>
         ) : null}
 
-        {job.status === 'COMPLETED' ? (
+        {job.status === 'COMPLETED' && acceptedBid ? (
           <View className="mt-6">
             <PrimaryButton
-              label="Book again"
+              label={`Book ${acceptedBid.provider.businessName} again`}
               icon="repeat"
-              onPress={() =>
-                router.push({
-                  pathname: '/jobs/new',
-                  params: {
-                    serviceId: job.service.id,
-                    propertyId: job.property.id,
-                  },
-                })
-              }
+              onPress={handleRebook}
+              loading={rebookJob.status === 'pending'}
             />
           </View>
         ) : null}

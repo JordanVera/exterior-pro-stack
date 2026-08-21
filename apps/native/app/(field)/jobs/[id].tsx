@@ -183,6 +183,10 @@ export default function JobDetailScreen() {
   const customerName = `${job.property.customer.firstName} ${job.property.customer.lastName}`;
   const assignedCrew = job.assignments[0]?.crew;
   const canComplete = hasBeforeAndAfterPhotos(job.photos ?? []);
+  const tipPayment = job.payments?.find(
+    (p: { kind: string; status: string }) =>
+      p.kind === 'TIP' && p.status === 'SUCCEEDED',
+  );
 
   // The mutation force-sets SCHEDULED, so exposing it on an in-progress job
   // would quietly knock the job backwards.
@@ -430,6 +434,15 @@ export default function JobDetailScreen() {
                 </Card>
               )}
             </SectionPanel>
+            {tipPayment ? (
+              <View className="mt-3">
+                <Card>
+                  <Text className="text-sm font-semibold text-brand-lime">
+                    Customer tipped ${(tipPayment.amountCents / 100).toFixed(2)}
+                  </Text>
+                </Card>
+              </View>
+            ) : null}
           </View>
         ) : null}
       </ScrollView>

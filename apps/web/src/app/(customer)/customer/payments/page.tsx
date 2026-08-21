@@ -14,6 +14,7 @@ import {
   Briefcase,
   CalendarDays,
   ExternalLink,
+  Heart,
   Receipt,
   Repeat,
   Wallet,
@@ -30,7 +31,7 @@ type Payment = {
   subscription?: { plan?: { name: string } | null } | null;
 };
 
-type FilterValue = 'all' | 'JOB' | 'SUBSCRIPTION';
+type FilterValue = 'all' | 'JOB' | 'SUBSCRIPTION' | 'TIP';
 
 const STATUS_STYLES: Record<string, string> = {
   SUCCEEDED: 'bg-green-500/10 text-green-500',
@@ -45,11 +46,22 @@ function dollars(cents: number) {
 }
 
 function paymentLabel(payment: Payment) {
+  if (payment.kind === 'TIP') {
+    return payment.job?.service?.name
+      ? `Tip · ${payment.job.service.name}`
+      : 'Tip';
+  }
   return (
     payment.job?.service?.name ||
     payment.subscription?.plan?.name ||
     (payment.kind === 'SUBSCRIPTION' ? 'Subscription' : 'Job')
   );
+}
+
+function paymentKindLabel(kind: string) {
+  if (kind === 'SUBSCRIPTION') return 'Plan';
+  if (kind === 'TIP') return 'Tip';
+  return 'Job';
 }
 
 export default function PaymentsPage() {
@@ -87,18 +99,16 @@ export default function PaymentsPage() {
   const counts = useMemo(
     () => ({
       all: payments.length,
-      JOB: payments.filter((p) => p.kind !== 'SUBSCRIPTION').length,
+      JOB: payments.filter((p) => p.kind === 'JOB').length,
       SUBSCRIPTION: payments.filter((p) => p.kind === 'SUBSCRIPTION').length,
+      TIP: payments.filter((p) => p.kind === 'TIP').length,
     }),
     [payments],
   );
 
   const filtered = useMemo(() => {
     if (filter === 'all') return payments;
-    if (filter === 'SUBSCRIPTION') {
-      return payments.filter((p) => p.kind === 'SUBSCRIPTION');
-    }
-    return payments.filter((p) => p.kind !== 'SUBSCRIPTION');
+    return payments.filter((p) => p.kind === filter);
   }, [payments, filter]);
 
   if (loading) {
@@ -189,6 +199,7 @@ export default function PaymentsPage() {
                 label: 'Plans',
                 count: counts.SUBSCRIPTION,
               },
+              { value: 'TIP', label: 'Tips', count: counts.TIP },
             ]}
             value={filter}
             onChange={setFilter}
@@ -211,6 +222,8 @@ export default function PaymentsPage() {
                 <span className="flex relative justify-center items-center w-9 h-9 rounded-lg border shrink-0 border-brand-lime/25 bg-brand-lime/10">
                   {payment.kind === 'SUBSCRIPTION' ? (
                     <Repeat className="w-4 h-4 text-brand-lime" />
+                  ) : payment.kind === 'TIP' ? (
+                    <Heart className="w-4 h-4 text-brand-lime" />
                   ) : (
                     <Briefcase className="w-4 h-4 text-brand-lime" />
                   )}
@@ -227,7 +240,7 @@ export default function PaymentsPage() {
                       year: 'numeric',
                     })}
                     {' · '}
-                    {payment.kind === 'SUBSCRIPTION' ? 'Plan' : 'Job'}
+                    {paymentKindLabel(payment.kind)}
                   </p>
                 </div>
 

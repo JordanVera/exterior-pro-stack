@@ -90,6 +90,7 @@ enum NotificationType {
   JOB_REMINDER
   JOB_MESSAGE
   REVIEW_RECEIVED
+  TIP_RECEIVED
   SCHEDULE_CHANGE
   SUBSCRIPTION_CREATED
   SUBSCRIPTION_RENEWED
@@ -102,6 +103,7 @@ enum NotificationType {
 enum PaymentKind {
   SUBSCRIPTION
   JOB
+  TIP
 }
 
 enum PaymentStatus {
@@ -183,6 +185,7 @@ model ProviderProfile {
   subscriptions CustomerSubscription[]
   transfers     Transfer[]
   reviews       JobReview[]
+  invitedJobs   Job[]                  @relation("JobInvitedProvider")
 }
 
 // ─── Properties ─────────────────────────────────────────────────────────────
@@ -325,9 +328,10 @@ model Job {
   type           JobType   @default(ONE_TIME)
   status         JobStatus @default(OPEN)
   subscriptionId String?
-  acceptedBidId  String?   @unique
-  customerNotes  String?   @db.Text
-  scheduledDate  DateTime?
+  acceptedBidId      String?   @unique
+  invitedProviderId  String?
+  customerNotes      String?   @db.Text
+  scheduledDate      DateTime?
   scheduledTime  String?
   completedAt    DateTime?
   notes          String?   @db.Text
@@ -338,6 +342,7 @@ model Job {
   service           Service               @relation(fields: [serviceId], references: [id])
   subscription      CustomerSubscription? @relation(fields: [subscriptionId], references: [id])
   acceptedBid       JobBid?               @relation("AcceptedBid", fields: [acceptedBidId], references: [id])
+  invitedProvider   ProviderProfile?      @relation("JobInvitedProvider", fields: [invitedProviderId], references: [id], onDelete: SetNull)
   bids              JobBid[]              @relation("JobBids")
   assignments       JobAssignment[]
   recurringSchedule RecurringSchedule?
@@ -346,6 +351,8 @@ model Job {
   messages          JobMessage[]
   threadReads       JobThreadRead[]
   review            JobReview?
+
+  @@index([invitedProviderId])
 }
 
 model JobPhoto {

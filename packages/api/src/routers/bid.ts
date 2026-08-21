@@ -49,6 +49,13 @@ export const bidRouter = router({
         });
       }
 
+      if (job.invitedProviderId && job.invitedProviderId !== profile.id) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'This job is a direct booking with another provider',
+        });
+      }
+
       const existingBid = await ctx.db.jobBid.findUnique({
         where: {
           jobId_providerId: { jobId: input.jobId, providerId: profile.id },

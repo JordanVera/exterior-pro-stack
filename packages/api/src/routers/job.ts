@@ -19,6 +19,7 @@ import {
   getJobByIdInput,
   deleteJobPhotoInput,
   submitJobReviewInput,
+  rebookJobInput,
 } from '@repo/validators';
 import {
   notifyNewJobAvailable,
@@ -29,6 +30,8 @@ import {
   notifyReviewReceived,
 } from '../lib/notifications';
 import { decorateCustomerJobs } from '../lib/reviews';
+import { createJobCheckoutSession } from '../lib/payments';
+import { getAppUrl, toCents } from '../lib/stripe';
 import {
   fieldJobInclude,
   getFieldAccess,
@@ -339,6 +342,11 @@ export const jobRouter = router({
           ...(providerZips.length > 0
             ? { property: { zip: { in: providerZips } } }
             : {}),
+          // Direct rebooks are only visible to the invited provider
+          OR: [
+            { invitedProviderId: null },
+            { invitedProviderId: profile.id },
+          ],
           // Exclude jobs provider already bid on
           bids: { none: { providerId: profile.id } },
         },
@@ -846,5 +854,148 @@ export const jobRouter = router({
       }
 
       return review;
+    }),
+
+  /**
+   * Customer: book the same provider again at the last accepted price.
+   * Creates an invite-only job and sends the customer to checkout.
+   */
+  rebook: customerProcedure
+    .input(rebookJobInput)
+    .mutation(async ({ ctx, input }) => {
+      const profile = await ctx.db.customerProfile.findUnique({
+        where: { userId: ctx.user.userId },
+        include: { user: true },
+      });
+
+      if (!profile) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Profile not found',
+        });
+      }
+
+      const source = await ctx.db.job.findUnique({
+        where: { id: input.jobId },
+        include: {
+          property: true,
+          service: true,
+          acceptedBid: { include: { provider: true } },
+        },
+      });
+
+      if (!source || source.property.customerId !== profile.id) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
+      }
+
+      if (source.status !== 'COMPLETED' || !source.acceptedBid) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'You can only rebook a completed job with an assigned provider',
+        });
+      }
+
+      const provider = source.acceptedBid.provider;
+      if (!provider.stripeTransfersEnabled) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: 'This provider has not finished payout setup yet.',
+        });
+      }
+
+      const price = Number(source.acceptedBid.price);
+      if (!Number.isFinite(price) || price <= 0) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'This job has no price to rebook at',
+        });
+      }
+
+      const notes = input.customerNotes?.trim() || undefined;
+      const appUrl = getAppUrl();
+
+      let job = await ctx.db.job.findFirst({
+        where: {
+          propertyId: source.propertyId,
+          serviceId: source.serviceId,
+          invitedProviderId: provider.id,
+          status: 'OPEN',
+        },
+        include: {
+          bids: {
+            where: { providerId: provider.id, status: 'PENDING' },
+          },
+        },
+      });
+
+      if (job && job.bids.length === 0) {
+        const restored = await ctx.db.jobBid.create({
+          data: {
+            jobId: job.id,
+            providerId: provider.id,
+            price,
+            notes: 'Rebook at last price',
+            status: 'PENDING',
+          },
+        });
+        job = { ...job, bids: [restored] };
+      }
+
+      if (!job) {
+        job = await ctx.db.job.create({
+          data: {
+            propertyId: source.propertyId,
+            serviceId: source.serviceId,
+            customerNotes: notes,
+            type: 'ONE_TIME',
+            status: 'OPEN',
+            invitedProviderId: provider.id,
+            bids: {
+              create: {
+                providerId: provider.id,
+                price,
+                notes: 'Rebook at last price',
+                status: 'PENDING',
+              },
+            },
+          },
+          include: {
+            bids: {
+              where: { providerId: provider.id, status: 'PENDING' },
+            },
+          },
+        });
+      }
+
+      const bid = job.bids[0];
+      if (!bid) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Could not prepare the rebook bid',
+        });
+      }
+
+      const checkout = await createJobCheckoutSession({
+        customerId: profile.id,
+        jobId: job.id,
+        bidId: bid.id,
+        providerId: provider.id,
+        amountCents: toCents(price),
+        description: `${source.service.name} — ${source.property.address}`,
+        email: profile.email,
+        name: `${profile.firstName} ${profile.lastName}`,
+        phone: profile.user.phone,
+        stripeCustomerId: profile.stripeCustomerId,
+        successUrl: `${appUrl}/customer/jobs/${job.id}?checkout=success`,
+        cancelUrl: `${appUrl}/customer/jobs/${source.id}?rebook=canceled`,
+        extraMetadata: { rebook: 'true' },
+      });
+
+      return {
+        checkoutUrl: checkout.checkoutUrl,
+        jobId: job.id,
+        amountCents: toCents(price),
+        providerName: provider.businessName,
+      };
     }),
 });
