@@ -1,17 +1,18 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { trpc } from '../../../lib/trpc';
 import { Button } from '@/components/ui/button';
+import { dollarsWhole } from './_components/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useEffect, useMemo, useState } from 'react';
+import { QuickActions } from '@/components/dashboard/quick-actions';
+import { SectionPanel } from '@/components/dashboard/section-panel';
+import { StatTiles, type StatTile } from '@/components/dashboard/stat-tiles';
 import {
   DashboardHero,
   type HeroChip,
 } from '@/components/dashboard/dashboard-hero';
-import { StatTiles, type StatTile } from '@/components/dashboard/stat-tiles';
-import { SectionPanel } from '@/components/dashboard/section-panel';
-import { QuickActions } from '@/components/dashboard/quick-actions';
 import {
   AlertTriangle,
   Briefcase,
@@ -23,7 +24,6 @@ import {
   Users,
   Wallet,
 } from 'lucide-react';
-import { dollarsWhole } from './_components/utils';
 
 type AdminStats = {
   totalUsers: number;
