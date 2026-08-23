@@ -47,7 +47,11 @@ export default function AdminJobsPage() {
         ...(cursor ? { cursor } : {}),
       })
       .then((data) => {
-        setItems(cursor ? [...items, ...(data.items as AdminJob[])] : (data.items as AdminJob[]));
+        setItems(
+          cursor
+            ? [...items, ...(data.items as AdminJob[])]
+            : (data.items as AdminJob[]),
+        );
         setNextCursor(data.nextCursor);
       })
       .catch((err) => toast.error(err.message || 'Failed to load jobs'))
@@ -83,17 +87,31 @@ export default function AdminJobsPage() {
       />
 
       <SectionPanel title="All jobs" count={items.length} bare>
-        <div className="overflow-x-auto rounded-2xl border border-border bg-background/70 backdrop-blur-xl">
+        <div className="overflow-x-auto rounded-2xl border backdrop-blur-xl border-border bg-background/70">
           <table className="w-full text-sm">
             <thead className="border-b border-border bg-muted/40">
               <tr>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Service</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Property</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Provider</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Status</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Scheduled</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Bids</th>
-                <th className="px-4 py-3 text-left font-medium text-muted-foreground">Price</th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">
+                  Service
+                </th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">
+                  Property
+                </th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">
+                  Provider
+                </th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">
+                  Status
+                </th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">
+                  Scheduled
+                </th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">
+                  Bids
+                </th>
+                <th className="px-4 py-3 font-medium text-left text-muted-foreground">
+                  Price
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -112,18 +130,22 @@ export default function AdminJobsPage() {
                   <td className="px-4 py-3 text-muted-foreground">
                     {formatDate(job.scheduledDate)}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{job.bids?.length || 0}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {job.bids?.length || 0}
+                  </td>
                   <td className="px-4 py-3 font-medium">
-                    {job.acceptedBid ? `$${Number(job.acceptedBid.price).toFixed(2)}` : '—'}
+                    {job.acceptedBid
+                      ? `$${Number(job.acceptedBid.price).toFixed(2)}`
+                      : '—'}
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
           {loading ? (
-            <div className="space-y-2 p-4">
-              <Skeleton className="h-10 w-full" />
-              <Skeleton className="h-10 w-full" />
+            <div className="p-4 space-y-2">
+              <Skeleton className="w-full h-10" />
+              <Skeleton className="w-full h-10" />
             </div>
           ) : null}
           {!loading && items.length === 0 ? (
