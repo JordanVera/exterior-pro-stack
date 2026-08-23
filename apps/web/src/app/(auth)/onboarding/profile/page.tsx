@@ -273,7 +273,8 @@ export default function ProfileOnboardingPage() {
                     Services you offer
                   </CardTitle>
                   <CardDescription>
-                    Choose at least one. Custom prices can be set later.
+                    Choose at least one. Custom prices can be set later in your
+                    provider settings.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-5">
@@ -290,8 +291,8 @@ export default function ProfileOnboardingPage() {
                 <CardHeader className="p-5 pb-0">
                   <CardTitle className="text-base">Service ZIP codes</CardTitle>
                   <CardDescription>
-                    Select Greater Houston ZIPs you serve. Add any others one at
-                    a time at the bottom.
+                    Select Greater Houston ZIPs you serve, or select all for the
+                    whole metro. Add any others one at a time at the bottom.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-5">

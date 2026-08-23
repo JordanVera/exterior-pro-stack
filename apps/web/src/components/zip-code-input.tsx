@@ -5,6 +5,8 @@ import { Search, X } from 'lucide-react';
 import { MAX_SERVICE_ZIPS, US_ZIP } from '@repo/validators';
 import {
   HOUSTON_ZIP_GROUPS,
+  HOUSTON_ZIP_SET,
+  HOUSTON_ZIPS,
   houstonZipLabel,
   type HoustonZipGroup,
 } from '@/content/houston-zips';
@@ -17,6 +19,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
+
+const MAX_VISIBLE_CHIPS = 10;
 
 function selectedList(value: string) {
   return value ? value.split(',').filter(Boolean) : [];
@@ -57,6 +61,12 @@ export function ZipCodeInput({
   const zips = selectedList(value);
   const selected = useMemo(() => new Set(zips), [zips]);
   const groups = useMemo(() => filterGroups(query), [query]);
+  const extraZips = useMemo(
+    () => zips.filter((zip) => !HOUSTON_ZIP_SET.has(zip)),
+    [zips],
+  );
+  const allHoustonSelected =
+    HOUSTON_ZIPS.length > 0 && HOUSTON_ZIPS.every((zip) => selected.has(zip));
 
   const setZips = (next: string[]) => {
     onChange(next.join(','));
@@ -73,6 +83,38 @@ export function ZipCodeInput({
       return;
     }
     setZips([...zips, zip]);
+  };
+
+  const selectAllHouston = () => {
+    const next = [...HOUSTON_ZIPS, ...extraZips];
+    if (next.length > MAX_SERVICE_ZIPS) {
+      setError(`You can add up to ${MAX_SERVICE_ZIPS} ZIP codes`);
+      return;
+    }
+    setError('');
+    setZips(next);
+  };
+
+  const clearHouston = () => {
+    setError('');
+    setZips(extraZips);
+  };
+
+  const toggleGroup = (group: HoustonZipGroup) => {
+    const groupZips = group.zips.map((item) => item.zip);
+    const missing = groupZips.filter((zip) => !selected.has(zip));
+    setError('');
+    if (missing.length === 0) {
+      const drop = new Set(groupZips);
+      setZips(zips.filter((zip) => !drop.has(zip)));
+      return;
+    }
+    const next = [...zips, ...missing];
+    if (next.length > MAX_SERVICE_ZIPS) {
+      setError(`You can add up to ${MAX_SERVICE_ZIPS} ZIP codes`);
+      return;
+    }
+    setZips(next);
   };
 
   const addCustom = () => {
@@ -94,6 +136,13 @@ export function ZipCodeInput({
     setCustom('');
   };
 
+  const visibleZips = allHoustonSelected
+    ? extraZips
+    : zips.slice(0, MAX_VISIBLE_CHIPS);
+  const hiddenCount = allHoustonSelected
+    ? 0
+    : Math.max(0, zips.length - MAX_VISIBLE_CHIPS);
+
   return (
     <div className="space-y-2">
       <div
@@ -103,9 +152,44 @@ export function ZipCodeInput({
         )}
       >
         <div className="space-y-2 border-b border-border px-3 py-2.5">
+          <div className="flex gap-2 justify-between items-center">
+            <p className="text-xs text-muted-foreground">
+              {zips.length === 0
+                ? 'Click the ZIP codes you serve'
+                : `${zips.length} ZIP${zips.length === 1 ? '' : 's'} selected`}
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={disabled}
+              onClick={allHoustonSelected ? clearHouston : selectAllHouston}
+              aria-label={
+                allHoustonSelected
+                  ? 'Clear all Greater Houston ZIP codes'
+                  : 'Select all Greater Houston ZIP codes'
+              }
+              className="h-7 shrink-0 px-2.5 text-xs"
+            >
+              {allHoustonSelected ? 'Clear Greater Houston' : 'Select all'}
+            </Button>
+          </div>
           {zips.length > 0 ? (
             <div className="flex flex-wrap gap-1.5">
-              {zips.map((zip) => (
+              {allHoustonSelected ? (
+                <span className="inline-flex items-center gap-1 rounded-full border border-brand-lime/30 bg-brand-lime/10 px-2 py-0.5 text-xs font-medium text-foreground">
+                  All Greater Houston
+                  <button
+                    type="button"
+                    onClick={clearHouston}
+                    disabled={disabled}
+                    className="rounded-full p-0.5 text-muted-foreground hover:text-foreground"
+                    aria-label="Clear Greater Houston ZIP codes"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ) : null}
+              {visibleZips.map((zip) => (
                 <span
                   key={zip}
                   className="inline-flex items-center gap-1 rounded-full border border-brand-lime/30 bg-brand-lime/10 px-2 py-0.5 text-xs font-medium text-foreground"
@@ -123,12 +207,13 @@ export function ZipCodeInput({
                   </button>
                 </span>
               ))}
+              {hiddenCount > 0 ? (
+                <span className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
+                  +{hiddenCount} more
+                </span>
+              ) : null}
             </div>
-          ) : (
-            <p className="text-xs text-muted-foreground">
-              Click the ZIP codes you serve
-            </p>
-          )}
+          ) : null}
           <div className="relative">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -168,6 +253,7 @@ export function ZipCodeInput({
               const picked = group.zips.filter((item) =>
                 selected.has(item.zip),
               ).length;
+              const allInGroup = picked === group.zips.length;
               return (
                 <AccordionItem
                   key={group.id}
@@ -185,6 +271,16 @@ export function ZipCodeInput({
                     </span>
                   </AccordionTrigger>
                   <AccordionContent className="pb-3">
+                    <div className="flex justify-end mb-2">
+                      <button
+                        type="button"
+                        disabled={disabled}
+                        onClick={() => toggleGroup(group)}
+                        className="text-[11px] font-medium text-brand-navy hover:underline dark:text-brand-lime"
+                      >
+                        {allInGroup ? 'Clear this area' : 'Select this area'}
+                      </button>
+                    </div>
                     <div className="grid grid-cols-3 gap-1.5 sm:grid-cols-4">
                       {group.zips.map((item) => {
                         const isOn = selected.has(item.zip);

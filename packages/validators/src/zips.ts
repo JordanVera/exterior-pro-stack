@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const US_ZIP = /^\d{5}$/;
 export const US_ZIP_OR_PLUS4 = /^\d{5}(?:-\d{4})?$/;
-export const MAX_SERVICE_ZIPS = 80;
+export const MAX_SERVICE_ZIPS = 250;
 
 /** Split typed/pasted ZIP input into 5-digit codes, preserving order. */
 export function parseZipCodes(raw: string): { zips: string[]; invalid: string[] } {
@@ -36,7 +36,7 @@ export function serializeZipCodes(zips: string[]): string {
 function zipListSchema(opts: { required: boolean }) {
   return z
     .string()
-    .max(1000)
+    .max(2000)
     .transform((val, ctx) => {
       const trimmed = val.trim();
       if (!trimmed) {

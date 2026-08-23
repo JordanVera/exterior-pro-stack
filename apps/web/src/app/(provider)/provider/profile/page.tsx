@@ -188,8 +188,8 @@ export default function ProviderProfilePage() {
               disabled={saving}
             />
             <p className="text-xs text-muted-foreground">
-              Select Greater Houston ZIPs you serve. Jobs in those areas show up
-              in your available list.
+              Select Greater Houston ZIPs you serve, or select all for the whole
+              metro. Jobs in those areas show up in your available list.
             </p>
           </div>
           <Button

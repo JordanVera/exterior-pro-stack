@@ -170,7 +170,7 @@ model ProviderProfile {
   logoUrl                String?   @db.VarChar(2048)
   logoPathname           String?   @db.VarChar(1024)
   serviceArea            String?
-  serviceAreaZips        String?
+  serviceAreaZips        String?   @db.Text
   verified               Boolean   @default(false)
   stripeAccountId        String?   @unique
   stripeTransfersEnabled Boolean   @default(false)
