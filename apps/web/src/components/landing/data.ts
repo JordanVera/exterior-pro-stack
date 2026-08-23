@@ -31,7 +31,7 @@ export const SERVICES = [
       'Driveways, siding, decks, patios, and fences taken back to like-new in a single visit.',
     image: '/services/pressure-washing.png',
     link: loginPath('customer'),
-    tag: 'Most requested',
+    tag: 'Quarterly / Biannual',
   },
   {
     title: 'Gutter Cleaning',
@@ -39,7 +39,7 @@ export const SERVICES = [
       'Full gutter and downspout clearing, flush, and guard installation before the next storm.',
     image: '/services/gutter-cleaning.jpg',
     link: loginPath('customer'),
-    tag: 'Quarterly / Biannual',
+    tag: 'Quarterly',
   },
   {
     title: 'Weed Control',
