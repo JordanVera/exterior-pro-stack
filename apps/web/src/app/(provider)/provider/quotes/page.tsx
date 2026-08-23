@@ -102,8 +102,8 @@ export default function AvailableJobsPage() {
       </div>
 
       {!payoutsEnabled && (
-        <Card className="shadow-none border-amber-500/30 bg-amber-500/5">
-          <CardContent className="p-4 text-sm text-amber-800 dark:text-amber-200">
+        <Card className="shadow-none border-red-500/30 bg-red-500/5">
+          <CardContent className="p-4 text-sm text-red-800 dark:text-red-200">
             Complete payout onboarding before bidding.{' '}
             <Link href="/provider/payouts" className="underline">
               Set up payouts
@@ -205,7 +205,7 @@ export default function AvailableJobsPage() {
                           <Button
                             onClick={() => handleSubmitBid(job.id)}
                             disabled={submitting}
-                            className="bg-brand-lime text-brand-ink rounded-full hover:bg-brand-lime/90"
+                            className="rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
                             size="sm"
                           >
                             {submitting ? 'Submitting...' : 'Submit bid'}
@@ -227,7 +227,7 @@ export default function AvailableJobsPage() {
                     ) : (
                       <Button
                         onClick={() => setBiddingJobId(job.id)}
-                        className="bg-brand-lime text-brand-ink rounded-full hover:bg-brand-lime/90"
+                        className="rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
                         size="sm"
                       >
                         Submit a bid

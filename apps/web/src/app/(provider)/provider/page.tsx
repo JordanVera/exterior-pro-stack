@@ -23,9 +23,15 @@ import { SectionPanel } from '@/components/dashboard/section-panel';
 import { QuickActions } from '@/components/dashboard/quick-actions';
 import { getGreeting, getDateString, formatJobDate } from './_components/utils';
 import { ProviderJobFeed } from './_components/job-feed';
-import { PayoutSummary, type ProviderTransfer } from './_components/payout-summary';
+import {
+  PayoutSummary,
+  type ProviderTransfer,
+} from './_components/payout-summary';
 import { CrewSummary, type ProviderCrew } from './_components/crew-summary';
-import { OpenJobsCarousel, type OpenJob } from './_components/open-jobs-carousel';
+import {
+  OpenJobsCarousel,
+  type OpenJob,
+} from './_components/open-jobs-carousel';
 
 type ProviderBid = {
   id: string;
@@ -94,16 +100,18 @@ export default function ProviderDashboard() {
       trpc.payment.listForProvider.query().catch(() => []),
       trpc.connect.getStatus.query().catch(() => null),
     ])
-      .then(([user, pending, next, open, myBids, crewList, payouts, connect]) => {
-        setBusinessName(user.providerProfile?.businessName || 'there');
-        setPendingJobs(pending);
-        setUpcoming(next);
-        setOpenJobs(open as unknown as OpenJob[]);
-        setBids(myBids as unknown as ProviderBid[]);
-        setCrews(crewList as unknown as ProviderCrew[]);
-        setTransfers(payouts as unknown as ProviderTransfer[]);
-        if (connect) setPayoutsEnabled(connect.payoutsEnabled);
-      })
+      .then(
+        ([user, pending, next, open, myBids, crewList, payouts, connect]) => {
+          setBusinessName(user.providerProfile?.businessName || 'there');
+          setPendingJobs(pending);
+          setUpcoming(next);
+          setOpenJobs(open as unknown as OpenJob[]);
+          setBids(myBids as unknown as ProviderBid[]);
+          setCrews(crewList as unknown as ProviderCrew[]);
+          setTransfers(payouts as unknown as ProviderTransfer[]);
+          if (connect) setPayoutsEnabled(connect.payoutsEnabled);
+        },
+      )
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -237,10 +245,10 @@ export default function ProviderDashboard() {
           <Button
             asChild
             size="lg"
-            className="rounded-full bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
+            className="font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
           >
             <Link href="/provider/quotes">
-              <Search className="h-4 w-4" />
+              <Search className="w-4 h-4" />
               Browse open jobs
             </Link>
           </Button>
@@ -248,9 +256,9 @@ export default function ProviderDashboard() {
       />
 
       {!payoutsEnabled && (
-        <div className="flex flex-col gap-3 rounded-2xl border border-amber-500/30 bg-amber-500/5 p-5 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-amber-500" />
+        <div className="flex flex-col gap-3 p-5 rounded-2xl border border-red-500/30 bg-red-500/5 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex gap-3 items-start">
+            <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-500" />
             <div>
               <p className="text-sm font-medium text-foreground">
                 Finish payout setup
@@ -263,7 +271,7 @@ export default function ProviderDashboard() {
           <Button
             asChild
             size="sm"
-            className="shrink-0 rounded-full bg-brand-lime font-semibold text-brand-ink hover:bg-brand-lime/90"
+            className="font-semibold rounded-full shrink-0 bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
           >
             <Link href="/provider/payouts">Set up payouts</Link>
           </Button>
@@ -307,7 +315,7 @@ function ProviderDashboardSkeleton() {
       </div>
       <div className="grid gap-8 lg:grid-cols-[1.6fr_1fr]">
         <div className="space-y-2">
-          <Skeleton className="mb-4 h-8 w-64 rounded-full" />
+          <Skeleton className="mb-4 w-64 h-8 rounded-full" />
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-20 rounded-2xl" />
           ))}
