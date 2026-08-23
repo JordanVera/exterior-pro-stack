@@ -85,6 +85,8 @@ export async function generateSubscriptionJobs() {
       const customPrice = assigned?.services.find(
         (s) => s.serviceId === planService.serviceId
       )?.customPrice;
+      // Launch plans are only margin-positive when customPrice is a contracted
+      // rate-card amount, not catalog basePrice. See operating plan rate card.
       const visitPrice = Number(customPrice ?? planService.service.basePrice);
 
       if (assigned) {

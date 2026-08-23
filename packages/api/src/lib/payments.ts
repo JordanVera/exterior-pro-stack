@@ -66,6 +66,11 @@ export async function ensurePlanStripePrices(planId: string) {
       metadata: { planId: plan.id },
     });
     productId = product.id;
+  } else {
+    await client.products.update(productId, {
+      name: plan.name,
+      description: plan.description || undefined,
+    });
   }
 
   const data: {

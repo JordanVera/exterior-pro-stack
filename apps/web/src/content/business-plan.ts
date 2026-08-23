@@ -1,10 +1,10 @@
 /**
  * Interior operating plan for Exterior Pro.
  * Update this module when strategy, pricing, or launch assumptions change.
- * Last written: August 20, 2026.
+ * Last written: August 23, 2026.
  */
 
-export const PLAN_UPDATED = 'August 20, 2026';
+export const PLAN_UPDATED = 'August 23, 2026';
 
 export type CalloutTone = 'amber' | 'lime' | 'red' | 'muted';
 
@@ -187,7 +187,7 @@ export const PLAN_SECTIONS: PlanSection[] = [
       {
         type: 'table',
         caption:
-          'Annual catalog fulfillment vs plan billings if every visit is paid at seeded basePrice. Frequencies: weekly 52, bi-weekly 26, monthly 12, quarterly 4, biannual 2. Window cleaning is $5/window; Premium assumes 20 windows ($100/visit) as a planning placeholder.',
+          'Annual catalog fulfillment vs plan billings if every visit is paid at seeded basePrice. Frequencies: weekly 52, bi-weekly 26, monthly 12, quarterly 4, biannual 2. Launch mix is lawn + fert + gutters + wash; windows stay marketplace-only.',
         columns: [
           'Plan',
           'Billings / mo',
@@ -197,15 +197,15 @@ export const PLAN_SECTIONS: PlanSection[] = [
         ],
         rows: [
           {
-            cells: ['Basic Lawn Care', '$99', '~$184', '−$85', '−$1,022'],
+            cells: ['Basic Lawn Care', '$99', '~$209', '−$110', '−$1,320'],
             tone: 'danger',
           },
           {
-            cells: ['Standard Exterior', '$179', '~$310', '−$131', '−$1,572'],
+            cells: ['Standard Exterior', '$179', '~$335', '−$156', '−$1,872'],
             tone: 'danger',
           },
           {
-            cells: ['Premium Exterior', '$299', '~$444', '−$145', '−$1,742'],
+            cells: ['Premium Exterior', '$299', '~$427', '−$128', '−$1,536'],
             tone: 'danger',
           },
         ],
@@ -223,9 +223,10 @@ export const PLAN_SECTIONS: PlanSection[] = [
         rows: [
           { cells: ['Weekly lawn mowing', '52 / yr', '$45 flat', '$195'] },
           { cells: ['Weed control', '12 / yr', '$65 flat', '$65'] },
+          { cells: ['Lawn fertilization', '4 / yr', '$75 flat', '$25'] },
           { cells: ['Gutter clean & flush', '4 / yr', '$150 flat', '$50'] },
           {
-            cells: ['Standard total', '', '', '$310 vs $179 plan'],
+            cells: ['Standard total', '', '', '$335 vs $179 plan'],
             tone: 'danger',
           },
         ],
@@ -234,24 +235,29 @@ export const PLAN_SECTIONS: PlanSection[] = [
         type: 'callout',
         tone: 'red',
         title: 'Operator rule',
-        body: 'Do not sell Standard or Premium at volume until each assigned provider has contracted per-visit rates below catalog — or raise plan prices / cut included frequencies. Marketplace one-time jobs at 10% can scale now. The code path to change later is subscription-jobs.ts (visitPrice) plus provider onboarding that captures a plan rate card, not catalog basePrice.',
+        body: 'Do not sell a plan in a ZIP until the assigned crew has signed the rate card for every visit on that tier: Basic = bi-weekly mow + monthly weed + quarterly fert; Standard adds quarterly gutter; Premium adds quarterly driveway and biannual siding wash. Marketplace one-time jobs at 10% can scale now. Visit payout still reads customPrice ?? basePrice in subscription-jobs.ts — contracted rates must live on ProviderService.customPrice.',
       },
       {
         type: 'table',
         caption:
-          'Example contracted rate card that leaves ~12–15% contribution on Standard after Stripe Billing (~$5.50 on $179). These are planning rates, not live prices.',
+          'Houston launch rate card. Sign these before selling the matching tier. Standard ~12% contribution only at the low end after Stripe Billing (~$5.50 on $179); mid targets are roughly break-even once quarterly fert is included. Planning rates, not live prices.',
         columns: [
           'Visit',
           'Catalog',
           'Contract target',
           'Monthly at frequency',
+          'Required on',
         ],
         rows: [
-          { cells: ['Weekly mow', '$45', '$22–28', '~$95–121'] },
-          { cells: ['Monthly weed', '$65', '$25–35', '$25–35'] },
-          { cells: ['Quarterly gutter', '$150', '$60–80', '$20–27'] },
+          { cells: ['Bi-weekly mow', '$55', '$28–35', '~$61–76', 'Basic'] },
+          { cells: ['Weekly mow', '$45', '$22–28', '~$95–121', 'Standard, Premium'] },
+          { cells: ['Monthly weed', '$65', '$25–35', '$25–35', 'All'] },
+          { cells: ['Quarterly fert', '$75', '$30–40', '$10–13', 'All'] },
+          { cells: ['Quarterly gutter', '$150', '$60–80', '$20–27', 'Standard, Premium'] },
+          { cells: ['Quarterly driveway', '$150', '$70–90', '$23–30', 'Premium'] },
+          { cells: ['Biannual siding', '$250', '$100–140', '$17–23', 'Premium'] },
           {
-            cells: ['Standard COGS', '$310', '', '~$148 at mid targets'],
+            cells: ['Standard COGS (low end)', '$335', '', '~$150', ''],
             tone: 'ok',
           },
         ],
@@ -260,7 +266,7 @@ export const PLAN_SECTIONS: PlanSection[] = [
         type: 'prose',
         paragraphs: [
           'Why providers would accept that: density. A $25 weekly mow on a tight ZIP route with five neighbors is better than a $45 one-off across town. Sell density and recurring book, not list price. If a provider will not sign a rate card, keep them on the one-time bid marketplace only.',
-          'Healthy unit: a $175 gutter job. Platform nets ~$17.50 (10%). Unhealthy unit: a Standard subscriber fulfilled at catalog. Platform bills $179 and owes ~$310 of visits (or ~$270 after the 10% split on those visit records — still underwater). Until rate cards exist, treat subscription contribution as zero or negative in any target model.',
+          'Healthy unit: a $175 gutter job. Platform nets ~$17.50 (10%). Unhealthy unit: a Standard subscriber fulfilled at catalog. Platform bills $179 and owes ~$335 of visits (or ~$302 after the 10% split on those visit records — still underwater). Until rate cards exist, treat subscription contribution as zero or negative in any target model.',
         ],
       },
     ],
@@ -288,7 +294,7 @@ export const PLAN_SECTIONS: PlanSection[] = [
           },
           {
             title: 'Demand into those ZIPs (weeks 3–8)',
-            body: 'Landing already splits homeowners vs providers (?intent=customer|provider). Run local demand only where supply exists. Offer one-time jobs immediately; offer Basic only if a mowing rate card is signed; hold Standard/Premium until the unit-economics rule is met.',
+            body: 'Landing already splits homeowners vs providers (?intent=customer|provider). Run local demand only where supply exists. Offer one-time jobs immediately. Offer Basic only if mow + weed + fert rates are signed; Standard only with gutter added; Premium only with driveway and siding wash added. Hold Standard/Premium in any ZIP that lacks those cards.',
           },
           {
             title: 'Recurring density (months 2–6)',
@@ -453,7 +459,7 @@ export const PLAN_SECTIONS: PlanSection[] = [
         items: [
           {
             title: 'Negative subscription margin',
-            body: 'Highest-probability financial failure. Cron currently prices visits at catalog. Selling Standard at $179 while paying ~$310 of visits burns cash on every happy customer. Mitigation: rate cards before volume; or raise/cut plans.',
+            body: 'Highest-probability financial failure. Cron currently prices visits at catalog. Selling Standard at $179 while paying ~$335 of visits burns cash on every happy customer. Mitigation: sign the launch rate card before volume; or raise/cut plans.',
           },
           {
             title: 'Empty bid lists',

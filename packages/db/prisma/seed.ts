@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PROVIDER_LOGO_FILES } from './seed-assets/logos';
+import { syncLaunchPlans } from './launch-plans';
 
 const prisma = new PrismaClient();
 const SEED_DIR = dirname(fileURLToPath(import.meta.url));
@@ -1233,75 +1234,12 @@ async function main() {
 
   header('Subscription Plans');
 
-  const biWeeklyMowingId = serviceMap.get('Bi-Weekly Lawn Mowing')!;
-  const weeklyMowingId = serviceMap.get('Weekly Lawn Mowing')!;
-  const weedControlId = serviceMap.get('Weed Control Treatment')!;
-  const gutterCleanId = serviceMap.get('Gutter Clean & Flush')!;
-  const pressureWashId = serviceMap.get('Driveway Pressure Wash')!;
-  const windowCleanId = serviceMap.get('Exterior Only Window Cleaning')!;
-
-  const basicPlan = await prisma.subscriptionPlan.create({
-    data: {
-      name: 'Basic Lawn Care',
-      description:
-        'Essential lawn care with bi-weekly mowing and monthly weed control. Perfect for maintaining a tidy yard.',
-      monthlyPrice: 99.0,
-      quarterlyPrice: 269.0,
-      annualPrice: 990.0,
-      active: true,
-      services: {
-        create: [
-          { serviceId: biWeeklyMowingId, frequency: 'BIWEEKLY' },
-          { serviceId: weedControlId, frequency: 'MONTHLY' },
-        ],
-      },
-    },
-  });
-  success(`${basicPlan.name} — $${basicPlan.monthlyPrice}/mo`);
-
-  const standardPlan = await prisma.subscriptionPlan.create({
-    data: {
-      name: 'Standard Exterior',
-      description:
-        'Comprehensive exterior maintenance with weekly mowing, weed control, and quarterly gutter cleaning.',
-      monthlyPrice: 179.0,
-      quarterlyPrice: 479.0,
-      annualPrice: 1790.0,
-      active: true,
-      services: {
-        create: [
-          { serviceId: weeklyMowingId, frequency: 'WEEKLY' },
-          { serviceId: weedControlId, frequency: 'MONTHLY' },
-          { serviceId: gutterCleanId, frequency: 'QUARTERLY' },
-        ],
-      },
-    },
-  });
-  success(`${standardPlan.name} — $${standardPlan.monthlyPrice}/mo`);
-
-  const premiumPlan = await prisma.subscriptionPlan.create({
-    data: {
-      name: 'Premium Exterior',
-      description:
-        'The full package: weekly mowing, bi-weekly weed control, quarterly gutter cleaning, bi-annual pressure washing, and quarterly window cleaning.',
-      monthlyPrice: 299.0,
-      quarterlyPrice: 799.0,
-      annualPrice: 2990.0,
-      active: true,
-      services: {
-        create: [
-          { serviceId: weeklyMowingId, frequency: 'WEEKLY' },
-          { serviceId: weedControlId, frequency: 'BIWEEKLY' },
-          { serviceId: gutterCleanId, frequency: 'QUARTERLY' },
-          { serviceId: pressureWashId, frequency: 'BIANNUALLY' },
-          { serviceId: windowCleanId, frequency: 'QUARTERLY' },
-        ],
-      },
-    },
-  });
-  success(`${premiumPlan.name} — $${premiumPlan.monthlyPrice}/mo`);
-
-  count('subscription plans', 3);
+  const plans = await syncLaunchPlans(prisma);
+  const basicPlan = plans.find((plan) => plan.name === 'Basic Lawn Care')!;
+  for (const plan of plans) {
+    success(`${plan.name} — $${plan.monthlyPrice}/mo`);
+  }
+  count('subscription plans', plans.length);
 
   // ═══════════════════════════════════════════════════════════════════════════
   // SAMPLE JOBS & BIDS
@@ -2059,7 +1997,7 @@ async function main() {
       `Jordan Vera → ${basicPlan.name} (${chalk.green('ACTIVE')}, provider: GreenScape)`,
     );
 
-    const mowingId = serviceMap.get('Weekly Lawn Mowing');
+    const mowingId = serviceMap.get('Bi-Weekly Lawn Mowing');
     if (mowingId) {
       const subJob = await prisma.job.create({
         data: {
@@ -2095,7 +2033,7 @@ async function main() {
         });
       }
       success(
-        `Subscription job — Weekly Lawn Mowing (${chalk.blue('SCHEDULED')} in 4 days)`,
+        `Subscription job — Bi-Weekly Lawn Mowing (${chalk.blue('SCHEDULED')} in 4 days)`,
       );
     }
 
