@@ -43,7 +43,7 @@ export function PayoutSummary({
           borderWidth={2}
         />
 
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(200,245,66,0.12),transparent_60%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,hsl(var(--brand)/0.18),transparent_60%)]" />
 
         <div className="relative">
           <div className="flex gap-3 justify-between items-start">

@@ -26,6 +26,7 @@ import {
 } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { BrandLogo } from '@/components/brand-logo';
 
 type Step = 'email' | 'code';
 
@@ -128,13 +129,7 @@ function LoginContent() {
         <div className="flex relative z-10 flex-col justify-between p-12 h-full xl:p-16">
           {/* Logo */}
           <Link href="/">
-            <Image
-              src="/logos/logo-stacked-lime.png"
-              alt="Exterior Pro"
-              width={100}
-              height={38}
-              priority
-            />
+            <BrandLogo width={100} height={38} priority onDark />
           </Link>
 
           {/* Hero copy */}
@@ -192,12 +187,7 @@ function LoginContent() {
         <header className="flex justify-between items-center px-6 py-4">
           {/* Mobile-only logo */}
           <Link href="/" className="lg:hidden">
-            <Image
-              src="/logos/logo-stacked-lime.png"
-              alt="Exterior Pro"
-              width={80}
-              height={30}
-            />
+            <BrandLogo width={80} height={30} />
           </Link>
           <div className="hidden lg:block" />
 

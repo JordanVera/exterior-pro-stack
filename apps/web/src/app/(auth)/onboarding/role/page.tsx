@@ -2,8 +2,8 @@
 
 import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
+import { BrandLogo } from '@/components/brand-logo';
 import { ArrowRight, Home, Wrench } from 'lucide-react';
 import { trpc } from '../../../../lib/trpc';
 import { setToken } from '../../../../lib/auth';
@@ -57,13 +57,7 @@ function RoleSelectionContent() {
       <header className="relative z-20 px-4 pt-4">
         <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-brand-navy/70">
           <Link href="/" className="flex gap-2 items-center pl-1">
-            <Image
-              src="/logos/logo-stacked-lime.png"
-              alt="Exterior Pro"
-              width={84}
-              height={32}
-              priority
-            />
+            <BrandLogo width={84} height={32} priority />
           </Link>
           <ThemeToggle />
         </nav>

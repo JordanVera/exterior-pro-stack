@@ -12,7 +12,7 @@ module.exports = {
       },
       colors: {
         brand: {
-          lime: '#C8F542',
+          lime: 'hsl(var(--brand) / <alpha-value>)',
           navy: '#0B1F33',
           ink: '#0A1208',
           night: '#070B12',

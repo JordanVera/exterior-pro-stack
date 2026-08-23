@@ -75,7 +75,7 @@ export function DashboardHero({
         className,
       )}
     >
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(200,245,66,0.16),transparent_60%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,hsl(var(--brand)/0.22),transparent_60%)]" />
       <div className="pointer-events-none absolute -right-16 -top-24 h-64 w-64 rounded-full bg-brand-lime/10 blur-[110px] dark:bg-brand-navy/40" />
       <div className="bg-grid-fade pointer-events-none absolute inset-0 opacity-50 [mask-image:radial-gradient(ellipse_at_top_left,black,transparent_70%)]" />
 

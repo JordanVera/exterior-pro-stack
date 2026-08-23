@@ -20,7 +20,7 @@ function buildTimelineData(steps: readonly AnyStep[]) {
         <p className="text-base leading-relaxed text-muted-foreground">
           {step.body}
         </p>
-        <p className="px-4 py-3 text-sm font-medium rounded-xl border border-brand-lime/25 bg-brand-lime/10 text-brand-navy dark:text-brand-lime">
+        <p className="px-4 py-3 text-sm font-medium rounded-xl border border-brand-lime/40 bg-brand-lime/10 text-brand-navy dark:border-brand-lime/25 dark:text-brand-lime">
           {step.detail}
         </p>
       </div>

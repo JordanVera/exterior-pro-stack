@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
+import { BrandLogo } from '@/components/brand-logo';
 import { Menu, X } from 'lucide-react';
 import { trpc } from '../../../lib/trpc';
 import { isAuthenticated } from '../../../lib/auth';
@@ -73,13 +73,7 @@ export default function CustomerLayout({
         <nav className="mx-auto flex max-w-6xl items-center justify-between rounded-2xl border border-white/10 bg-background/70 px-4 py-2.5 shadow-lg shadow-black/5 backdrop-blur-xl dark:bg-black/70">
           <div className="flex gap-4 items-center">
             <Link href="/customer" className="flex gap-2 items-center pl-1">
-              <Image
-                src="/logos/logo-stacked-lime.png"
-                alt="Exterior Pro"
-                width={84}
-                height={32}
-                priority
-              />
+              <BrandLogo width={84} height={32} priority />
             </Link>
             <div className="hidden gap-1 items-center md:flex">
               {loading

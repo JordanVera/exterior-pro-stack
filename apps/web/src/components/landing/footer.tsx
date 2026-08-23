@@ -1,6 +1,6 @@
-import Image from 'next/image';
 import Link from 'next/link';
 import { Separator } from '@/components/ui/separator';
+import { BrandLogo } from '@/components/brand-logo';
 import {
   FOOTER_COMPANY_LINKS,
   FOOTER_HOMEOWNER_LINKS,
@@ -19,12 +19,7 @@ export function LandingFooter() {
       <div className="mx-auto max-w-6xl px-6">
         <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div>
-            <Image
-              src="/logos/logo-stacked-lime.png"
-              alt="Exterior Pro"
-              width={110}
-              height={42}
-            />
+            <BrandLogo width={110} height={42} />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
               Recurring plans and on-demand jobs for everything outside your
               walls, run by verified local crews.
