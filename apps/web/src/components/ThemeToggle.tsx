@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { cn } from '@/lib/utils';
 
-export function ThemeToggle() {
+export function ThemeToggle({ className }: { className?: string }) {
   const [dark, setDark] = useState(true);
 
   useEffect(() => {
@@ -23,7 +24,10 @@ export function ThemeToggle() {
   return (
     <button
       onClick={toggle}
-      className="p-2 rounded-lg transition-colors text-muted-foreground hover:text-foreground hover:bg-muted"
+      className={cn(
+        'p-2 rounded-lg transition-colors text-muted-foreground hover:text-foreground hover:bg-muted',
+        className,
+      )}
       aria-label="Toggle theme"
       title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
     >

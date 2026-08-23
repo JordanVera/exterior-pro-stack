@@ -46,7 +46,7 @@ export function LandingNavbar() {
         )}
       >
         <Link href="/" className="flex shrink-0 items-center gap-2 pl-1">
-          <BrandLogo width={84} height={32} priority />
+          <BrandLogo width={84} height={32} priority onDark={!scrolled} />
         </Link>
 
         <div className="hidden items-center gap-1 lg:flex">
@@ -54,7 +54,12 @@ export function LandingNavbar() {
             <a
               key={link.href}
               href={link.href}
-              className="group relative rounded-full px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
+              className={cn(
+                'group relative rounded-full px-3.5 py-2 text-sm font-medium transition-colors',
+                scrolled
+                  ? 'text-muted-foreground hover:text-foreground'
+                  : 'text-white/80 hover:text-white',
+              )}
             >
               {link.label}
               <span className="absolute inset-x-3.5 -bottom-0.5 h-px scale-x-0 bg-brand-lime transition-transform duration-300 group-hover:scale-x-100" />
@@ -63,10 +68,21 @@ export function LandingNavbar() {
         </div>
 
         <div className="flex items-center gap-1.5">
-          <ThemeToggle />
+          <ThemeToggle
+            className={
+              scrolled
+                ? undefined
+                : 'text-white/80 hover:text-white hover:bg-white/10'
+            }
+          />
           <Link
             href={loginPath()}
-            className="hidden rounded-full px-3.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground sm:block"
+            className={cn(
+              'hidden rounded-full px-3.5 py-2 text-sm font-medium transition-colors sm:block',
+              scrolled
+                ? 'text-muted-foreground hover:text-foreground'
+                : 'text-white/80 hover:text-white',
+            )}
           >
             Sign in
           </Link>
@@ -81,7 +97,10 @@ export function LandingNavbar() {
             type="button"
             aria-label={open ? 'Close menu' : 'Open menu'}
             onClick={() => setOpen((value) => !value)}
-            className="flex h-9 w-9 items-center justify-center rounded-full text-foreground lg:hidden"
+            className={cn(
+              'flex h-9 w-9 items-center justify-center rounded-full lg:hidden',
+              scrolled ? 'text-foreground' : 'text-white',
+            )}
           >
             {open ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </button>

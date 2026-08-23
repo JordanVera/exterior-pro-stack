@@ -9,18 +9,16 @@ import { loginPath } from '@/lib/auth-intent';
 export function CtaSection() {
   return (
     <section className="overflow-hidden relative px-4 py-24 sm:px-6">
-      {/* Full-bleed background photo */}
+      {/* Photo + navy wash in dark mode; cream surface in light mode */}
       <div className="absolute inset-0 pointer-events-none -z-10">
         <Image
           src="/services/lawn-maintenance.jpg"
           alt=""
           fill
           sizes="100vw"
-          className="object-cover object-center"
+          className="object-cover object-center opacity-0 dark:opacity-100"
         />
-        {/* Deep navy overlay so text pops */}
-        <div className="absolute inset-0 bg-brand-navy/85" />
-        {/* Subtle lime glow from above */}
+        <div className="absolute inset-0 bg-background dark:bg-brand-navy/85" />
         <div className="absolute inset-x-0 -top-20 mx-auto h-72 w-[42rem] max-w-full rounded-full bg-brand-lime/15 blur-[100px]" />
       </div>
 
@@ -36,13 +34,13 @@ export function CtaSection() {
       </div>
 
       <div className="relative mx-auto max-w-4xl text-center">
-        <h2 className="text-3xl font-bold tracking-tight leading-tight text-white sm:text-5xl">
+        <h2 className="text-3xl font-bold tracking-tight leading-tight text-foreground dark:text-white sm:text-5xl">
           Your property is not going to
           <span className="block mt-2 text-brand-lime">
             take care of itself.
           </span>
         </h2>
-        <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-white/70">
+        <p className="mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground dark:text-white/70">
           Two minutes to sign up. No contract, no sales call, no credit card
           until you accept a price you picked.
         </p>
@@ -70,7 +68,7 @@ export function CtaSection() {
 
           <Link
             href={loginPath('provider')}
-            className="overflow-hidden relative p-7 text-white rounded-3xl border backdrop-blur-sm transition group border-white/15 bg-white/10 hover:border-brand-lime/40 hover:bg-white/15"
+            className="overflow-hidden relative p-7 rounded-3xl border backdrop-blur-sm transition group border-border bg-card text-foreground hover:border-brand-lime/40 dark:border-white/15 dark:bg-white/10 dark:text-white dark:hover:border-brand-lime/40 dark:hover:bg-white/15"
           >
             <div className="absolute -top-12 -right-12 w-40 h-40 rounded-full blur-3xl pointer-events-none bg-brand-lime/15" />
             <span className="relative inline-flex items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-brand-lime">
@@ -80,7 +78,7 @@ export function CtaSection() {
             <p className="relative mt-3 text-2xl font-bold leading-snug">
               Fill my crew&apos;s calendar
             </p>
-            <p className="relative mt-2 text-sm text-white/65">
+            <p className="relative mt-2 text-sm text-muted-foreground dark:text-white/65">
               Bid on open jobs, dispatch crews, and hold recurring customers.
             </p>
             <span className="relative mt-6 inline-flex items-center gap-1.5 text-sm font-bold text-brand-lime">
