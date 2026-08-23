@@ -88,7 +88,7 @@ export default function CrewsPage() {
   };
 
   const inputClass =
-    'block w-full px-3 py-2 text-sm border border-gray-300 dark:border-neutral-700 rounded bg-white dark:bg-neutral-950 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent';
+    'block w-full px-3 py-2 text-sm border border-border dark:border-neutral-700 rounded bg-card dark:bg-neutral-950 text-gray-900 dark:text-white outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent';
 
   if (loading) {
     return (
@@ -124,7 +124,7 @@ export default function CrewsPage() {
             value={newCrewName}
             onChange={(e) => setNewCrewName(e.target.value)}
             placeholder="Crew name (e.g., Team Alpha)"
-            className="flex-1 px-4 py-2 text-gray-900 bg-white rounded-lg border border-gray-300 outline-none dark:text-white dark:bg-neutral-950 dark:border-neutral-700 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+            className="flex-1 px-4 py-2 text-gray-900 rounded-lg border outline-none bg-card border-border dark:text-white dark:bg-neutral-950 dark:border-neutral-700 focus:ring-2 focus:ring-green-500 focus:border-transparent"
           />
           <button
             type="submit"
@@ -139,7 +139,7 @@ export default function CrewsPage() {
         {crews.map((crew) => (
           <div
             key={crew.id}
-            className="p-5 bg-white rounded-xl border border-gray-200 dark:bg-neutral-900 dark:border-neutral-800"
+            className="p-5 rounded-xl border bg-card border-border dark:bg-neutral-900 dark:border-neutral-800"
           >
             <div className="flex justify-between items-center mb-3">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
@@ -170,7 +170,7 @@ export default function CrewsPage() {
                 {crew.members.map((member: any) => (
                   <div
                     key={member.id}
-                    className="flex justify-between items-center p-3 bg-gray-50 rounded-lg dark:bg-neutral-950"
+                    className="flex justify-between items-center p-3 rounded-lg bg-muted/70 dark:bg-neutral-950"
                   >
                     <div>
                       <span className="font-medium text-gray-900 dark:text-white">
@@ -208,7 +208,7 @@ export default function CrewsPage() {
             )}
 
             {addingMemberCrewId === crew.id && (
-              <div className="p-3 mt-3 space-y-2 bg-gray-50 rounded-lg dark:bg-neutral-950">
+              <div className="p-3 mt-3 space-y-2 rounded-lg bg-muted/70 dark:bg-neutral-950">
                 <input
                   type="text"
                   value={memberName}
@@ -228,7 +228,9 @@ export default function CrewsPage() {
                     type="tel"
                     value={memberPhone}
                     onChange={(e) =>
-                      setMemberPhone(e.target.value.replace(/\D/g, '').slice(0, 10))
+                      setMemberPhone(
+                        e.target.value.replace(/\D/g, '').slice(0, 10),
+                      )
                     }
                     placeholder="Phone (optional)"
                     className={`flex-1 ${inputClass}`}

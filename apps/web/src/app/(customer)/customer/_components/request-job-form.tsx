@@ -193,7 +193,7 @@ export function RequestJobForm({
   if (successJobId) {
     return (
       <div className="overflow-hidden relative py-14 text-center rounded-2xl border backdrop-blur-xl animate-step-enter border-brand-lime/30 bg-background/70">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(200,245,66,0.14),transparent_60%)]" />
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(var(--brand)/0.2),transparent_60%)]" />
 
         <div className="relative">
           <span className="inline-flex justify-center items-center mx-auto mb-4 w-16 h-16 rounded-full border animate-scale-check border-brand-lime/30 bg-brand-lime/10">

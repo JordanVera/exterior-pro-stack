@@ -107,7 +107,7 @@ function JobTimeline({ job }: { job: CustomerJob }) {
 
   return (
     <div className="overflow-hidden relative p-5 rounded-2xl border backdrop-blur-xl border-border bg-background/70">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(200,245,66,0.1),transparent_60%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,hsl(var(--brand)/0.18),transparent_60%)]" />
 
       <div className="flex overflow-x-auto relative gap-1 items-center pb-1">
         {TIMELINE.map((step, i) => {

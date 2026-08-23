@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
-import Image from 'next/image';
 import Link from 'next/link';
+import { BrandLogo } from '@/components/brand-logo';
 import {
   Briefcase,
   Building2,
@@ -117,13 +117,7 @@ export default function AdminLayout({
       <aside className="hidden sticky top-0 flex-col w-64 h-screen border-r shrink-0 border-white/10 bg-brand-navy md:flex print:hidden">
         <div className="p-6">
           <Link href="/admin" className="flex gap-2 items-center">
-            <Image
-              src="/logos/logo-stacked-lime.png"
-              alt="Exterior Pro"
-              width={84}
-              height={32}
-              className="w-auto h-8"
-            />
+            <BrandLogo width={84} height={32} onDark className="w-auto h-8" />
           </Link>
           <p className="mt-2 text-xs font-medium uppercase tracking-[0.16em] text-white/40">
             Admin

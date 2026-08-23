@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight, Menu, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { BrandLogo } from '@/components/brand-logo';
 import { cn } from '@/lib/utils';
 import { loginPath } from '@/lib/auth-intent';
 
@@ -46,13 +46,7 @@ export function LandingNavbar() {
         )}
       >
         <Link href="/" className="flex shrink-0 items-center gap-2 pl-1">
-          <Image
-            src="/logos/logo-stacked-lime.png"
-            alt="Exterior Pro"
-            width={84}
-            height={32}
-            priority
-          />
+          <BrandLogo width={84} height={32} priority />
         </Link>
 
         <div className="hidden items-center gap-1 lg:flex">
