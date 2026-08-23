@@ -235,7 +235,7 @@ function HeroPreview({ audience }: { audience: Audience }) {
         animate={{ y: [0, -8, 0] }}
         transition={{ duration: 4.5, repeat: Infinity, ease: 'easeInOut' }}
       >
-        <div className="px-4 py-3 bg-white rounded-2xl border shadow-xl border-brand-lime/30 dark:border-brand-lime/25 dark:bg-brand-navy/95 dark:backdrop-blur-xl">
+        <div className="px-4 py-3 rounded-2xl border shadow-xl bg-card border-brand-lime/30 dark:border-brand-lime/25 dark:bg-brand-navy/95 dark:backdrop-blur-xl">
           <p className="text-[11px] font-medium uppercase tracking-wider text-brand-navy dark:text-brand-lime">
             {audience === 'homeowner' ? 'New bid' : 'New job in your area'}
           </p>
@@ -251,7 +251,7 @@ function HeroPreview({ audience }: { audience: Audience }) {
         animate={{ y: [0, 10, 0] }}
         transition={{ duration: 6, repeat: Infinity, ease: 'easeInOut' }}
       >
-        <div className="overflow-hidden relative p-5 bg-white rounded-3xl border shadow-2xl backdrop-blur-xl border-white/15 dark:border-white/10 dark:bg-brand-navy/90">
+        <div className="overflow-hidden relative p-5 rounded-3xl border shadow-2xl backdrop-blur-xl bg-card border-border dark:border-white/10 dark:bg-brand-navy/90">
           <GlowingEffect
             disabled={false}
             glow
@@ -329,7 +329,7 @@ function HomeownerPreview() {
               'flex items-center justify-between rounded-xl border px-3.5 py-3',
               bid.highlight
                 ? 'border-brand-lime/40 bg-brand-lime/10'
-                : 'border-gray-100 bg-gray-50 dark:border-white/10 dark:bg-white/5',
+                : 'border-border bg-muted/70 dark:border-white/10 dark:bg-white/5',
             )}
           >
             <div className="min-w-0">
@@ -412,7 +412,7 @@ function ProviderPreview() {
               'flex items-center justify-between gap-3 rounded-xl border px-3.5 py-3',
               item.status === 'In progress'
                 ? 'border-brand-lime/40 bg-brand-lime/10'
-                : 'border-gray-100 bg-gray-50 dark:border-white/10 dark:bg-white/5',
+                : 'border-border bg-muted/70 dark:border-white/10 dark:bg-white/5',
             )}
           >
             <div className="min-w-0">
