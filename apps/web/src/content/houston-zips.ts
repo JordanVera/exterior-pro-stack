@@ -302,9 +302,11 @@ export const HOUSTON_ZIP_GROUPS: HoustonZipGroup[] = [
   },
 ];
 
-export const HOUSTON_ZIP_SET = new Set(
-  HOUSTON_ZIP_GROUPS.flatMap((group) => group.zips.map((item) => item.zip)),
+export const HOUSTON_ZIPS = HOUSTON_ZIP_GROUPS.flatMap((group) =>
+  group.zips.map((item) => item.zip),
 );
+
+export const HOUSTON_ZIP_SET = new Set(HOUSTON_ZIPS);
 
 export function houstonZipLabel(zip: string) {
   for (const group of HOUSTON_ZIP_GROUPS) {
