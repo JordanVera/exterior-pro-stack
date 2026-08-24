@@ -130,7 +130,7 @@ export default function PlanDetailScreen() {
           </View>
         </Pressable>
 
-        <ScreenHeader eyebrow="Subscription Plan" title={plan.name} />
+        <ScreenHeader title={plan.name} />
 
         {existingSubscription ? (
           <Card className="mt-4" tone="accent">
@@ -148,8 +148,8 @@ export default function PlanDetailScreen() {
         ) : null}
 
         <Card className="mt-4">
-          <Text className="mb-3 text-sm font-bold tracking-wider uppercase text-slate-400">
-            Plan Details
+          <Text className="mb-3 text-lg font-semibold text-white">
+            Details
           </Text>
           {plan.description ? (
             <Text className="mb-4 text-base leading-6 text-slate-300">
@@ -175,8 +175,8 @@ export default function PlanDetailScreen() {
         {!existingSubscription ? (
           <>
             <Card className="mt-4">
-              <Text className="mb-3 text-sm font-bold tracking-wider uppercase text-slate-400">
-                Billing Frequency
+              <Text className="mb-3 text-lg font-semibold text-white">
+                Billing
               </Text>
               <View className="gap-2">
                 {[
@@ -216,8 +216,8 @@ export default function PlanDetailScreen() {
             </Card>
 
             <Card className="mt-4">
-              <Text className="mb-3 text-sm font-bold tracking-wider uppercase text-slate-400">
-                Select Property
+              <Text className="mb-3 text-lg font-semibold text-white">
+                Property
               </Text>
               {properties.length === 0 ? (
                 <>

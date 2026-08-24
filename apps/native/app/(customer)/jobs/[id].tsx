@@ -356,7 +356,7 @@ export default function CustomerJobDetailScreen() {
 
           {job.customerNotes ? (
             <View className="p-3 mt-3 rounded-xl border border-line bg-surface-sunken">
-              <Text className="mb-1 text-xs font-semibold tracking-wider uppercase text-slate-400">
+              <Text className="mb-1 text-sm font-semibold text-slate-400">
                 Your notes
               </Text>
               <Text className="text-sm leading-5 text-slate-300">
@@ -368,7 +368,7 @@ export default function CustomerJobDetailScreen() {
 
         {job.status === 'OPEN' && pendingBids.length > 0 ? (
           <View className="mt-6">
-            <Text className="mb-3 text-sm font-bold tracking-wider uppercase text-slate-400">
+            <Text className="mb-3 text-lg font-semibold text-white">
               Bids ({pendingBids.length})
             </Text>
             {pendingBids.map((bid: any) => (
@@ -400,8 +400,8 @@ export default function CustomerJobDetailScreen() {
 
         {acceptedBid ? (
           <Card className="mt-6">
-            <Text className="mb-3 text-sm font-bold tracking-wider uppercase text-slate-400">
-              Accepted Bid
+            <Text className="mb-3 text-lg font-semibold text-white">
+              Provider
             </Text>
             <View className="flex-row gap-3 justify-between items-start">
               <Pressable
@@ -445,7 +445,7 @@ export default function CustomerJobDetailScreen() {
 
         {scheduledDate && job.scheduledTime ? (
           <Card className="mt-6">
-            <Text className="mb-3 text-sm font-bold tracking-wider uppercase text-slate-400">
+            <Text className="mb-3 text-lg font-semibold text-white">
               Schedule
             </Text>
             <View className="flex-row gap-3 items-center">
@@ -463,7 +463,7 @@ export default function CustomerJobDetailScreen() {
             </View>
             {job.assignments && job.assignments.length > 0 ? (
               <View className="p-3 mt-3 rounded-xl border border-line bg-surface-sunken">
-                <Text className="mb-1 text-xs font-semibold tracking-wider uppercase text-slate-400">
+                <Text className="mb-1 text-sm font-semibold text-slate-400">
                   Crew assigned
                 </Text>
                 <Text className="text-sm text-slate-300">
@@ -476,7 +476,7 @@ export default function CustomerJobDetailScreen() {
 
         {jobPayment ? (
           <Card className="mt-6">
-            <Text className="mb-3 text-sm font-bold tracking-wider uppercase text-slate-400">
+            <Text className="mb-3 text-lg font-semibold text-white">
               Payment
             </Text>
             <View className="flex-row gap-3 justify-between items-start">
@@ -507,7 +507,7 @@ export default function CustomerJobDetailScreen() {
 
         {job.photos && job.photos.length > 0 ? (
           <View className="mt-6">
-            <Text className="mb-3 text-sm font-bold tracking-wider uppercase text-slate-400">
+            <Text className="mb-3 text-lg font-semibold text-white">
               Photos
             </Text>
             <PhotoGallery photos={job.photos} />

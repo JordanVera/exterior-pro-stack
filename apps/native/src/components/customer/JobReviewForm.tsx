@@ -53,9 +53,7 @@ export function JobReviewForm({
 
   return (
     <Card>
-      <Text className="mb-1 text-sm font-bold tracking-wider uppercase text-slate-400">
-        Your review
-      </Text>
+      <Text className="mb-1 text-lg font-semibold text-white">Review</Text>
       <Text className="mb-3 text-base font-semibold text-white">
         {existing ? `Your review of ${providerName}` : `How was ${providerName}?`}
       </Text>

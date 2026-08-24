@@ -18,22 +18,20 @@ import type { FieldJobListItem } from "@/lib/types";
 import {
   formatAddress,
   formatJobDateTime,
-  getDateString,
-  getGreeting,
   isToday,
   serviceIcon,
 } from "@/lib/utils";
 import { JobCard } from "@/components/JobCard";
 import { StatusBadge } from "@/components/StatusBadge";
-import { EmptyState, LoadingScreen, Screen } from "@/components/Screen";
+import { LoadingScreen, Screen } from "@/components/Screen";
 import { TodayGlanceMap } from "@/components/TodayGlanceMap";
 import {
+  AccordionSection,
   Card,
+  HomeHeader,
   IconButton,
-  ScreenHeader,
-  SectionPanel,
-  StatTiles,
-  type StatTile,
+  QuickTiles,
+  type QuickTile,
 } from "@/components/ui";
 
 type Job = FieldJobListItem;
@@ -87,6 +85,7 @@ export default function TodayScreen() {
   const { user } = useAuth();
   const isCrew = user?.role === "CREW";
   const [refreshing, setRefreshing] = useState(false);
+  const [openSection, setOpenSection] = useState<"today" | "more" | "none">();
 
   // One `all` query powers both the stat band and the list; filtering happens
   // client-side so pulling to refresh updates every number at once.
@@ -98,57 +97,29 @@ export default function TodayScreen() {
   const jobs = useMemo(() => jobsQuery.data ?? [], [jobsQuery.data]);
   const today = useMemo(() => sortTodaysRoute(todaysJobs(jobs)), [jobs]);
 
-  const tiles = useMemo<StatTile[]>(() => {
+  const tiles = useMemo<QuickTile[]>(() => {
     const inProgress = jobs.filter((j) => j.status === "IN_PROGRESS").length;
 
     if (isCrew) {
       return [
-        {
-          id: "today",
-          label: "On today",
-          value: today.length,
-          icon: "today-outline",
-          tone: "lime",
-        },
-        {
-          id: "progress",
-          label: "In progress",
-          value: inProgress,
-          icon: "flash-outline",
-          tone: "amber",
-        },
+        { id: "today", label: "On today", value: today.length },
+        { id: "progress", label: "In progress", value: inProgress },
         {
           id: "upcoming",
           label: "Upcoming",
           value: upcomingCount(jobs),
-          icon: "calendar-outline",
-          tone: "blue",
           onPress: () => router.push("/jobs"),
         },
-        {
-          id: "done",
-          label: "Done this week",
-          value: completedThisWeek(jobs),
-          icon: "checkmark-done-outline",
-          tone: "muted",
-        },
+        { id: "done", label: "This week", value: completedThisWeek(jobs) },
       ];
     }
 
     return [
-      {
-        id: "today",
-        label: "On today",
-        value: today.length,
-        icon: "today-outline",
-        tone: "lime",
-      },
+      { id: "today", label: "On today", value: today.length },
       {
         id: "unscheduled",
         label: "Unscheduled",
         value: jobs.filter((j) => j.status === "PENDING").length,
-        icon: "calendar-outline",
-        tone: "amber",
         onPress: () => router.push("/jobs"),
       },
       {
@@ -159,25 +130,17 @@ export default function TodayScreen() {
             j.assignments.length === 0 &&
             (j.status === "PENDING" || j.status === "SCHEDULED"),
         ).length,
-        icon: "people-outline",
-        tone: "blue",
         onPress: () => router.push("/jobs"),
       },
-      {
-        id: "progress",
-        label: "In progress",
-        value: inProgress,
-        icon: "flash-outline",
-        tone: "muted",
-      },
+      { id: "progress", label: "In progress", value: inProgress },
     ];
   }, [isCrew, jobs, today.length, router]);
 
   if (jobsQuery.isLoading) return <LoadingScreen />;
 
-  const name = isCrew
-    ? user?.crewMember?.name?.split(" ")[0]
-    : user?.providerProfile?.businessName;
+  const displayName = isCrew
+    ? user?.crewMember?.name || "there"
+    : user?.providerProfile?.businessName || "there";
 
   // In-progress work outranks the next scheduled slot — that's what someone is
   // standing in front of right now.
@@ -205,19 +168,13 @@ export default function TodayScreen() {
           />
         }
       >
-        <ScreenHeader
-          eyebrow="Today"
-          meta={getDateString()}
-          title={`${getGreeting()}${name ? `, ${name}` : ""}`}
-          subtitle={
-            isCrew
-              ? "Jobs assigned to your crew today."
-              : "Jobs on the schedule today."
-          }
+        <HomeHeader
+          name={displayName}
+          onAvatarPress={() => router.push("/settings")}
         />
 
         <View className="mt-6">
-          <StatTiles tiles={tiles} />
+          <QuickTiles tiles={tiles} />
         </View>
 
         {isCrew ? (
@@ -227,41 +184,65 @@ export default function TodayScreen() {
           />
         ) : null}
 
-        {upNext ? (
-          <View className="mt-8">
-            <SectionPanel title="Up next">
+        <View className="mt-8 gap-3">
+          <AccordionSection
+            title="On today"
+            count={today.length}
+            expanded={(openSection ?? "today") === "today"}
+            onToggle={() =>
+              setOpenSection(
+                (openSection ?? "today") === "today" ? "none" : "today",
+              )
+            }
+          >
+            {upNext ? (
               <UpNextCard
                 job={upNext}
                 onOpen={() => router.push(`/jobs/${upNext.id}`)}
               />
-            </SectionPanel>
-          </View>
-        ) : null}
+            ) : (
+              <View>
+                <Text className="text-sm text-slate-400">
+                  {isCrew
+                    ? "When your owner assigns work to your crew, it will show up here."
+                    : "Schedule a job or assign a crew from the Jobs tab."}
+                </Text>
+                {isCrew ? null : (
+                  <Pressable
+                    onPress={() => router.push("/jobs")}
+                    className="mt-3 active:opacity-70"
+                  >
+                    <Text className="text-sm font-semibold text-brand-lime">
+                      Go to jobs
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+            )}
+          </AccordionSection>
 
-        <View className="mt-8">
-          {today.length === 0 ? (
-            <EmptyState
-              icon="sunny-outline"
-              title="No jobs today"
-              body={
-                isCrew
-                  ? "When your owner assigns work to your crew, it will show up here."
-                  : "Schedule a job or assign a crew from the Jobs tab."
-              }
-              actionLabel={isCrew ? undefined : "Go to jobs"}
-              onAction={isCrew ? undefined : () => router.push("/jobs")}
-            />
-          ) : rest.length > 0 ? (
-            <SectionPanel title="Also today" count={rest.length}>
-              {rest.map((job) => (
+          <AccordionSection
+            title="Also today"
+            count={rest.length}
+            expanded={openSection === "more"}
+            onToggle={() =>
+              setOpenSection(openSection === "more" ? "none" : "more")
+            }
+          >
+            {rest.length > 0 ? (
+              rest.map((job) => (
                 <JobCard
                   key={job.id}
                   job={job}
                   onPress={() => router.push(`/jobs/${job.id}`)}
                 />
-              ))}
-            </SectionPanel>
-          ) : null}
+              ))
+            ) : (
+              <Text className="text-sm text-slate-400">
+                Nothing else on the board today.
+              </Text>
+            )}
+          </AccordionSection>
         </View>
       </ScrollView>
     </Screen>

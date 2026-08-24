@@ -102,11 +102,7 @@ export default function CrewsIndexScreen() {
           />
         }
       >
-        <ScreenHeader
-          eyebrow="Field"
-          title="Crews"
-          subtitle="Create teams and add emails so they can sign in on the app."
-        />
+        <ScreenHeader title="Crews" />
 
         <View className="mt-6">
           <PrimaryButton

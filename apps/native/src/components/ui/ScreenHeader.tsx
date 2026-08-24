@@ -32,7 +32,7 @@ export function ScreenHeader({
           </Text>
         ) : null}
         <Text
-          className={`${eyebrow || meta ? 'mt-1' : ''} font-bold text-[32px] leading-[38px] text-white`}
+          className={`${eyebrow || meta ? 'mt-1' : ''} font-bold text-[28px] leading-9 text-white`}
         >
           {title}
         </Text>

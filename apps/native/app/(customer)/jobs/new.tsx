@@ -156,8 +156,7 @@ export default function NewJobRequestScreen() {
         </Pressable>
 
         <ScreenHeader
-          eyebrow="New Request"
-          title="Request a Service"
+          title="Request a service"
           subtitle={
             step === 'category'
               ? 'Choose a service category'

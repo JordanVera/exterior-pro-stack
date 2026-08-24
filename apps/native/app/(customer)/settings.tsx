@@ -18,7 +18,8 @@ import { queryClient } from '@/lib/query';
 import { useAuth } from '@/lib/auth';
 import { LoadingScreen, Screen } from '@/components/Screen';
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
-import { Card, PressableCard } from '@/components/ui/Card';
+import { SectionTitle } from '@/components/ui/SectionTitle';
+import { Card } from '@/components/ui/Card';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { colors } from '@/lib/theme';
 
@@ -130,24 +131,20 @@ export default function CustomerSettingsScreen() {
   return (
     <Screen>
       <ScrollView className="flex-1 px-5" contentContainerClassName="pb-20">
-        <ScreenHeader
-          eyebrow="Settings"
-          title="Account Settings"
-          subtitle="Manage your profile and preferences"
-        />
+        <ScreenHeader title="Settings" />
 
-        {/* Profile */}
-        <View className="mt-6">
-          <Text className="mb-3 text-sm font-bold tracking-wider uppercase text-slate-400">
-            Profile
-          </Text>
+        <View className="mt-8">
+          <SectionTitle>Profile</SectionTitle>
           <Card>
-            <View className="flex-row gap-3 items-center pb-3 border-b border-line">
-              <View className="justify-center items-center w-12 h-12 rounded-full bg-brand-lime/20">
-                <Ionicons name="person" size={24} color={colors.lime} />
+            <View className="flex-row gap-3 items-center">
+              <View className="justify-center items-center w-12 h-12 rounded-full bg-brand-lime">
+                <Text className="text-base font-bold text-brand-ink">
+                  {(user?.customerProfile?.firstName?.[0] ?? '').toUpperCase()}
+                  {(user?.customerProfile?.lastName?.[0] ?? '').toUpperCase()}
+                </Text>
               </View>
               <View className="flex-1">
-                <Text className="text-base font-bold text-white">
+                <Text className="text-base font-semibold text-white">
                   {user?.customerProfile?.firstName}{' '}
                   {user?.customerProfile?.lastName}
                 </Text>
@@ -156,33 +153,25 @@ export default function CustomerSettingsScreen() {
                 </Text>
               </View>
             </View>
-            <View className="gap-3 pt-3">
-              <View>
-                <Text className="mb-1 text-xs font-semibold tracking-wider uppercase text-slate-400">
-                  Email
-                </Text>
-                <Text className="text-sm text-slate-300">
-                  {user?.customerProfile?.email || 'Not set'}
-                </Text>
-              </View>
-            </View>
           </Card>
         </View>
 
-        {/* Properties */}
-        <View className="mt-6">
-          <View className="flex-row justify-between items-center mb-3">
-            <Text className="text-sm font-bold tracking-wider uppercase text-slate-400">
-              Properties
-            </Text>
-            <Pressable
-              onPress={handleAddProperty}
-              className="flex-row gap-1 items-center active:opacity-70"
-            >
-              <Ionicons name="add-circle" size={20} color={colors.lime} />
-              <Text className="text-sm font-semibold text-brand-lime">Add</Text>
-            </Pressable>
-          </View>
+        <View className="mt-8">
+          <SectionTitle
+            action={
+              <Pressable
+                onPress={handleAddProperty}
+                className="flex-row gap-1 items-center active:opacity-70"
+              >
+                <Ionicons name="add-circle" size={20} color={colors.lime} />
+                <Text className="text-sm font-semibold text-brand-lime">
+                  Add
+                </Text>
+              </Pressable>
+            }
+          >
+            Properties
+          </SectionTitle>
 
           {properties.length === 0 ? (
             <Card>
@@ -237,56 +226,24 @@ export default function CustomerSettingsScreen() {
           )}
         </View>
 
-        {/* App Settings */}
-        <View className="mt-6">
-          <Text className="mb-3 text-sm font-bold tracking-wider uppercase text-slate-400">
-            App Settings
-          </Text>
-          <Card>
-            <PressableCard onPress={() => {}} className="mb-3" tone="default">
-              <View className="flex-row justify-between items-center">
-                <View className="flex-row gap-3 items-center">
-                  <Ionicons name="notifications" size={20} color="#fff" />
-                  <Text className="text-base text-white">Notifications</Text>
-                </View>
-                <Ionicons
-                  name="chevron-forward"
-                  size={20}
-                  color={colors.muted}
-                />
-              </View>
-            </PressableCard>
-          </Card>
-        </View>
-
-        {/* Support */}
-        <View className="mt-6">
-          <Text className="mb-3 text-sm font-bold tracking-wider uppercase text-slate-400">
-            Support
-          </Text>
-          <Card>
-            <PressableCard
+        <View className="mt-8">
+          <SectionTitle>Support</SectionTitle>
+          <Card className="overflow-hidden p-0">
+            <Pressable
               onPress={() => Linking.openURL('mailto:support@exteriorpro.com')}
-              className="mb-3"
-              tone="default"
+              className="flex-row justify-between items-center px-5 py-4 border-b border-line active:opacity-70"
             >
-              <View className="flex-row justify-between items-center">
-                <View className="flex-row gap-3 items-center">
-                  <Ionicons name="mail" size={20} color="#fff" />
-                  <Text className="text-base text-white">Contact Support</Text>
-                </View>
-                <Ionicons name="open-outline" size={20} color={colors.muted} />
-              </View>
-            </PressableCard>
-            <View className="flex-row justify-between items-center px-5">
-              <Text className="text-sm text-slate-400">App Version</Text>
-              <Text className="text-sm text-slate-300">{appVersion}</Text>
+              <Text className="text-base text-white">Contact support</Text>
+              <Ionicons name="open-outline" size={18} color={colors.muted} />
+            </Pressable>
+            <View className="flex-row justify-between items-center px-5 py-4">
+              <Text className="text-base text-white">App version</Text>
+              <Text className="text-sm text-slate-400">{appVersion}</Text>
             </View>
           </Card>
         </View>
 
-        {/* Sign Out */}
-        <View className="mt-6">
+        <View className="mt-8">
           <PrimaryButton
             label="Sign Out"
             icon="log-out"
