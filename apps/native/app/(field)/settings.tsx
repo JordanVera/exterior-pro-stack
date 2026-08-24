@@ -229,7 +229,7 @@ export default function SettingsScreen() {
             <SectionTitle>Crews</SectionTitle>
             <Card className="overflow-hidden p-0">
               <Pressable
-                className="flex-row justify-between items-center px-5 py-4 active:opacity-70"
+                className="flex-row justify-between items-center px-2 py-2 active:opacity-70"
                 onPress={() => router.push('/crews')}
               >
                 <View className="flex-row gap-3 items-center">
@@ -250,7 +250,7 @@ export default function SettingsScreen() {
           <SectionTitle>Notifications</SectionTitle>
           <Card className="overflow-hidden p-0">
             <Pressable
-              className="flex-row justify-between items-center px-5 py-4 active:opacity-70"
+              className="flex-row justify-between items-center px-2 py-2 active:opacity-70"
               onPress={() => {
                 Alert.alert(
                   'Push Notifications',
@@ -272,7 +272,7 @@ export default function SettingsScreen() {
           <SectionTitle>About</SectionTitle>
           <Card className="overflow-hidden p-0">
             <Pressable
-              className="flex-row justify-between items-center px-5 py-4 border-b border-line active:opacity-70"
+              className="flex-row justify-between items-center px-2 py-2 border-b border-line active:opacity-70"
               onPress={() => {
                 Alert.alert(
                   'Version',
@@ -292,7 +292,7 @@ export default function SettingsScreen() {
               <Text className="text-sm text-slate-400">1.0.0</Text>
             </Pressable>
             <Pressable
-              className="flex-row justify-between items-center px-5 py-4 active:opacity-70"
+              className="flex-row justify-between items-center px-2 py-2 active:opacity-70"
               onPress={() => {
                 Alert.alert(
                   'Support',
@@ -314,7 +314,7 @@ export default function SettingsScreen() {
           <SectionTitle>Account</SectionTitle>
           <Card className="overflow-hidden p-0">
             <Pressable
-              className="flex-row justify-between items-center px-5 py-4 border-b border-line active:opacity-70"
+              className="flex-row justify-between items-center px-2 py-2 border-b border-line active:opacity-70"
               onPress={handleSignOut}
             >
               <View className="flex-row gap-3 items-center">
@@ -324,7 +324,7 @@ export default function SettingsScreen() {
               <Ionicons name="chevron-forward" size={20} color={colors.muted} />
             </Pressable>
             <Pressable
-              className="flex-row justify-between items-center px-5 py-4 active:opacity-70"
+              className="flex-row justify-between items-center px-2 py-2 active:opacity-70"
               onPress={handleDeleteAccount}
             >
               <View className="flex-row gap-3 items-center">
