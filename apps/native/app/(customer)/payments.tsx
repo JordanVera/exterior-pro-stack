@@ -6,8 +6,6 @@ import { LoadingScreen, Screen, EmptyState } from '@/components/Screen';
 import { ScreenHeader } from '@/components/ui/ScreenHeader';
 import { FilterPills, type FilterOption } from '@/components/ui/FilterPills';
 import { PaymentCard } from '@/components/customer/PaymentCard';
-import { Card } from '@/components/ui/Card';
-import { colors } from '@/lib/theme';
 
 type PaymentFilter = 'all' | 'job' | 'subscription' | 'tip';
 
@@ -88,29 +86,23 @@ export default function PaymentsScreen() {
     <Screen>
       <View className="flex-1">
         <View className="px-5">
-          <ScreenHeader
-            eyebrow="Payments"
-            title="Payment History"
-            subtitle="Receipts and billing history"
-          />
+          <ScreenHeader title="Payments" />
 
-          <View className="flex-row gap-3 mt-4">
-            <Card className="flex-1">
-              <Text className="text-xs font-semibold tracking-wider uppercase text-slate-400">
-                Total Spent
-              </Text>
-              <Text className="mt-1 text-2xl font-bold text-white">
+          <View className="flex-row gap-2 mt-5">
+            <View className="flex-1 p-3 rounded-xl bg-teal-400">
+              <Text className="text-xs font-semibold text-white">Total</Text>
+              <Text className="mt-1 text-lg font-bold text-white">
                 ${stats.total}
               </Text>
-            </Card>
-            <Card className="flex-1">
-              <Text className="text-xs font-semibold tracking-wider uppercase text-slate-400">
-                This Year
+            </View>
+            <View className="flex-1 p-3 rounded-xl bg-brand-lime">
+              <Text className="text-xs font-semibold text-brand-ink">
+                This year
               </Text>
-              <Text className="mt-1 text-2xl font-bold text-brand-lime">
+              <Text className="mt-1 text-lg font-bold text-brand-ink">
                 ${stats.ytd}
               </Text>
-            </Card>
+            </View>
           </View>
         </View>
 

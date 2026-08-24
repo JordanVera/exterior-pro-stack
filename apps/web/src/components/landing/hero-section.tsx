@@ -299,7 +299,7 @@ function HomeownerPreview() {
         </span>
       </div>
 
-      <div className="mb-4 rounded-2xl border border-brand-lime/30 bg-brand-lime/10 dark:border-brand-lime/25 dark:bg-brand-lime/10">
+      <div className="p-3 mb-4 rounded-2xl border border-brand-lime/30 bg-brand-lime/10 dark:border-brand-lime/25 dark:bg-brand-lime/10">
         <div className="flex gap-3 justify-between items-center">
           <div>
             <p className="text-[11px] font-medium uppercase tracking-wider text-brand-navy/60 dark:text-white/50">

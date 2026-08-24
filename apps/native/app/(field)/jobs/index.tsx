@@ -94,15 +94,7 @@ export default function JobsScreen() {
   return (
     <Screen>
       <View className="px-5 pt-2">
-        <ScreenHeader
-          eyebrow="Field"
-          title="Jobs"
-          subtitle={
-            user?.role === "CREW"
-              ? "Work assigned to your crew, past and upcoming."
-              : "Everything you have won, from unscheduled to complete."
-          }
-        />
+        <ScreenHeader title="Jobs" />
       </View>
 
       {/* Full-bleed so the pill row can scroll past the screen edge. */}

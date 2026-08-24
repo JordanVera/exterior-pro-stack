@@ -26,17 +26,25 @@ export default function NewJobRequestScreen() {
   const params = useLocalSearchParams<{
     propertyId?: string;
     serviceId?: string;
+    categoryId?: string;
   }>();
+  const categoryId = firstParam(params.categoryId);
+  const serviceId = firstParam(params.serviceId);
+  const propertyId = firstParam(params.propertyId);
 
-  const [step, setStep] = useState<Step>('category');
+  const [step, setStep] = useState<Step>(() => {
+    if (serviceId) return 'property';
+    if (categoryId) return 'service';
+    return 'category';
+  });
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
-    null,
+    categoryId ?? null,
   );
   const [selectedServiceId, setSelectedServiceId] = useState<string | null>(
-    params.serviceId || null,
+    serviceId ?? null,
   );
   const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(
-    params.propertyId || null,
+    propertyId ?? null,
   );
   const [notes, setNotes] = useState('');
 
@@ -84,13 +92,6 @@ export default function NewJobRequestScreen() {
     },
   });
 
-  // Auto-advance if coming from rebook with preselected service
-  useState(() => {
-    if (params.serviceId) {
-      setStep('property');
-    }
-  });
-
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategoryId(categoryId);
     setStep('service');
@@ -132,9 +133,9 @@ export default function NewJobRequestScreen() {
       <ScrollView className="flex-1 px-5" contentContainerClassName="pb-20">
         <Pressable
           onPress={() => {
-            if (step === 'service' && !params.serviceId) setStep('category');
+            if (step === 'service' && !serviceId) setStep('category');
             else if (step === 'property') {
-              setStep(params.serviceId ? 'property' : 'service');
+              setStep(serviceId ? 'property' : 'service');
             } else if (step === 'notes') setStep('property');
             else router.back();
           }}
@@ -145,7 +146,7 @@ export default function NewJobRequestScreen() {
             <Text className="text-base font-semibold text-brand-lime">
               {step === 'category'
                 ? 'Cancel'
-                : step === 'service' && !params.serviceId
+                : step === 'service' && !serviceId
                   ? 'Back to categories'
                   : step === 'property'
                     ? 'Back to services'
@@ -155,8 +156,7 @@ export default function NewJobRequestScreen() {
         </Pressable>
 
         <ScreenHeader
-          eyebrow="New Request"
-          title="Request a Service"
+          title="Request a service"
           subtitle={
             step === 'category'
               ? 'Choose a service category'
@@ -171,7 +171,7 @@ export default function NewJobRequestScreen() {
         {/* Progress indicator */}
         <View className="flex-row gap-2 mt-4">
           <View
-            className={`h-1 flex-1 rounded-full ${step === 'category' || selectedServiceId ? 'bg-brand-lime' : 'bg-line'}`}
+            className={`h-1 flex-1 rounded-full ${selectedCategoryId || step !== 'category' ? 'bg-brand-lime' : 'bg-line'}`}
           />
           <View
             className={`h-1 flex-1 rounded-full ${selectedServiceId ? 'bg-brand-lime' : 'bg-line'}`}
@@ -363,4 +363,9 @@ export default function NewJobRequestScreen() {
       </ScrollView>
     </Screen>
   );
+}
+
+function firstParam(value: string | string[] | undefined) {
+  if (Array.isArray(value)) return value[0];
+  return value;
 }

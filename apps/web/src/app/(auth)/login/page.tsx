@@ -4,7 +4,7 @@ import { Suspense, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, Star } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { REGEXP_ONLY_DIGITS } from 'input-otp';
 import { trpc } from '../../../lib/trpc';
 import { setToken } from '../../../lib/auth';
@@ -144,40 +144,7 @@ function LoginContent() {
               on schedule — or post a one-time job and let local pros compete
               for it.
             </p>
-
-            {/* Rating bar */}
-            <div className="flex gap-3 items-center mt-8">
-              <span className="flex items-center gap-0.5">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className="w-4 h-4 fill-brand-lime text-brand-lime"
-                  />
-                ))}
-              </span>
-              <span className="text-sm text-white/75">
-                4.9 avg. rating · 12,400+ jobs completed
-              </span>
-            </div>
           </div>
-
-          {/* Testimonial */}
-          <figure className="p-6 rounded-2xl border backdrop-blur-sm border-white/15 bg-white/10">
-            <blockquote className="text-sm leading-relaxed text-white/90">
-              &ldquo;I had been calling three different companies for mowing,
-              gutters, and the driveway. Now it&apos;s one plan and the same
-              crew shows up every week without me asking.&rdquo;
-            </blockquote>
-            <figcaption className="mt-4 flex items-center gap-2.5">
-              <span className="flex justify-center items-center w-8 h-8 text-xs font-bold rounded-full bg-brand-lime/25 text-brand-lime">
-                MW
-              </span>
-              <div>
-                <p className="text-sm font-semibold text-white">Marcus Webb</p>
-                <p className="text-xs text-white/55">Homeowner, Franklin TN</p>
-              </div>
-            </figcaption>
-          </figure>
         </div>
       </div>
 

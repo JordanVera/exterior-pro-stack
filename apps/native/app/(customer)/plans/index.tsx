@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { FlatList, RefreshControl, Text, View } from 'react-native';
+import { FlatList, RefreshControl, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useQuery } from '@tanstack/react-query';
 import { trpc } from '@/lib/trpc';
@@ -47,11 +47,7 @@ export default function PlansListScreen() {
     <Screen>
       <View className="flex-1">
         <View className="px-5">
-          <ScreenHeader
-            eyebrow="Plans"
-            title="Subscription Plans"
-            subtitle="Put recurring care on autopilot"
-          />
+          <ScreenHeader title="Plans" />
         </View>
 
         <FlatList

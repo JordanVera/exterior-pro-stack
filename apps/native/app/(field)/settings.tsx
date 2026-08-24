@@ -13,7 +13,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/lib/auth';
 import { trpc } from '@/lib/trpc';
 import { Screen } from '@/components/Screen';
-import { ScreenHeader, Card } from '@/components/ui';
+import { Card, ScreenHeader, SectionTitle } from '@/components/ui';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { RatingSummary } from '@/components/StarRating';
 import { ReviewList } from '@/components/ReviewList';
@@ -111,13 +111,10 @@ export default function SettingsScreen() {
         contentContainerClassName="pb-20"
         showsVerticalScrollIndicator={false}
       >
-        <ScreenHeader eyebrow="Exterior Pro" title="Settings" />
+        <ScreenHeader title="Settings" />
 
-        {/* Profile Section */}
-        <View className="mt-6 mb-6">
-          <Text className="mb-3 text-xs font-semibold tracking-wide uppercase text-slate-400">
-            Profile
-          </Text>
+        <View className="mt-8 mb-6">
+          <SectionTitle>Profile</SectionTitle>
 
           {editing ? (
             <Card>
@@ -191,9 +188,7 @@ export default function SettingsScreen() {
 
         {isProvider ? (
           <View className="mb-6">
-            <Text className="mb-3 text-xs font-semibold tracking-wide uppercase text-slate-400">
-              Reviews
-            </Text>
+            <SectionTitle>Reviews</SectionTitle>
             <Card className="mb-3">
               <RatingSummary
                 average={profileQuery.data?.rating.average}
@@ -213,9 +208,7 @@ export default function SettingsScreen() {
         {/* Crew Info (for crew members) */}
         {isCrew && user?.crewMember?.crew && (
           <View className="mb-6">
-            <Text className="mb-3 text-xs font-semibold tracking-wide uppercase text-slate-400">
-              Crew
-            </Text>
+            <SectionTitle>Crew</SectionTitle>
             <Card>
               <Text className="mb-1 text-base font-semibold text-white">
                 {user.crewMember.crew.name}
@@ -223,7 +216,7 @@ export default function SettingsScreen() {
               <Text className="text-sm text-slate-400">
                 {user.crewMember.crew.businessName}
               </Text>
-              <Text className="mt-2 text-xs font-semibold tracking-wide uppercase text-slate-400">
+              <Text className="mt-2 text-sm text-slate-400">
                 Role: {user.crewMember.role}
               </Text>
             </Card>
@@ -233,9 +226,7 @@ export default function SettingsScreen() {
         {/* Crews Management (for providers) */}
         {isProvider && (
           <View className="mb-6">
-            <Text className="mb-3 text-xs font-semibold tracking-wide uppercase text-slate-400">
-              Crews
-            </Text>
+            <SectionTitle>Crews</SectionTitle>
             <Card className="overflow-hidden p-0">
               <Pressable
                 className="flex-row justify-between items-center px-5 py-4 active:opacity-70"
@@ -255,11 +246,8 @@ export default function SettingsScreen() {
           </View>
         )}
 
-        {/* Notifications */}
         <View className="mb-6">
-          <Text className="mb-3 text-xs font-semibold tracking-wide uppercase text-slate-400">
-            Notifications
-          </Text>
+          <SectionTitle>Notifications</SectionTitle>
           <Card className="overflow-hidden p-0">
             <Pressable
               className="flex-row justify-between items-center px-5 py-4 active:opacity-70"
@@ -280,11 +268,8 @@ export default function SettingsScreen() {
           </Card>
         </View>
 
-        {/* About */}
         <View className="mb-6">
-          <Text className="mb-3 text-xs font-semibold tracking-wide uppercase text-slate-400">
-            About
-          </Text>
+          <SectionTitle>About</SectionTitle>
           <Card className="overflow-hidden p-0">
             <Pressable
               className="flex-row justify-between items-center px-5 py-4 border-b border-line active:opacity-70"
@@ -325,11 +310,8 @@ export default function SettingsScreen() {
           </Card>
         </View>
 
-        {/* Account Actions */}
         <View className="mb-6">
-          <Text className="mb-3 text-xs font-semibold tracking-wide uppercase text-slate-400">
-            Account
-          </Text>
+          <SectionTitle>Account</SectionTitle>
           <Card className="overflow-hidden p-0">
             <Pressable
               className="flex-row justify-between items-center px-5 py-4 border-b border-line active:opacity-70"

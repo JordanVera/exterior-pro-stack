@@ -70,11 +70,7 @@ export default function CustomerJobsListScreen() {
     <Screen>
       <View className="flex-1">
         <View className="px-5">
-          <ScreenHeader
-            eyebrow="Jobs"
-            title="Service Requests"
-            subtitle={`${jobs.length} total ${jobs.length === 1 ? 'job' : 'jobs'}`}
-          />
+          <ScreenHeader title="Jobs" />
         </View>
 
         <View className="mt-4 mb-4">

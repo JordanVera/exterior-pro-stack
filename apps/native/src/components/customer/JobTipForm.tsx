@@ -23,9 +23,7 @@ export function JobTipForm({
   if (existingCents && existingCents > 0) {
     return (
       <Card>
-        <Text className="mb-1 text-sm font-bold tracking-wider uppercase text-slate-400">
-          Tip
-        </Text>
+        <Text className="mb-1 text-lg font-semibold text-white">Tip</Text>
         <Text className="text-base font-semibold text-white">
           You tipped {providerName} ${(existingCents / 100).toFixed(2)}
         </Text>
@@ -73,9 +71,7 @@ export function JobTipForm({
 
   return (
     <Card>
-      <Text className="mb-1 text-sm font-bold tracking-wider uppercase text-slate-400">
-        Tip
-      </Text>
+      <Text className="mb-1 text-lg font-semibold text-white">Tip</Text>
       <Text className="mb-1 text-base font-semibold text-white">
         Add a tip for {providerName}
       </Text>

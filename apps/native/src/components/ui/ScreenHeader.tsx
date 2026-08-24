@@ -2,8 +2,7 @@ import type { ReactNode } from 'react';
 import { Text, View } from 'react-native';
 
 /**
- * Standard page masthead: lime eyebrow, large title, supporting line.
- * Mirrors the web dashboard hero so the two products read as one product.
+ * Standard page masthead: optional lime eyebrow, large title, supporting line.
  */
 export function ScreenHeader({
   eyebrow,
@@ -12,8 +11,8 @@ export function ScreenHeader({
   meta,
   right,
 }: {
-  eyebrow: string;
-  title: string;
+  eyebrow?: string;
+  title: ReactNode;
   subtitle?: string;
   /** Small line above the title, e.g. today's date. */
   meta?: string;
@@ -22,13 +21,19 @@ export function ScreenHeader({
   return (
     <View className="flex-row gap-4 justify-between items-start">
       <View className="flex-1">
-        <Text className="font-semibold text-xs uppercase tracking-[2px] text-brand-lime">
-          {eyebrow}
-        </Text>
-        {meta ? (
-          <Text className="mt-1.5 text-sm text-slate-400">{meta}</Text>
+        {eyebrow ? (
+          <Text className="font-semibold text-xs uppercase tracking-[2px] text-brand-lime">
+            {eyebrow}
+          </Text>
         ) : null}
-        <Text className="mt-1 font-bold text-[32px] leading-[38px] text-white">
+        {meta ? (
+          <Text className={`${eyebrow ? 'mt-1.5' : ''} text-sm text-slate-400`}>
+            {meta}
+          </Text>
+        ) : null}
+        <Text
+          className={`${eyebrow || meta ? 'mt-1' : ''} font-bold text-[28px] leading-9 text-white`}
+        >
           {title}
         </Text>
         {subtitle ? (

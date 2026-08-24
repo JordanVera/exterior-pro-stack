@@ -256,9 +256,7 @@ export default function JobDetailScreen() {
         </View>
 
         <Card className="mt-5">
-          <Text className="text-xs font-semibold tracking-wide uppercase text-slate-400">
-            Property
-          </Text>
+          <Text className="text-base font-semibold text-white">Property</Text>
           <Text className="mt-2 text-[17px] leading-6 text-white">
             {address}
           </Text>
@@ -298,7 +296,7 @@ export default function JobDetailScreen() {
 
         {job.customerNotes ? (
           <Card className="mt-3">
-            <Text className="text-xs font-semibold tracking-wide uppercase text-slate-400">
+            <Text className="text-base font-semibold text-white">
               Customer notes
             </Text>
             <Text className="mt-2 text-base leading-6 text-slate-200">
@@ -309,7 +307,7 @@ export default function JobDetailScreen() {
 
         {job.property.notes ? (
           <Card className="mt-3">
-            <Text className="text-xs font-semibold tracking-wide uppercase text-slate-400">
+            <Text className="text-base font-semibold text-white">
               Property notes
             </Text>
             <Text className="mt-2 text-base leading-6 text-slate-200">

@@ -80,7 +80,7 @@ export default function ProviderProfileScreen() {
 
         {provider.services.length > 0 ? (
           <View className="mt-6">
-            <Text className="mb-3 text-sm font-bold tracking-wider uppercase text-slate-400">
+            <Text className="mb-3 text-lg font-semibold text-white">
               Services
             </Text>
             <View className="flex-row flex-wrap gap-2">
@@ -99,7 +99,7 @@ export default function ProviderProfileScreen() {
         ) : null}
 
         <View className="mt-6">
-          <Text className="mb-3 text-sm font-bold tracking-wider uppercase text-slate-400">
+          <Text className="mb-3 text-lg font-semibold text-white">
             Reviews{provider.reviews.length ? ` (${provider.reviews.length})` : ''}
           </Text>
           <ReviewList reviews={provider.reviews} />
