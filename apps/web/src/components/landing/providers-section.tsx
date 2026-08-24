@@ -33,7 +33,9 @@ export function ProvidersSection() {
               </p>
               <h2 className="text-3xl font-bold tracking-tight leading-tight text-white sm:text-5xl">
                 Stop buying leads.
-                <span className="block text-brand-lime">Start booking work.</span>
+                <span className="block text-brand-lime">
+                  Start booking work.
+                </span>
               </h2>
               <p className="mt-6 max-w-lg text-lg leading-relaxed text-white/70">
                 Exterior Pro is not a lead list. It is the operations layer for
@@ -66,7 +68,9 @@ export function ProvidersSection() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-3xl font-bold text-brand-lime">On completion</p>
+                  <p className="text-3xl font-bold text-brand-lime">
+                    On completion
+                  </p>
                   <p className="mt-1 text-sm text-white/60">
                     Payouts transfer after the job is marked done
                   </p>
