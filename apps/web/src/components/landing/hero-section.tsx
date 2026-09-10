@@ -26,34 +26,19 @@ const KB_FADE_S = 1.45;
 
 const KB_IMAGES = [
   {
+    src: '/landing/why/exterior-only.webp',
+    from: { scale: 1.22, x: '2.2%', y: '-1%' },
+    to: { scale: 1.08, x: '-1.2%', y: '1.6%' },
+  },
+  {
     src: '/services/lawn-maintenance.jpg',
     from: { scale: 1.08, x: '0%', y: '0%' },
     to: { scale: 1.22, x: '-2.4%', y: '-1.8%' },
   },
   {
-    src: '/services/landscaping.webp',
-    from: { scale: 1.22, x: '2.2%', y: '-1%' },
-    to: { scale: 1.08, x: '-1.2%', y: '1.6%' },
-  },
-  {
-    src: '/services/pressure-washing.png',
-    from: { scale: 1.1, x: '-1.6%', y: '1.2%' },
-    to: { scale: 1.24, x: '2%', y: '-1.4%' },
-  },
-  {
     src: '/services/gutter-cleaning.jpg',
     from: { scale: 1.22, x: '1.8%', y: '1%' },
     to: { scale: 1.08, x: '-2%', y: '-1.2%' },
-  },
-  {
-    src: '/services/tree-and-shrub-care.jpg',
-    from: { scale: 1.08, x: '1%', y: '-1.5%' },
-    to: { scale: 1.2, x: '-1.8%', y: '1.2%' },
-  },
-  {
-    src: '/services/exterior-painting.jpg',
-    from: { scale: 1.18, x: '-2%', y: '0.5%' },
-    to: { scale: 1.06, x: '1.5%', y: '-1.5%' },
   },
 ] as const;
 
