@@ -1,8 +1,15 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'motion/react';
+import { GlowingEffect } from '@/components/ui/glowing-effect';
+import { FlipWords } from '@/components/ui/flip-words';
+import { SegmentedTabs } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
+import { loginPath } from '@/lib/auth-intent';
+import { useAudience, type Audience } from './audience-context';
 import {
   ArrowRight,
   CalendarCheck,
@@ -13,19 +20,51 @@ import {
   Truck,
   Wrench,
 } from 'lucide-react';
-import { GlowingEffect } from '@/components/ui/glowing-effect';
-import { FlipWords } from '@/components/ui/flip-words';
-import { SegmentedTabs } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
-import { loginPath } from '@/lib/auth-intent';
-import { useAudience, type Audience } from './audience-context';
 
-// Mixkit Stock Video Free License (commercial): watering a house lawn +
-// trimming at a home exterior. Muted, looping b-roll behind the hero copy.
 const HERO_POSTER = '/hero/exterior-broll.jpg';
-const HERO_VIDEO = '/hero/exterior-broll.mp4';
+// Clip sources (all live video, commercially usable):
+// gutter — Mixkit 2716, Stock Video Free License (rain off a roof/eave)
+// lights — Coverr “House decorated with Christmas lights”, free commercial
+// weeds  — Wikimedia “Weed whacker - kanagawa” by Nesnad, CC BY 4.0
+// wash   — Pexels 4451962, free to use
+const HERO_CLIPS = [
+  '/hero/clips/water.mp4',
+  '/hero/clips/gutter.mp4',
+  '/hero/clips/lawn.mp4',
+  // '/hero/clips/lights.mp4',
+  '/hero/clips/weeds.mp4',
+  // '/hero/clips/wash.mp4',
+  '/hero/clips/hedge.mp4',
+  '/hero/clips/leaves.mp4',
+] as const;
+const CLIP_HOLD_MS = 2800;
 
 function HeroVideoBackground() {
+  const [index, setIndex] = useState(0);
+  const nodes = useRef<(HTMLVideoElement | null)[]>([]);
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (media.matches) return undefined;
+
+    const id = window.setInterval(() => {
+      setIndex((current) => (current + 1) % HERO_CLIPS.length);
+    }, CLIP_HOLD_MS);
+    return () => window.clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    nodes.current.forEach((el, i) => {
+      if (!el) return;
+      if (i === index) {
+        el.currentTime = 0;
+        void el.play();
+      } else {
+        el.pause();
+      }
+    });
+  }, [index]);
+
   return (
     <div className="overflow-hidden absolute inset-0" aria-hidden>
       <Image
@@ -37,17 +76,25 @@ function HeroVideoBackground() {
         className="object-cover"
         draggable={false}
       />
-      <video
-        className="object-cover absolute inset-0 w-full h-full motion-reduce:hidden"
-        autoPlay
-        muted
-        loop
-        playsInline
-        preload="auto"
-        poster={HERO_POSTER}
-      >
-        <source src={HERO_VIDEO} type="video/mp4" />
-      </video>
+      {HERO_CLIPS.map((src, i) => (
+        <video
+          key={src}
+          ref={(el) => {
+            nodes.current[i] = el;
+          }}
+          className={cn(
+            'absolute inset-0 h-full w-full object-cover motion-reduce:hidden transition-opacity duration-500',
+            i === index ? 'opacity-100' : 'opacity-0',
+          )}
+          src={src}
+          muted
+          loop
+          playsInline
+          autoPlay={i === 0}
+          preload={i < 2 ? 'auto' : 'metadata'}
+          poster={i === 0 ? HERO_POSTER : undefined}
+        />
+      ))}
 
       {/* Left-heavy gradient so copy is always legible */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/20" />

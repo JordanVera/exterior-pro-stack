@@ -15,8 +15,8 @@ const COLUMNS = [
 
 export function LandingFooter() {
   return (
-    <footer className="border-t border-border py-14">
-      <div className="mx-auto max-w-6xl px-6">
+    <footer className="py-14 border-t border-border">
+      <div className="px-6 mx-auto max-w-6xl">
         <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(3,1fr)]">
           <div>
             <BrandLogo width={110} height={42} />
@@ -37,7 +37,7 @@ export function LandingFooter() {
                   <li key={item.label}>
                     <Link
                       href={item.href}
-                      className="text-muted-foreground transition-colors hover:text-foreground"
+                      className="transition-colors text-muted-foreground hover:text-foreground"
                     >
                       {item.label}
                     </Link>
@@ -50,7 +50,7 @@ export function LandingFooter() {
 
         <Separator className="mt-12" />
 
-        <div className="flex flex-col items-center justify-between gap-3 pt-8 text-sm text-muted-foreground sm:flex-row">
+        <div className="flex flex-col gap-3 justify-between items-center pt-8 text-sm text-muted-foreground sm:flex-row">
           <p>
             &copy; {new Date().getFullYear()} Exterior Pro. All rights reserved.
           </p>
