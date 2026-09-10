@@ -1,12 +1,10 @@
-import { PrismaClient, PriceUnit } from '@prisma/client';
 import chalk from 'chalk';
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { db as prisma, PriceUnit } from '../src';
 import { PROVIDER_LOGO_FILES } from './seed-assets/logos';
 import { syncLaunchPlans } from './launch-plans';
-
-const prisma = new PrismaClient();
 const SEED_DIR = dirname(fileURLToPath(import.meta.url));
 
 // ─── Helpers ────────────────────────────────────────────────────────────────

@@ -1,17 +1,28 @@
-import { PrismaClient } from "@prisma/client";
+import "./load-env";
+import { PrismaMariaDb } from "@prisma/adapter-mariadb";
+import { PrismaClient } from "../generated/prisma/client";
+
+function createPrismaClient() {
+  const url = process.env.DATABASE_URL;
+  if (!url) {
+    throw new Error("DATABASE_URL is not set");
+  }
+
+  return new PrismaClient({ adapter: new PrismaMariaDb(url) });
+}
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-export const db = globalForPrisma.prisma ?? new PrismaClient();
+export const db = globalForPrisma.prisma ?? createPrismaClient();
 
 if (process.env.NODE_ENV !== "production") {
   globalForPrisma.prisma = db;
 }
 
-export { PrismaClient } from "@prisma/client";
-export type { Prisma, Property } from "@prisma/client";
+export { PrismaClient, Prisma } from "../generated/prisma/client";
+export type { Property } from "../generated/prisma/client";
 export {
   UserRole,
   PropertyImageSource,
@@ -28,4 +39,4 @@ export {
   PaymentKind,
   PaymentStatus,
   TransferStatus,
-} from "@prisma/client";
+} from "../generated/prisma/client";

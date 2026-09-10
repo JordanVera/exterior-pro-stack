@@ -1,4 +1,4 @@
-import type { PrismaClient, ServiceFrequency } from '@prisma/client';
+import type { PrismaClient, ServiceFrequency } from '../src';
 
 export type LaunchPlanService = {
   serviceName: string;

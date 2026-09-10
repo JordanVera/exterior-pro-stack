@@ -5,7 +5,7 @@
   "tasks": {
     "@repo/db#build": {
       "cache": false,
-      "inputs": ["prisma/schema.prisma", "prisma/migrations/**"]
+      "inputs": ["prisma/schema.prisma", "prisma/migrations/**", "prisma.config.ts"]
     },
     "build": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
