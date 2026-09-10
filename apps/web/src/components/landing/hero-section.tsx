@@ -1,15 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'motion/react';
-import { GlowingEffect } from '@/components/ui/glowing-effect';
-import { FlipWords } from '@/components/ui/flip-words';
-import { SegmentedTabs } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
-import { loginPath } from '@/lib/auth-intent';
-import { useAudience, type Audience } from './audience-context';
 import {
   ArrowRight,
   CalendarCheck,
@@ -20,87 +14,129 @@ import {
   Truck,
   Wrench,
 } from 'lucide-react';
+import { GlowingEffect } from '@/components/ui/glowing-effect';
+import { FlipWords } from '@/components/ui/flip-words';
+import { SegmentedTabs } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
+import { loginPath } from '@/lib/auth-intent';
+import { useAudience, type Audience } from './audience-context';
 
-const HERO_POSTER = '/hero/exterior-broll.jpg';
-// Clip sources (all live video, commercially usable):
-// gutter — Mixkit 2716, Stock Video Free License (rain off a roof/eave)
-// lights — Coverr “House decorated with Christmas lights”, free commercial
-// weeds  — Wikimedia “Weed whacker - kanagawa” by Nesnad, CC BY 4.0
-// wash   — Pexels 4451962, free to use
-const HERO_CLIPS = [
-  '/hero/clips/water.mp4',
-  '/hero/clips/leaves.mp4',
-  '/hero/clips/hedge.mp4',
-  '/hero/clips/lawn.mp4',
-  '/hero/clips/gutter.mp4',
-  '/hero/clips/weeds.mp4',
-  // '/hero/clips/lights.mp4',
-  // '/hero/clips/wash.mp4',
+const KB_HOLD_MS = 7000;
+const KB_FADE_S = 1.45;
+
+const KB_IMAGES = [
+  {
+    src: '/landing/why/exterior-only.webp',
+    from: { scale: 1.22, x: '2.2%', y: '-1%' },
+    to: { scale: 1.08, x: '-1.2%', y: '1.6%' },
+  },
+  {
+    src: '/services/lawn-maintenance.jpg',
+    from: { scale: 1.08, x: '0%', y: '0%' },
+    to: { scale: 1.22, x: '-2.4%', y: '-1.8%' },
+  },
+  {
+    src: '/services/gutter-cleaning.jpg',
+    from: { scale: 1.22, x: '1.8%', y: '1%' },
+    to: { scale: 1.08, x: '-2%', y: '-1.2%' },
+  },
 ] as const;
-const CLIP_HOLD_MS = 2800;
 
-function HeroVideoBackground() {
+function KenBurnsBackground() {
   const [index, setIndex] = useState(0);
-  const nodes = useRef<(HTMLVideoElement | null)[]>([]);
+  const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
-    if (media.matches) return undefined;
-
-    const id = window.setInterval(() => {
-      setIndex((current) => (current + 1) % HERO_CLIPS.length);
-    }, CLIP_HOLD_MS);
-    return () => window.clearInterval(id);
+    const sync = () => setReduceMotion(media.matches);
+    sync();
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
   }, []);
 
   useEffect(() => {
-    nodes.current.forEach((el, i) => {
-      if (!el) return;
-      if (i === index) {
-        el.currentTime = 0;
-        void el.play();
-      } else {
-        el.pause();
-      }
-    });
-  }, [index]);
+    if (reduceMotion) return;
+    const id = window.setInterval(
+      () => setIndex((current) => (current + 1) % KB_IMAGES.length),
+      KB_HOLD_MS,
+    );
+    return () => window.clearInterval(id);
+  }, [reduceMotion]);
 
   return (
-    <div className="overflow-hidden absolute inset-0" aria-hidden>
-      <Image
-        src={HERO_POSTER}
-        alt=""
-        fill
-        priority
-        sizes="100vw"
-        className="object-cover"
-        draggable={false}
-      />
-      {HERO_CLIPS.map((src, i) => (
-        <video
-          key={src}
-          ref={(el) => {
-            nodes.current[i] = el;
-          }}
-          className={cn(
-            'absolute inset-0 h-full w-full object-cover motion-reduce:hidden transition-opacity duration-500',
-            i === index ? 'opacity-100' : 'opacity-0',
-          )}
-          src={src}
-          muted
-          loop
-          playsInline
-          autoPlay={i === 0}
-          preload={i < 2 ? 'auto' : 'metadata'}
-          poster={i === 0 ? HERO_POSTER : undefined}
+    <div
+      className="pointer-events-none absolute inset-0 overflow-hidden bg-[#070b12]"
+      aria-hidden
+    >
+      {KB_IMAGES.map((slide, i) => (
+        <KenBurnsSlide
+          key={slide.src}
+          slide={slide}
+          active={i === index}
+          reduceMotion={reduceMotion}
+          priority={i <= 1}
         />
       ))}
 
-      {/* Left-heavy gradient so copy is always legible */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/20" />
-      {/* Top and bottom vignette */}
-      <div className="absolute inset-0 bg-gradient-to-b via-transparent from-black/40 to-black/55" />
+      {/* Left-heavy grade so copy stays readable; right side keeps more photo. */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/40 to-black/20" />
+      <div className="absolute inset-0 bg-gradient-to-b via-transparent from-black/35 to-black/50" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_35%,rgba(0,0,0,0.48)_100%)]" />
     </div>
+  );
+}
+
+function KenBurnsSlide({
+  slide,
+  active,
+  reduceMotion,
+  priority,
+}: {
+  slide: (typeof KB_IMAGES)[number];
+  active: boolean;
+  reduceMotion: boolean;
+  priority: boolean;
+}) {
+  return (
+    <motion.div
+      className="absolute inset-0"
+      initial={false}
+      animate={{ opacity: active ? 1 : 0 }}
+      transition={{
+        duration: reduceMotion ? 0 : KB_FADE_S,
+        ease: [0.4, 0, 0.2, 1],
+      }}
+    >
+      <motion.div
+        className="absolute -inset-[8%]"
+        initial={slide.from}
+        animate={
+          reduceMotion
+            ? { scale: 1.12, x: '0%', y: '0%' }
+            : active
+              ? slide.to
+              : slide.from
+        }
+        transition={
+          active && !reduceMotion
+            ? {
+                duration: KB_HOLD_MS / 1000 + KB_FADE_S,
+                ease: 'linear',
+              }
+            : { duration: 0, delay: reduceMotion ? 0 : KB_FADE_S }
+        }
+      >
+        <Image
+          src={slide.src}
+          alt=""
+          fill
+          priority={priority}
+          sizes="100vw"
+          className="object-cover contrast-[1.06] saturate-[1.12]"
+          draggable={false}
+        />
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -153,9 +189,9 @@ export function HeroSection() {
 
   return (
     <section className="relative min-h-[100svh] overflow-hidden pt-28 sm:pt-32">
-      <HeroVideoBackground />
+      <KenBurnsBackground />
 
-      <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-6 pb-16 pt-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
+      <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-14 px-6 pb-16 pt-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
         {/* ── Copy ── */}
         <div>
           <SegmentedTabs
