@@ -47,7 +47,7 @@ export const PLAN_META = {
 export const PLAN_ASSUMPTIONS = [
   'Beachhead metro is Greater Houston (matches seed/demo ZIPs). Do not go national on day one.',
   'Legal entity, EIN, business bank account, and GL insurance are not in the product — they are company work below.',
-  'Landing-page stats (job counts, 4.9 rating, provider revenue lift) are marketing copy, not ops data.',
+  'Landing-page stats are qualitative Houston launch copy, not live job counts.',
   'Platform take on one-time jobs is 10% (PLATFORM_FEE_BPS=1000) plus estimated Stripe processing of 2.9% + $0.30, deducted before the provider transfer.',
   'Twelve-month numbers are planning scenarios, not forecasts.',
 ];
@@ -101,7 +101,7 @@ export const PLAN_SECTIONS: PlanSection[] = [
         type: 'callout',
         tone: 'muted',
         title: 'Stage',
-        body: 'Web marketplace is launch-capable: Checkout, Billing, Connect onboarding, transfer-on-complete, subscription job cron, admin catalog and money views, native field + customer apps. Trust layer is incomplete (no reviews model). Legal pages are launch drafts pending counsel. Do not treat marketing stats on the landing page as operating metrics — use the live snapshot above.',
+        body: 'Web marketplace is launch-capable: Checkout, Billing, Connect onboarding, transfer-on-complete, subscription job cron, admin catalog and money views, native field + customer apps. Reviews and job chat are live. Legal pages are launch drafts pending counsel. Keep Stripe in test mode until the final cutover. Do not treat marketing stats on the landing page as operating metrics — use the live snapshot above.',
       },
     ],
   },
@@ -311,7 +311,7 @@ export const PLAN_SECTIONS: PlanSection[] = [
       {
         type: 'prose',
         paragraphs: [
-          'National testimonial cities on the landing page (Franklin, Cary, Scottsdale, etc.) are marketing placeholders. Ops geography is Greater Houston until liquidity is real. Expand city-by-city with feature flags later — not with a national provider blast.',
+          'Testimonials on the landing page use Greater Houston geography. Ops stays in this metro until liquidity is real. Expand city-by-city with feature flags later — not with a national provider blast.',
         ],
       },
     ],
@@ -339,22 +339,22 @@ export const PLAN_SECTIONS: PlanSection[] = [
           {
             cells: [
               'Fulfillment',
-              'Subscription cron, bid expiry, SMS/email, job photos (Blob), field app start/complete',
+              'Subscription cron, bid expiry, email/push, job photos (Blob), field app start/complete',
               'Route grouping, week calendar, checklists/materials',
             ],
           },
           {
             cells: [
               'Trust',
-              'Admin verify, contractor agreement, Connect gate on bidding',
-              'Reviews/ratings, COI upload, background checks',
+              'Admin verify, contractor agreement, Connect gate on bidding, reviews/ratings, in-app job chat',
+              'COI upload, background checks',
             ],
           },
           {
             cells: [
               'Surfaces',
-              'Customer / provider / admin web; native field + customer',
-              'Property-manager org role, App Store/Play production, in-app chat',
+              'Customer / provider / admin web; native field + customer; Houston ZIP gate',
+              'Property-manager org role, live Stripe cutover',
             ],
           },
         ],
@@ -365,7 +365,7 @@ export const PLAN_SECTIONS: PlanSection[] = [
         items: [
           {
             title: 'Now (as soon as first paid jobs exist)',
-            body: 'Reviews after completion. Before/after photos as the default trust object. In-app messaging (keep SMS for urgent). Provider week calendar. COI / insurance attestation. Support path that can look up a user by phone.',
+            body: 'Reviews after completion. Before/after photos as the default trust object. In-app messaging plus email and push. Provider week calendar. COI / insurance attestation. Support path that can look up a user by email.',
           },
           {
             title: 'Next (full-suite)',
@@ -463,7 +463,7 @@ export const PLAN_SECTIONS: PlanSection[] = [
           },
           {
             title: 'Empty bid lists',
-            body: 'Customers who post a job and wait will not return. Mitigation: supply-first, tight ZIPs, admin verification queue, SMS on new jobs. Do not run broad demand ads into empty areas.',
+            body: 'Customers who post a job and wait will not return. Mitigation: supply-first, tight ZIPs, admin verification queue, email and push on new jobs. Do not run broad demand ads into empty areas.',
           },
           {
             title: 'Holding funds and disputes',
@@ -471,7 +471,7 @@ export const PLAN_SECTIONS: PlanSection[] = [
           },
           {
             title: 'No reviews yet',
-            body: 'Landing cites 4.9/5. Product has no rating model. First real customers will notice. Mitigation: ship reviews as the first trust feature after paid traffic.',
+            body: 'Reviews and ratings now exist on completed jobs. Keep using live snapshot tiles, not landing copy, as the source of truth.',
           },
           {
             title: 'Legal and insurance',

@@ -44,7 +44,7 @@ function verificationEmailHtml(opts: {
   const { ttlMinutes, appUrl } = opts;
   const code = escapeHtml(opts.code);
   const host = escapeHtml(siteHost(appUrl));
-  const logoUrl = `${appUrl}/logos/logo-stacked-lime.png`;
+  const logoUrl = `${appUrl}/logos/logo-stacked-green.png`;
   const digitCells = opts.code
     .split('')
     .map((digit, i, digits) => {
@@ -151,7 +151,7 @@ export async function sendEmail(opts: {
   if (process.env.NODE_ENV === 'development' || !apiKey || !opts.to) {
     console.log(
       chalk.cyan(
-        `${chalk.red('[email:skipped]')} ${chalk.yellow(opts.subject)} → ${opts.to}`,
+        `${chalk.red('[email:skipped]')} ${chalk.magenta.bold(opts.subject)} → ${chalk.green(opts.to)}`,
       ),
     );
     if (opts.text) console.log(opts.text);
@@ -187,6 +187,19 @@ export async function sendEmail(opts: {
   } catch (err) {
     console.error('Failed to send email:', err);
   }
+}
+
+export async function sendAlertEmail(opts: {
+  to: string | null | undefined;
+  subject: string;
+  body: string;
+}) {
+  if (!opts.to) return;
+  await sendEmail({
+    to: opts.to,
+    subject: opts.subject,
+    text: `${opts.body}\n\nOpen Exterior Pro: ${getAppUrl()}`,
+  });
 }
 
 export async function sendPaymentReceiptEmail(opts: {

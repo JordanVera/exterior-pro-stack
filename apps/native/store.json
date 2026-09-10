@@ -1,0 +1,11 @@
+{
+  "name": "Exterior Pro",
+  "bundleId": "com.exteriorpro.field",
+  "subtitle": "Houston exterior care for homeowners and field crews",
+  "description": "Exterior Pro is the Greater Houston app for recurring exterior care and one-time jobs. Homeowners post work, review bids, pay securely, and see before-and-after photos. Providers and crews run today's route, start and complete jobs, and message customers from the field.",
+  "keywords": "lawn care, gutter cleaning, pressure washing, Houston, contractor, property maintenance",
+  "supportUrl": "https://exteriorpro.app/contact",
+  "privacyUrl": "https://exteriorpro.app/privacy",
+  "marketingUrl": "https://exteriorpro.app",
+  "audience": "Customers, independent providers, and field crews in one app."
+}

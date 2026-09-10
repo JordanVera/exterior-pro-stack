@@ -31,7 +31,7 @@ export function TestimonialsSection() {
           </h2>
           <div className="flex gap-2 items-center mt-5 text-sm text-muted-foreground">
             <Stars />
-            4.9 average rating across completed jobs
+            Rated by Houston homeowners after completed visits
           </div>
         </div>
 

@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { toast } from 'sonner';
 import { trpc } from '../../../../../lib/trpc';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { DashboardHero } from '@/components/dashboard/dashboard-hero';
 import { SectionPanel } from '@/components/dashboard/section-panel';
@@ -34,6 +35,7 @@ type ProviderDetail = {
     id: string;
     customPrice: unknown;
     service: {
+      id: string;
       name: string;
       basePrice: unknown;
       unit: string;
@@ -66,13 +68,26 @@ export default function AdminProviderDetailPage() {
   const params = useParams<{ id: string }>();
   const [provider, setProvider] = useState<ProviderDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [rateDraft, setRateDraft] = useState<Record<string, string>>({});
+  const [savingRates, setSavingRates] = useState(false);
 
   const load = () => {
     if (!params.id) return;
     setLoading(true);
     trpc.admin.getProvider
       .query({ userId: params.id })
-      .then((data) => setProvider(data as unknown as ProviderDetail))
+      .then((data) => {
+        const next = data as unknown as ProviderDetail;
+        setProvider(next);
+        setRateDraft(
+          Object.fromEntries(
+            next.services.map((item) => [
+              item.service.id,
+              item.customPrice != null ? String(Number(item.customPrice)) : '',
+            ]),
+          ),
+        );
+      })
       .catch((err) => toast.error(err.message || 'Failed to load provider'))
       .finally(() => setLoading(false));
   };
@@ -81,6 +96,29 @@ export default function AdminProviderDetailPage() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
+
+  const handleSaveRates = async () => {
+    if (!provider) return;
+    setSavingRates(true);
+    try {
+      await trpc.admin.setProviderServicePrices.mutate({
+        providerId: provider.id,
+        services: provider.services.map((item) => {
+          const raw = rateDraft[item.service.id]?.trim();
+          return {
+            serviceId: item.service.id,
+            customPrice: raw ? Number(raw) : null,
+          };
+        }),
+      });
+      toast.success('Rate card saved');
+      load();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Failed to save rates');
+    } finally {
+      setSavingRates(false);
+    }
+  };
 
   const handleVerify = async () => {
     if (!provider) return;
@@ -221,30 +259,55 @@ export default function AdminProviderDetailPage() {
         </SectionPanel>
       ) : null}
 
-      <SectionPanel title="Services offered" count={provider.services.length}>
+      <SectionPanel title="Contracted visit rates" count={provider.services.length}>
         {provider.services.length === 0 ? (
           <p className="text-sm text-muted-foreground">
             No catalog services selected.
           </p>
         ) : (
-          <ul className="space-y-2 text-sm">
-            {provider.services.map((item) => (
-              <li key={item.id} className="flex gap-3 justify-between">
-                <span>
-                  {item.service.name}
-                  <span className="ml-2 text-xs text-muted-foreground">
-                    {item.service.category.name}
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Set customPrice for every visit on a plan before assigning this
+              crew to a subscription. Catalog base prices are for one-time bids.
+            </p>
+            <ul className="space-y-2 text-sm">
+              {provider.services.map((item) => (
+                <li
+                  key={item.id}
+                  className="flex flex-wrap gap-3 justify-between items-center"
+                >
+                  <span>
+                    {item.service.name}
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      {item.service.category.name} · catalog $
+                      {Number(item.service.basePrice).toFixed(2)}
+                    </span>
                   </span>
-                </span>
-                <span className="text-muted-foreground">
-                  {item.customPrice != null
-                    ? `$${Number(item.customPrice).toFixed(2)} custom`
-                    : `$${Number(item.service.basePrice).toFixed(2)} base`}
-                  /{item.service.unit.toLowerCase()}
-                </span>
-              </li>
-            ))}
-          </ul>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    className="w-28"
+                    placeholder="Rate $"
+                    value={rateDraft[item.service.id] ?? ''}
+                    onChange={(e) =>
+                      setRateDraft((prev) => ({
+                        ...prev,
+                        [item.service.id]: e.target.value,
+                      }))
+                    }
+                  />
+                </li>
+              ))}
+            </ul>
+            <Button
+              onClick={handleSaveRates}
+              disabled={savingRates}
+              className="font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90"
+            >
+              {savingRates ? 'Saving…' : 'Save rate card'}
+            </Button>
+          </div>
         )}
       </SectionPanel>
 

@@ -6,6 +6,7 @@ import {
   Text,
   TextInput,
   Pressable,
+  Linking,
 } from 'react-native';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,6 +19,7 @@ import { PrimaryButton } from '@/components/PrimaryButton';
 import { RatingSummary } from '@/components/StarRating';
 import { ReviewList } from '@/components/ReviewList';
 import { colors } from '@/lib/theme';
+import { legalUrl, SUPPORT_EMAIL, SUPPORT_MAILTO } from '@/lib/support';
 
 export default function SettingsScreen() {
   const { user, signOut } = useAuth();
@@ -53,10 +55,10 @@ export default function SettingsScreen() {
       setSaving(true);
 
       if (isProvider) {
-        await trpc.provider.update.mutate({ businessName: name });
+        await trpc.provider.updateProfile.mutate({ businessName: name });
       } else if (isCrew && user?.crewMember) {
         await trpc.crew.updateMember.mutate({
-          memberId: user.crewMember.id,
+          id: user.crewMember.id,
           name,
         });
       }
@@ -93,11 +95,17 @@ export default function SettingsScreen() {
         {
           text: 'Delete',
           style: 'destructive',
-          onPress: () => {
-            Alert.alert(
-              'Coming Soon',
-              'Account deletion will be available soon. Please contact support for assistance.',
-            );
+          onPress: async () => {
+            try {
+              await trpc.auth.deleteAccount.mutate();
+              await signOut();
+              router.replace('/login');
+            } catch (error: any) {
+              Alert.alert(
+                'Could not delete',
+                error.message || 'Contact support@exteriorpro.app',
+              );
+            }
           },
         },
       ],
@@ -273,6 +281,26 @@ export default function SettingsScreen() {
           <Card className="overflow-hidden p-0">
             <Pressable
               className="flex-row justify-between items-center px-2 py-2 border-b border-line active:opacity-70"
+              onPress={() => Linking.openURL(legalUrl('/privacy'))}
+            >
+              <View className="flex-row gap-3 items-center">
+                <Ionicons name="document-text-outline" size={20} color="#fff" />
+                <Text className="text-base text-white">Privacy Policy</Text>
+              </View>
+              <Ionicons name="open-outline" size={20} color={colors.muted} />
+            </Pressable>
+            <Pressable
+              className="flex-row justify-between items-center px-2 py-2 border-b border-line active:opacity-70"
+              onPress={() => Linking.openURL(legalUrl('/terms'))}
+            >
+              <View className="flex-row gap-3 items-center">
+                <Ionicons name="reader-outline" size={20} color="#fff" />
+                <Text className="text-base text-white">Terms of Service</Text>
+              </View>
+              <Ionicons name="open-outline" size={20} color={colors.muted} />
+            </Pressable>
+            <Pressable
+              className="flex-row justify-between items-center px-2 py-2 border-b border-line active:opacity-70"
               onPress={() => {
                 Alert.alert(
                   'Version',
@@ -296,8 +324,14 @@ export default function SettingsScreen() {
               onPress={() => {
                 Alert.alert(
                   'Support',
-                  'Need help? Contact us:\n\nsupport@exteriorpro.com',
-                  [{ text: 'OK' }],
+                  `Need help? Contact us:\n\n${SUPPORT_EMAIL}`,
+                  [
+                    { text: 'Cancel', style: 'cancel' },
+                    {
+                      text: 'Email',
+                      onPress: () => Linking.openURL(SUPPORT_MAILTO),
+                    },
+                  ],
                 );
               }}
             >

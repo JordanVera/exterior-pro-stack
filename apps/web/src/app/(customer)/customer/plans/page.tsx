@@ -60,7 +60,9 @@ export default function PlansPage() {
 
   useEffect(() => {
     Promise.all([
-      trpc.subscription.listPlans.query(),
+      selectedProperty
+        ? trpc.subscription.listPlans.query({ propertyId: selectedProperty })
+        : trpc.subscription.listPlans.query(),
       trpc.property.list.query(),
       trpc.subscription.listForCustomer.query(),
     ])
@@ -71,7 +73,7 @@ export default function PlansPage() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, []);
+  }, [selectedProperty]);
 
   const getPrice = (plan: any) => {
     switch (billingFrequency) {
@@ -110,7 +112,12 @@ export default function PlansPage() {
       return;
     }
 
-    setSubscribing(true);
+    if (selectedPlan && plans.find((p) => p.id === selectedPlan)?.sellable === false) {
+      toast.error(
+        'This plan is not available at that property yet. A local crew has to sign the visit rate card first.',
+      );
+      return;
+    }
     try {
       const result = await trpc.subscription.subscribe.mutate({
         planId: selectedPlan,
@@ -357,7 +364,11 @@ export default function PlansPage() {
 
             <Button
               onClick={handleSubscribe}
-              disabled={subscribing || !selectedProperty}
+              disabled={
+                subscribing ||
+                !selectedProperty ||
+                plans.find((p) => p.id === selectedPlan)?.sellable === false
+              }
               className="font-semibold rounded-full bg-brand-lime text-brand-ink hover:bg-brand-lime/90 sm:w-auto"
             >
               {subscribing ? (
@@ -370,6 +381,14 @@ export default function PlansPage() {
               )}
             </Button>
           </div>
+          {selectedProperty &&
+          plans.find((p) => p.id === selectedPlan)?.sellable === false ? (
+            <p className="mt-3 text-sm text-amber-600">
+              This plan is not available at that ZIP yet. A local crew has to
+              sign the visit rate card first. You can still post a one-time
+              job.
+            </p>
+          ) : null}
         </SectionPanel>
       )}
 

@@ -17,12 +17,12 @@ export function BrandLogo({
 }) {
   return (
     <Image
-      src="/logos/logo-stacked-lime.png"
+      src="/logos/logo-stacked-green.png"
       alt="Exterior Pro"
       width={width}
       height={height}
       priority={priority}
-      className={cn(!onDark && 'logo-on-cream', className)}
+      // className={cn(!onDark && 'logo-on-cream', className)}
     />
   );
 }

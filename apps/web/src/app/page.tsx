@@ -2,9 +2,9 @@ import type { Metadata } from 'next';
 import { LandingPage } from '@/components/landing/landing-page';
 import { AuthRedirect } from '@/components/landing/auth-redirect';
 
-const title = 'Exterior Pro — Recurring exterior care and on-demand pros';
+const title = 'Exterior Pro — Houston exterior care, plans, and local crews';
 const description =
-  'Subscribe to recurring lawn, gutter, and exterior care, or post a one-time job and let verified local providers compete for it. Built only for exterior work.';
+  'Greater Houston recurring lawn, gutter, and exterior care — or post a one-time job and let verified local providers bid. Photo proof after every visit.';
 
 export const revalidate = 300;
 
@@ -24,11 +24,13 @@ export const metadata: Metadata = {
     description,
     type: 'website',
     siteName: 'Exterior Pro',
+    images: ['/logos/logo-stacked-green.png'],
   },
   twitter: {
     card: 'summary_large_image',
     title,
     description,
+    images: ['/logos/logo-stacked-green.png'],
   },
 };
 

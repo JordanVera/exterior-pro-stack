@@ -1,7 +1,6 @@
 'use client';
-
-import { Leaf } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { Leaf } from 'lucide-react';
 import { SERVICE_TICKER, TRUST_ITEMS } from './data';
 
 function TickerRow({
@@ -48,7 +47,7 @@ export function ServiceTicker({ className }: { className?: string }) {
   return (
     <section
       className={cn(
-        'overflow-hidden relative py-8 border-y border-border/60 bg-background/40',
+        'overflow-hidden relative py-8 border-y border-border/60',
         className,
       )}
     >

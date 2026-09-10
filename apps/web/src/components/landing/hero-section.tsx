@@ -1,8 +1,15 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'motion/react';
+import { GlowingEffect } from '@/components/ui/glowing-effect';
+import { FlipWords } from '@/components/ui/flip-words';
+import { SegmentedTabs } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
+import { loginPath } from '@/lib/auth-intent';
+import { useAudience, type Audience } from './audience-context';
 import {
   ArrowRight,
   CalendarCheck,
@@ -13,48 +20,80 @@ import {
   Truck,
   Wrench,
 } from 'lucide-react';
-import { GlowingEffect } from '@/components/ui/glowing-effect';
-import { FlipWords } from '@/components/ui/flip-words';
-import { SegmentedTabs } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
-import { loginPath } from '@/lib/auth-intent';
-import { useAudience, type Audience } from './audience-context';
 
-// 4 images × 8 s each = 32 s per full cycle (matches keyframes in globals.css)
-const KB_DURATION = 32;
-const KB_IMAGES = [
-  { src: '/services/lawn-maintenance.jpg', animName: 'hero-kb-a', delay: 0 },
-  { src: '/services/landscaping.webp', animName: 'hero-kb-b', delay: 8 },
-  { src: '/services/pressure-washing.png', animName: 'hero-kb-a', delay: 16 },
-  { src: '/services/gutter-cleaning.jpg', animName: 'hero-kb-b', delay: 24 },
+const HERO_POSTER = '/hero/exterior-broll.jpg';
+// Clip sources (all live video, commercially usable):
+// gutter — Mixkit 2716, Stock Video Free License (rain off a roof/eave)
+// lights — Coverr “House decorated with Christmas lights”, free commercial
+// weeds  — Wikimedia “Weed whacker - kanagawa” by Nesnad, CC BY 4.0
+// wash   — Pexels 4451962, free to use
+const HERO_CLIPS = [
+  '/hero/clips/water.mp4',
+  '/hero/clips/leaves.mp4',
+  '/hero/clips/hedge.mp4',
+  '/hero/clips/lawn.mp4',
+  '/hero/clips/gutter.mp4',
+  '/hero/clips/weeds.mp4',
+  // '/hero/clips/lights.mp4',
+  // '/hero/clips/wash.mp4',
 ] as const;
+const CLIP_HOLD_MS = 2800;
 
-function KenBurnsBackground() {
+function HeroVideoBackground() {
+  const [index, setIndex] = useState(0);
+  const nodes = useRef<(HTMLVideoElement | null)[]>([]);
+
+  useEffect(() => {
+    const media = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if (media.matches) return undefined;
+
+    const id = window.setInterval(() => {
+      setIndex((current) => (current + 1) % HERO_CLIPS.length);
+    }, CLIP_HOLD_MS);
+    return () => window.clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    nodes.current.forEach((el, i) => {
+      if (!el) return;
+      if (i === index) {
+        el.currentTime = 0;
+        void el.play();
+      } else {
+        el.pause();
+      }
+    });
+  }, [index]);
+
   return (
     <div className="overflow-hidden absolute inset-0" aria-hidden>
-      {KB_IMAGES.map(({ src, animName, delay }) => (
-        <div
+      <Image
+        src={HERO_POSTER}
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover"
+        draggable={false}
+      />
+      {HERO_CLIPS.map((src, i) => (
+        <video
           key={src}
-          className="absolute inset-0 will-change-transform"
-          style={{
-            opacity: 0,
-            animationName: animName,
-            animationDuration: `${KB_DURATION}s`,
-            animationTimingFunction: 'linear',
-            animationIterationCount: 'infinite',
-            animationDelay: `${delay}s`,
+          ref={(el) => {
+            nodes.current[i] = el;
           }}
-        >
-          <Image
-            src={src}
-            alt=""
-            fill
-            priority={delay === 0}
-            sizes="100vw"
-            className="object-cover"
-            draggable={false}
-          />
-        </div>
+          className={cn(
+            'absolute inset-0 h-full w-full object-cover motion-reduce:hidden transition-opacity duration-500',
+            i === index ? 'opacity-100' : 'opacity-0',
+          )}
+          src={src}
+          muted
+          loop
+          playsInline
+          autoPlay={i === 0}
+          preload={i < 2 ? 'auto' : 'metadata'}
+          poster={i === 0 ? HERO_POSTER : undefined}
+        />
       ))}
 
       {/* Left-heavy gradient so copy is always legible */}
@@ -114,7 +153,7 @@ export function HeroSection() {
 
   return (
     <section className="relative min-h-[100svh] overflow-hidden pt-28 sm:pt-32">
-      <KenBurnsBackground />
+      <HeroVideoBackground />
 
       <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-6 pb-16 pt-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
         {/* ── Copy ── */}
@@ -382,7 +421,7 @@ function ProviderPreview() {
         </span>
       </div>
 
-      <div className="mb-4 rounded-2xl border border-brand-lime/30 bg-brand-lime/10 dark:border-brand-lime/25 dark:bg-brand-lime/10">
+      <div className="p-3 mb-4 rounded-2xl border border-brand-lime/30 bg-brand-lime/10 dark:border-brand-lime/25 dark:bg-brand-lime/10">
         <div className="flex gap-3 justify-between items-center">
           <div>
             <p className="text-[11px] font-medium uppercase tracking-wider text-brand-navy/60 dark:text-white/50">

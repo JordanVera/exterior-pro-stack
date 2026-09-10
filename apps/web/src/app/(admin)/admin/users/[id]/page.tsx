@@ -29,8 +29,10 @@ type UserDetail = {
       id: string;
       status: string;
       billingFrequency: string;
+      assignedProviderId: string | null;
       plan: { name: string };
-      property: { address: string };
+      property: { address: string; zip: string };
+      provider: { id: string; businessName: string } | null;
     }[];
     payments: {
       id: string;
@@ -56,6 +58,10 @@ export default function AdminUserDetailPage() {
   const params = useParams<{ id: string }>();
   const [user, setUser] = useState<UserDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [assigningId, setAssigningId] = useState<string | null>(null);
+  const [crews, setCrews] = useState<
+    { id: string; businessName: string; stripeTransfersEnabled: boolean }[]
+  >([]);
 
   const load = () => {
     if (!params.id) return;
@@ -69,8 +75,38 @@ export default function AdminUserDetailPage() {
 
   useEffect(() => {
     load();
+    trpc.admin.getSupplyCoverage
+      .query()
+      .then((coverage) =>
+        setCrews(
+          coverage.providers
+            .filter((p) => p.verified && p.stripeTransfersEnabled)
+            .map((p) => ({
+              id: p.id,
+              businessName: p.businessName,
+              stripeTransfersEnabled: p.stripeTransfersEnabled,
+            })),
+        ),
+      )
+      .catch(() => undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id]);
+
+  const handleAssign = async (subscriptionId: string, providerId: string) => {
+    setAssigningId(subscriptionId);
+    try {
+      await trpc.admin.assignSubscriptionProvider.mutate({
+        subscriptionId,
+        providerId: providerId || null,
+      });
+      toast.success('Assigned provider updated');
+      load();
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Assign failed');
+    } finally {
+      setAssigningId(null);
+    }
+  };
 
   const handleToggle = async () => {
     if (!user) return;
@@ -172,12 +208,27 @@ export default function AdminUserDetailPage() {
         <SectionPanel title="Subscriptions" count={user.customerProfile.subscriptions.length}>
           <ul className="space-y-3 text-sm">
             {user.customerProfile.subscriptions.map((sub) => (
-              <li key={sub.id} className="flex items-center justify-between gap-3">
+              <li key={sub.id} className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <span className="flex items-center gap-2">
                   <Repeat className="h-4 w-4 text-muted-foreground" />
                   {sub.plan.name} · {sub.property.address}
                 </span>
-                <StatusBadge value={sub.status} />
+                <div className="flex items-center gap-2">
+                  <StatusBadge value={sub.status} />
+                  <select
+                    className="h-8 rounded-md border border-input bg-transparent px-2 text-xs"
+                    disabled={assigningId === sub.id}
+                    value={sub.provider?.id ?? ''}
+                    onChange={(e) => handleAssign(sub.id, e.target.value)}
+                  >
+                    <option value="">Unassigned</option>
+                    {crews.map((crew) => (
+                      <option key={crew.id} value={crew.id}>
+                        {crew.businessName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </li>
             ))}
           </ul>

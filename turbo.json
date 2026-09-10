@@ -5,7 +5,7 @@
   "tasks": {
     "@repo/db#build": {
       "cache": false,
-      "inputs": ["prisma/schema.prisma", "prisma/migrations/**"]
+      "inputs": ["prisma/schema.prisma", "prisma/migrations/**", "prisma.config.ts"]
     },
     "build": {
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
@@ -22,9 +22,6 @@
         "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
         "STRIPE_PUBLIC_KEY",
         "PLATFORM_FEE_BPS",
-        "TWILIO_ACCOUNT_SID",
-        "TWILIO_AUTH_TOKEN",
-        "TWILIO_PHONE_NUMBER",
         "BREVO_API_KEY",
         "BREVO_FROM",
         "NEXT_PUBLIC_SENTRY_DSN",
@@ -34,6 +31,8 @@
         "SENTRY_AUTH_TOKEN",
         "BLOB_READ_WRITE_TOKEN",
         "GOOGLE_MAPS_API_KEY",
+        "EXPO_ACCESS_TOKEN",
+        "EXPO_PUBLIC_API_URL",
         "BLOB_STORE_ID",
         "BLOB_WEBHOOK_PUBLIC_KEY"
       ]

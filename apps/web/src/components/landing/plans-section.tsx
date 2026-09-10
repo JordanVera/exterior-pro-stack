@@ -14,10 +14,10 @@ import { BILLING_OPTIONS, type BillingOption } from './data';
 import type { LandingPlan } from './plan-types';
 
 const TRUST_BADGES = [
-  'Verified providers only',
-  '12,400+ jobs completed',
-  'No contracts or lock-in',
+  'Verified Houston crews',
   'Photo proof every visit',
+  'No contracts or lock-in',
+  'Greater Houston launch',
 ] as const;
 
 const FREQUENCY_LABELS: Record<string, string> = {
@@ -168,7 +168,7 @@ export function PlansSection({ plans }: { plans: LandingPlan[] }) {
                   {highlight ? (
                     <div className="absolute inset-0 rounded-3xl">
                       <MovingBorder duration={4200} rx="6%" ry="16%">
-                        <div className="h-24 w-24 bg-[radial-gradient(#C8F542_40%,transparent_60%)] opacity-80" />
+                        <div className="h-24 w-24 bg-[radial-gradient(#0ab463_40%,transparent_60%)] opacity-80" />
                       </MovingBorder>
                     </div>
                   ) : null}

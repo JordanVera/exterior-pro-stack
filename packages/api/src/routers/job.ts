@@ -13,6 +13,7 @@ import {
   assignCrewInput,
   unassignCrewInput,
   updateJobStatusInput,
+  updateJobNotesInput,
   createRecurringScheduleInput,
   cancelJobInput,
   listMineInput,
@@ -41,6 +42,8 @@ import {
   assertCompletePhotos,
 } from '../lib/field-access';
 import { deleteJobPhotoBlob } from '../lib/job-photos';
+import { providerServesZip } from '../lib/rate-cards';
+import { isLaunchZip, LAUNCH_ZIP_MESSAGE } from '@repo/validators';
 
 export const jobRouter = router({
   /** Customer: create a new job request (broadcasts to local providers) */
@@ -70,6 +73,13 @@ export const jobRouter = router({
         });
       }
 
+      if (!isLaunchZip(property.zip)) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: LAUNCH_ZIP_MESSAGE,
+        });
+      }
+
       const job = await ctx.db.job.create({
         data: {
           propertyId: input.propertyId,
@@ -89,16 +99,14 @@ export const jobRouter = router({
         where: {
           verified: true,
           services: { some: { serviceId: input.serviceId } },
-          OR: [
-            { serviceAreaZips: { contains: property.zip } },
-            { serviceAreaZips: null },
-          ],
+          OR: [{ serviceAreaZips: { contains: property.zip } }],
         },
         include: { user: true },
       });
 
       // Notify all matching providers
       for (const provider of matchingProviders) {
+        if (!providerServesZip(provider.serviceAreaZips, property.zip)) continue;
         notifyNewJobAvailable(
           provider.userId,
           job.service.name,
@@ -586,6 +594,17 @@ export const jobRouter = router({
       });
 
       return { ok: true as const };
+    }),
+
+  /** Provider: save internal job notes without changing status */
+  updateNotes: providerProcedure
+    .input(updateJobNotesInput)
+    .mutation(async ({ ctx, input }) => {
+      await assertJobAccess(ctx, input.jobId);
+      return ctx.db.job.update({
+        where: { id: input.jobId },
+        data: { notes: input.notes },
+      });
     }),
 
   /** Provider: update job status */

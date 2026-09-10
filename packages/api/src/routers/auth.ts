@@ -413,6 +413,92 @@ export const authRouter = router({
         })),
       });
 
+      const admins = await ctx.db.user.findMany({
+        where: { role: 'ADMIN' },
+        select: { id: true },
+      });
+      const { notifyNewProviderSignup } = await import('../lib/notifications');
+      for (const admin of admins) {
+        notifyNewProviderSignup(admin.id, input.businessName).catch(
+          console.error,
+        );
+      }
+
       return profile;
     }),
+
+  deleteAccount: protectedProcedure.mutation(async ({ ctx }) => {
+    const userId = ctx.user.userId;
+    const user = await ctx.db.user.findUnique({
+      where: { id: userId },
+      include: {
+        customerProfile: { include: { subscriptions: true } },
+        providerProfile: true,
+      },
+    });
+    if (!user) {
+      throw new TRPCError({ code: 'NOT_FOUND', message: 'Account not found' });
+    }
+
+    if (user.role === 'ADMIN') {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Admin accounts cannot be self-deleted',
+      });
+    }
+
+    const { requireStripe } = await import('../lib/stripe');
+    for (const sub of user.customerProfile?.subscriptions ?? []) {
+      if (sub.stripeSubscriptionId && sub.status !== 'CANCELLED') {
+        try {
+          await requireStripe().subscriptions.cancel(sub.stripeSubscriptionId);
+        } catch (err) {
+          console.error('Failed to cancel Stripe subscription', err);
+        }
+      }
+    }
+
+    await ctx.db.$transaction(async (tx) => {
+      await tx.pushToken.deleteMany({ where: { userId } });
+      await tx.notification.deleteMany({ where: { userId } });
+      if (user.customerProfile) {
+        await tx.customerSubscription.updateMany({
+          where: { customerId: user.customerProfile.id },
+          data: { status: 'CANCELLED', assignedProviderId: null },
+        });
+        await tx.customerProfile.update({
+          where: { id: user.customerProfile.id },
+          data: {
+            firstName: 'Deleted',
+            lastName: 'User',
+            email: null,
+          },
+        });
+      }
+      if (user.providerProfile) {
+        await tx.providerProfile.update({
+          where: { id: user.providerProfile.id },
+          data: {
+            businessName: 'Deleted provider',
+            description: null,
+            email: null,
+            verified: false,
+            logoUrl: null,
+            logoPathname: null,
+          },
+        });
+      }
+      await tx.user.update({
+        where: { id: userId },
+        data: {
+          email: `deleted+${userId}@deleted.exteriorpro.app`,
+          phone: null,
+          verified: false,
+          role: user.role,
+        },
+      });
+    });
+
+    return { ok: true as const };
+  }),
 });

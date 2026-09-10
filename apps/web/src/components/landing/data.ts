@@ -100,29 +100,28 @@ export const SERVICE_TICKER = [
 
 export const STATS = [
   {
-    value: 12400,
-    suffix: '+',
-    label: 'Jobs completed',
-    caption: 'Across lawn, gutter, wash, and paint work',
+    value: 1,
+    suffix: '',
+    label: 'Launch metro',
+    caption: 'Greater Houston only. We grow city by city, not with a national blast.',
   },
   {
-    value: 4,
-    suffix: ' hrs',
-    label: 'Average time to first bid',
-    caption: 'Most jobs get three bids the same day',
-  },
-  {
-    value: 4.9,
-    decimals: 1,
-    suffix: '/5',
-    label: 'Average provider rating',
-    caption: 'Rated by homeowners after every completed visit',
-  },
-  {
-    value: 38,
+    value: 10,
     suffix: '%',
-    label: 'Average revenue lift',
-    caption: 'Reported by providers in their first six months',
+    label: 'Platform take on jobs',
+    caption: 'Charged on one-time work. Crews are paid after the visit is complete.',
+  },
+  {
+    value: 100,
+    suffix: '%',
+    label: 'Photo proof',
+    caption: 'Before and after shots on every completed visit, whether you were home or not.',
+  },
+  {
+    value: 0,
+    suffix: '',
+    label: 'Cancellation fees',
+    caption: 'Pause or cancel a plan anytime. No long-term contract.',
   },
 ] as const;
 
@@ -148,7 +147,7 @@ export const HOW_IT_WORKS_CUSTOMER = [
   {
     step: '04',
     heading: 'Watch it get done',
-    body: 'Track the job from scheduled to complete, get SMS updates at every step, and see before and after photos when the crew finishes.',
+    body: 'Track the job from scheduled to complete, get email and in-app updates at every step, and see before and after photos when the crew finishes.',
     detail: 'The same crew stays on your recurring plan.',
   },
 ] as const;
@@ -231,31 +230,31 @@ export const HOMEOWNER_TESTIMONIALS = [
     quote:
       'I had been calling three different companies for mowing, gutters, and the driveway. Now it is one plan and the same crew shows up every week without me asking.',
     name: 'Marcus Webb',
-    title: 'Homeowner, Franklin TN',
+    title: 'Homeowner, Houston Heights',
   },
   {
     quote:
       'Posted a gutter job on a Tuesday morning and had four bids before lunch. Picked the one with the best rating and it was done Thursday.',
     name: 'Priya Raman',
-    title: 'Homeowner, Cary NC',
+    title: 'Homeowner, Katy TX',
   },
   {
     quote:
       'The before and after photos are the part I did not expect to love. I travel a lot and I can actually see the work got done.',
     name: 'Dana Kessler',
-    title: 'Homeowner, Scottsdale AZ',
+    title: 'Homeowner, River Oaks',
   },
   {
     quote:
       'I manage six rentals and this replaced an entire spreadsheet. Each property has its own plan and I stopped fielding tenant complaints about the yard.',
     name: 'Anthony Cole',
-    title: 'Property manager, Columbus OH',
+    title: 'Property manager, Inner Loop',
   },
   {
     quote:
       'Paused the plan over winter, turned it back on in March. No phone tree, no cancellation fee, no guilt trip.',
     name: 'Renee Alvarado',
-    title: 'Homeowner, Boise ID',
+    title: 'Homeowner, Memorial',
   },
 ] as const;
 
@@ -264,31 +263,31 @@ export const PROVIDER_TESTIMONIALS = [
     quote:
       'I stopped buying shared leads. Here I see the actual property and the actual job before I put a number on it, so my close rate went way up.',
     name: 'Derek Hollis',
-    title: 'Owner, Hollis Lawn & Landscape',
+    title: 'Owner, Hollis Lawn & Landscape · Houston',
   },
   {
     quote:
       'The subscription customers are the whole thing for me. Twenty-two recurring properties means I know what February looks like in December.',
     name: 'Sam Ortiz',
-    title: 'Owner, Ortiz Exterior Services',
+    title: 'Owner, Ortiz Exterior Services · Houston',
   },
   {
     quote:
       'My crews run the day off their phones now. Photos go up on site, jobs close out on site, and I am not driving around verifying work.',
     name: 'Tyler Brandt',
-    title: 'Operations lead, Brandt Property Care',
+    title: 'Operations lead, Brandt Property Care · Houston',
   },
   {
     quote:
       'Payouts hit after the job is marked complete. I went from chasing invoices for three weeks to not thinking about it at all.',
     name: 'Marisol Vega',
-    title: 'Owner, Vega Pressure Washing',
+    title: 'Owner, Vega Pressure Washing · Houston',
   },
   {
     quote:
       'I added two trucks in eight months. The routes are tight because the work is clustered, not scattered across the metro.',
     name: 'Chris Nakamura',
-    title: 'Owner, Summit Exterior Co.',
+    title: 'Owner, Summit Exterior Co. · Houston',
   },
 ] as const;
 
@@ -343,7 +342,7 @@ export const FOOTER_PROVIDER_LINKS = [
 
 export const FOOTER_COMPANY_LINKS = [
   { label: 'Pricing', href: '#pricing' },
-  { label: 'FAQ', href: '#faq' },
+  { label: 'Contact', href: '/contact' },
   { label: 'Privacy Policy', href: '/privacy' },
   { label: 'Terms of Service', href: '/terms' },
 ] as const;

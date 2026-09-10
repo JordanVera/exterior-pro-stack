@@ -4,6 +4,7 @@ const { withSentryConfig } = require('@sentry/nextjs');
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@repo/api', '@repo/db', '@repo/validators'],
+  serverExternalPackages: ['@prisma/client', '@prisma/adapter-mariadb', 'mariadb'],
   outputFileTracingRoot: path.join(__dirname, '../..'),
   eslint: {
     ignoreDuringBuilds: true,

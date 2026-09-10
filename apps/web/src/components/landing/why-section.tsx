@@ -67,7 +67,7 @@ const CELLS: Cell[] = [
   {
     title: 'Updates without asking',
     description:
-      'SMS and in-app alerts at every step, from first bid through completion.',
+      'Email, push, and in-app alerts at every step, from first bid through completion.',
     icon: Bell,
     image: '/landing/why/updates.webp',
     className: 'md:col-span-1',

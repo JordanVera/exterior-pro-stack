@@ -10,12 +10,12 @@ const BEAM_GRADIENTS: Record<
   { start: string; mid: string; end: string }
 > = {
   default: { start: '#18CCFC', mid: '#6344F5', end: '#AE48FF' },
-  lime: { start: '#C8F542', mid: '#B8E838', end: '#C8F542' },
+  lime: { start: '#0ab463', mid: '#0ab463', end: '#0ab463' },
 };
 
 const RADIAL_STOPS: Record<BeamVariant, [string, string]> = {
   default: ['#d4d4d4', '#d4d4d4'],
-  lime: ['#C8F542', '#A8D438'],
+  lime: ['#0ab463', '#0ab463'],
 };
 
 export const BackgroundBeams = React.memo(

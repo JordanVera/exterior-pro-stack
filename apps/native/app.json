@@ -21,17 +21,19 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.exteriorpro.field"
+      "bundleIdentifier": "com.exteriorpro.field",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSCameraUsageDescription": "Allow Exterior Pro to use the camera to take before and after job pictures.",
+        "NSPhotoLibraryUsageDescription": "Allow Exterior Pro to access your photos so you can attach before and after job pictures."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#070B12"
       },
-      "package": "com.exteriorpro.field",
-      "permissions": [
-        "android.permission.RECORD_AUDIO"
-      ]
+      "package": "com.exteriorpro.field"
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -52,7 +54,7 @@
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
-          "color": "#C8F542"
+          "color": "#0ab463"
         }
       ],
       "expo-font",

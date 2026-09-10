@@ -1,4 +1,7 @@
 export * from "./auth";
+export * from "./brand";
+export * from "./houston-zips";
+export * from "./launch-area";
 export * from "./zips";
 export * from "./property";
 export * from "./service";
