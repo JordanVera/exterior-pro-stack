@@ -29,13 +29,13 @@ const HERO_POSTER = '/hero/exterior-broll.jpg';
 // wash   — Pexels 4451962, free to use
 const HERO_CLIPS = [
   '/hero/clips/water.mp4',
-  '/hero/clips/gutter.mp4',
-  '/hero/clips/lawn.mp4',
-  // '/hero/clips/lights.mp4',
-  '/hero/clips/weeds.mp4',
-  // '/hero/clips/wash.mp4',
-  '/hero/clips/hedge.mp4',
   '/hero/clips/leaves.mp4',
+  '/hero/clips/hedge.mp4',
+  '/hero/clips/lawn.mp4',
+  '/hero/clips/gutter.mp4',
+  '/hero/clips/weeds.mp4',
+  // '/hero/clips/lights.mp4',
+  // '/hero/clips/wash.mp4',
 ] as const;
 const CLIP_HOLD_MS = 2800;
 
