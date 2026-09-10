@@ -168,7 +168,7 @@ export function PlansSection({ plans }: { plans: LandingPlan[] }) {
                   {highlight ? (
                     <div className="absolute inset-0 rounded-3xl">
                       <MovingBorder duration={4200} rx="6%" ry="16%">
-                        <div className="h-24 w-24 bg-[radial-gradient(#C8F542_40%,transparent_60%)] opacity-80" />
+                        <div className="h-24 w-24 bg-[radial-gradient(#0ab463_40%,transparent_60%)] opacity-80" />
                       </MovingBorder>
                     </div>
                   ) : null}

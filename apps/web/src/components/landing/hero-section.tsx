@@ -20,42 +20,34 @@ import { cn } from '@/lib/utils';
 import { loginPath } from '@/lib/auth-intent';
 import { useAudience, type Audience } from './audience-context';
 
-// 4 images × 8 s each = 32 s per full cycle (matches keyframes in globals.css)
-const KB_DURATION = 32;
-const KB_IMAGES = [
-  { src: '/services/lawn-maintenance.jpg', animName: 'hero-kb-a', delay: 0 },
-  { src: '/services/landscaping.webp', animName: 'hero-kb-b', delay: 8 },
-  { src: '/services/pressure-washing.png', animName: 'hero-kb-a', delay: 16 },
-  { src: '/services/gutter-cleaning.jpg', animName: 'hero-kb-b', delay: 24 },
-] as const;
+// Mixkit Stock Video Free License (commercial): watering a house lawn +
+// trimming at a home exterior. Muted, looping b-roll behind the hero copy.
+const HERO_POSTER = '/hero/exterior-broll.jpg';
+const HERO_VIDEO = '/hero/exterior-broll.mp4';
 
-function KenBurnsBackground() {
+function HeroVideoBackground() {
   return (
     <div className="overflow-hidden absolute inset-0" aria-hidden>
-      {KB_IMAGES.map(({ src, animName, delay }) => (
-        <div
-          key={src}
-          className="absolute inset-0 will-change-transform"
-          style={{
-            opacity: 0,
-            animationName: animName,
-            animationDuration: `${KB_DURATION}s`,
-            animationTimingFunction: 'linear',
-            animationIterationCount: 'infinite',
-            animationDelay: `${delay}s`,
-          }}
-        >
-          <Image
-            src={src}
-            alt=""
-            fill
-            priority={delay === 0}
-            sizes="100vw"
-            className="object-cover"
-            draggable={false}
-          />
-        </div>
-      ))}
+      <Image
+        src={HERO_POSTER}
+        alt=""
+        fill
+        priority
+        sizes="100vw"
+        className="object-cover"
+        draggable={false}
+      />
+      <video
+        className="object-cover absolute inset-0 w-full h-full motion-reduce:hidden"
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        poster={HERO_POSTER}
+      >
+        <source src={HERO_VIDEO} type="video/mp4" />
+      </video>
 
       {/* Left-heavy gradient so copy is always legible */}
       <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/55 to-black/20" />
@@ -114,7 +106,7 @@ export function HeroSection() {
 
   return (
     <section className="relative min-h-[100svh] overflow-hidden pt-28 sm:pt-32">
-      <KenBurnsBackground />
+      <HeroVideoBackground />
 
       <div className="relative mx-auto grid max-w-6xl items-center gap-14 px-6 pb-16 pt-6 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16">
         {/* ── Copy ── */}
