@@ -170,7 +170,7 @@ export default function ProviderJobDetailPage() {
   const handleSaveNotes = async () => {
     try {
       setSavingNotes(true);
-      // TODO: Add API endpoint to save provider notes
+      await trpc.job.updateNotes.mutate({ jobId, notes });
       toast.success('Notes saved');
     } catch (err) {
       toast.error('Failed to save notes');

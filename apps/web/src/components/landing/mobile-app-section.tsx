@@ -98,7 +98,7 @@ export function MobileAppSection() {
           transition={{ duration: 0.5 }}
           className="mb-14 max-w-3xl"
         >
-          <SectionEyebrow>Coming Soon — December 2026</SectionEyebrow>
+          <SectionEyebrow>iOS & Android</SectionEyebrow>
           <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-5xl">
             The Exterior Pro app
             <span className="block mt-2 text-muted-foreground">
@@ -107,8 +107,8 @@ export function MobileAppSection() {
           </h2>
           <p className="mt-6 text-lg leading-relaxed text-muted-foreground">
             Whether you own the property, run the company, or work the crew —
-            the app puts everything you need in your pocket. Launching on iOS
-            and Android in December 2026.
+            the app puts jobs, photos, and messages in your pocket. Available
+            on the App Store and Google Play.
           </p>
         </motion.div>
 
@@ -169,7 +169,7 @@ export function MobileAppSection() {
         >
           <p className="flex gap-2 items-center text-sm text-muted-foreground">
             <Smartphone className="w-4 h-4 text-brand-lime" />
-            Available December 2026 on iOS & Android
+            Available on iOS and Android
           </p>
 
           <div className="flex flex-wrap gap-3 justify-center">

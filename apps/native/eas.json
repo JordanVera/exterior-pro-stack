@@ -19,7 +19,10 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://exteriorprostack.tech"
+      }
     }
   },
   "submit": {

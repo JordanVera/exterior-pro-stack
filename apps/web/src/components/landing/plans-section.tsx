@@ -14,10 +14,10 @@ import { BILLING_OPTIONS, type BillingOption } from './data';
 import type { LandingPlan } from './plan-types';
 
 const TRUST_BADGES = [
-  'Verified providers only',
-  '12,400+ jobs completed',
-  'No contracts or lock-in',
+  'Verified Houston crews',
   'Photo proof every visit',
+  'No contracts or lock-in',
+  'Greater Houston launch',
 ] as const;
 
 const FREQUENCY_LABELS: Record<string, string> = {

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { LogOut, ChevronRight } from 'lucide-react';
+import Link from 'next/link';
 import { trpc } from '../../../../lib/trpc';
 import { clearToken } from '../../../../lib/auth';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,6 +22,7 @@ import {
 } from '@/components/provider-logo-upload';
 import { RatingSummary } from '@/components/star-rating';
 import { ReviewList, type PublicReview } from '@/components/review-list';
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from '@repo/validators';
 
 export default function ProviderProfilePage() {
   const router = useRouter();
@@ -103,6 +105,23 @@ export default function ProviderProfilePage() {
   const handleSignOut = async () => {
     await clearToken();
     router.push('/');
+  };
+
+  const handleDeleteAccount = async () => {
+    if (
+      !window.confirm(
+        'Delete your account? Login and personal details are removed. Job and payment records may be kept for tax and disputes.',
+      )
+    ) {
+      return;
+    }
+    try {
+      await trpc.auth.deleteAccount.mutate();
+      await clearToken();
+      router.push('/');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Could not delete account');
+    }
   };
 
   if (loading) {
@@ -208,8 +227,9 @@ export default function ProviderProfilePage() {
         </CardHeader>
         <CardContent className="p-5 space-y-4">
           <p className="text-sm text-muted-foreground">
-            Select the services you provide. Optional custom prices override the
-            base rate.
+            Select the services you provide. For subscription (plan) work, enter
+            a contracted visit rate. Catalog base prices are for one-time bids
+            only — unsigned rates cannot be assigned to a plan.
           </p>
           <div className="space-y-2">
             {allServices.map((service) => {
@@ -246,7 +266,7 @@ export default function ProviderProfilePage() {
                       type="number"
                       step="0.01"
                       min="0"
-                      placeholder="Custom $"
+                      placeholder="Rate card $"
                       value={selectedServices.get(service.id) ?? ''}
                       onChange={(e) => {
                         const next = new Map(selectedServices);
@@ -273,6 +293,24 @@ export default function ProviderProfilePage() {
         </CardContent>
       </Card>
 
+      <div className="space-y-2 text-sm">
+        <a
+          href={SUPPORT_MAILTO}
+          className="block text-brand-navy hover:underline dark:text-brand-lime"
+        >
+          Support · {SUPPORT_EMAIL}
+        </a>
+        <Link href="/privacy" className="block hover:underline">
+          Privacy Policy
+        </Link>
+        <Link href="/terms" className="block hover:underline">
+          Terms of Service
+        </Link>
+        <Link href="/contractor-agreement" className="block hover:underline">
+          Contractor agreement
+        </Link>
+      </div>
+
       <Button
         variant="outline"
         onClick={handleSignOut}
@@ -284,6 +322,13 @@ export default function ProviderProfilePage() {
         </div>
         <ChevronRight className="w-4 h-4 text-muted-foreground" />
       </Button>
+      <button
+        type="button"
+        onClick={handleDeleteAccount}
+        className="text-sm text-red-500 hover:underline"
+      >
+        Delete account
+      </button>
     </div>
   );
 }

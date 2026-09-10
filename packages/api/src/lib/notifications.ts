@@ -1,35 +1,33 @@
 import { db, NotificationType } from '@repo/db';
-import { sendSMS } from './sms';
 import { sendPushNotification } from './push';
+import { sendAlertEmail } from './email';
 
 interface CreateNotificationParams {
   userId: string;
   type: NotificationType;
   title: string;
   body: string;
-  sendSms?: boolean;
   sendPush?: boolean;
+  sendEmail?: boolean;
   data?: Record<string, any>;
 }
 
 /**
- * Create an in-app notification and optionally send SMS/push notifications.
+ * Create an in-app notification and optionally send a push notification.
  */
 export async function createNotification({
   userId,
   type,
   title,
   body,
-  sendSms: shouldSendSms = false,
   sendPush: shouldSendPush = true,
+  sendEmail: shouldSendEmail = false,
   data = {},
 }: CreateNotificationParams) {
-  // Create in-app notification
   const notification = await db.notification.create({
     data: { userId, type, title, body },
   });
 
-  // Send push notification (default enabled)
   if (shouldSendPush) {
     try {
       await sendPushNotification({
@@ -43,19 +41,19 @@ export async function createNotification({
     }
   }
 
-  // Optionally send SMS
-  if (shouldSendSms) {
+  if (shouldSendEmail) {
     try {
       const user = await db.user.findUnique({
         where: { id: userId },
-        select: { phone: true },
+        select: { email: true },
       });
-
-      if (user?.phone) {
-        await sendSMS(user.phone, `${title}: ${body}`);
-      }
+      await sendAlertEmail({
+        to: user?.email,
+        subject: title,
+        body,
+      });
     } catch (err) {
-      console.error('Failed to send SMS notification:', err);
+      console.error('Failed to send notification email:', err);
     }
   }
 
@@ -75,7 +73,6 @@ export async function notifyNewJobAvailable(
     type: 'NEW_JOB_AVAILABLE',
     title: 'New Job Available',
     body: `New ${serviceName} job at ${address}. Submit your bid!`,
-    sendSms: true,
   });
 }
 
@@ -90,7 +87,7 @@ export async function notifyBidReceived(
     type: 'BID_RECEIVED',
     title: 'New Bid Received',
     body: `${providerName} submitted a bid for your ${serviceName} job.`,
-    sendSms: true,
+    sendEmail: true,
   });
 }
 
@@ -104,7 +101,6 @@ export async function notifyBidAccepted(
     type: 'BID_ACCEPTED',
     title: 'Bid Accepted',
     body: `Your bid for ${serviceName} has been accepted! You can now schedule the job.`,
-    sendSms: true,
   });
 }
 
@@ -120,7 +116,6 @@ export async function notifyJobScheduled(
     type: 'JOB_SCHEDULED',
     title: 'Job Scheduled',
     body: `Your ${serviceName} job is scheduled for ${date}${time ? ` at ${time}` : ''}.`,
-    sendSms: true,
   });
 }
 
@@ -134,7 +129,6 @@ export async function notifyJobInProgress(
     type: 'JOB_IN_PROGRESS',
     title: 'Job In Progress',
     body: `Your ${serviceName} job has started!`,
-    sendSms: true,
   });
 }
 
@@ -148,7 +142,6 @@ export async function notifyJobCompleted(
     type: 'JOB_COMPLETED',
     title: 'Job Completed',
     body: `Your ${serviceName} job is complete! Rate the crew in the app.`,
-    sendSms: true,
   });
 }
 
@@ -176,7 +169,6 @@ export async function notifyDirectBook(
     type: 'BID_ACCEPTED',
     title: 'Customer booked you again',
     body: `A customer booked you again for ${serviceName}. Schedule the visit when you are ready.`,
-    sendSms: true,
   });
 }
 
@@ -191,7 +183,6 @@ export async function notifyTipReceived(
     type: 'TIP_RECEIVED',
     title: 'You received a tip',
     body: `A customer tipped $${(amountCents / 100).toFixed(2)} on your ${serviceName} job.`,
-    sendSms: true,
   });
 }
 
@@ -220,7 +211,6 @@ export async function notifyJobReminder(
     type: 'JOB_REMINDER',
     title: 'Job Reminder',
     body: `Reminder: ${serviceName} at ${address} on ${date}.`,
-    sendSms: true,
   });
 }
 
@@ -247,7 +237,6 @@ export async function notifySubscriptionCreated(
     type: 'SUBSCRIPTION_CREATED',
     title: 'Subscription Created',
     body: `You've been subscribed to the ${planName} plan! Recurring services will be scheduled automatically.`,
-    sendSms: true,
   });
 }
 
@@ -276,7 +265,6 @@ export async function notifyScheduleChange(
     type: 'SCHEDULE_CHANGE',
     title: 'Schedule Updated',
     body: `Your ${serviceName} job has been rescheduled to ${newDate}${newTime ? ` at ${newTime}` : ''}.`,
-    sendSms: true,
   });
 }
 
@@ -303,11 +291,11 @@ export async function notifySubscriptionCancelled(
     type: 'SUBSCRIPTION_CANCELLED',
     title: 'Subscription Cancelled',
     body: `Your ${planName} subscription has been cancelled.`,
-    sendSms: true,
+    sendEmail: true,
   });
 }
 
-/** Notify a job participant of a new in-app message. Push only — not SMS. */
+/** Notify a job participant of a new in-app message. */
 export async function notifyJobMessage(
   userId: string,
   senderName: string,
@@ -323,7 +311,6 @@ export async function notifyJobMessage(
     type: 'JOB_MESSAGE',
     title: `${senderName} · ${serviceName}`,
     body: clipped,
-    sendSms: false,
     data: { jobId, type: 'JOB_MESSAGE' },
   });
 }
@@ -335,6 +322,6 @@ export async function notifyPayoutSent(providerId: string, amount: number) {
     type: 'PAYOUT_SENT',
     title: 'Payout Sent',
     body: `A payout of $${(amount / 100).toFixed(2)} has been sent to your account.`,
-    sendSms: true,
+    sendEmail: true,
   });
 }

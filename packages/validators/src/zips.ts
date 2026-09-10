@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isLaunchZip, LAUNCH_ZIP_MESSAGE } from "./launch-area";
 
 export const US_ZIP = /^\d{5}$/;
 export const US_ZIP_OR_PLUS4 = /^\d{5}(?:-\d{4})?$/;
@@ -69,6 +70,14 @@ function zipListSchema(opts: { required: boolean }) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           message: `You can add up to ${MAX_SERVICE_ZIPS} ZIP codes`,
+        });
+        return z.NEVER;
+      }
+      const outside = zips.filter((zip) => !isLaunchZip(zip));
+      if (outside.length > 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: `${LAUNCH_ZIP_MESSAGE} Outside launch area: ${outside.join(", ")}`,
         });
         return z.NEVER;
       }

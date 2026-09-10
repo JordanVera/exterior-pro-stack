@@ -13,7 +13,7 @@ export default function ContractorAgreementPage() {
         </Link>
       </p>
       <h1 className="text-3xl font-bold">Independent Contractor Agreement</h1>
-      <p className="mt-2 text-sm text-neutral-500">Last updated: August 16, 2026</p>
+      <p className="mt-2 text-sm text-neutral-500">Last updated: September 10, 2026</p>
       <div className="mt-8 space-y-4 text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
         <p>
           By enabling payouts you confirm that you are an independent contractor,

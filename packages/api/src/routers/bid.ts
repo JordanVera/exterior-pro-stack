@@ -7,7 +7,7 @@ import {
   declineBidInput,
   withdrawBidInput,
 } from '@repo/validators';
-import { notifyBidReceived, notifyBidAccepted } from '../lib/notifications';
+import { notifyBidReceived, notifyBidAccepted, notifyBidDeclined } from '../lib/notifications';
 import { assertProviderPayoutReady } from '../lib/connect';
 import { createJobCheckoutSession } from '../lib/payments';
 import { toCents } from '../lib/stripe';
@@ -275,11 +275,16 @@ export const bidRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Bid not found' });
       }
 
-      return ctx.db.jobBid.update({
+      const updated = await ctx.db.jobBid.update({
         where: { id: input.bidId },
         data: { status: 'DECLINED' },
-        include: { provider: true },
+        include: { provider: true, job: { include: { service: true } } },
       });
+      notifyBidDeclined(
+        updated.provider.userId,
+        updated.job.service.name,
+      ).catch(console.error);
+      return updated;
     }),
 
   withdraw: providerProcedure

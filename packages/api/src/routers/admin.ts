@@ -58,7 +58,7 @@ export const adminRouter = router({
             include: {
               properties: { orderBy: { createdAt: "desc" }, take: 20 },
               subscriptions: {
-                include: { plan: true, property: true },
+                include: { plan: true, property: true, provider: true },
                 orderBy: { createdAt: "desc" },
                 take: 10,
               },
@@ -385,4 +385,244 @@ export const adminRouter = router({
 
       return paginate(items, limit);
     }),
+
+  listSubscriptions: adminProcedure
+    .input(
+      z
+        .object({
+          status: z
+            .enum(['ACTIVE', 'PAUSED', 'CANCELLED', 'PAST_DUE'])
+            .optional(),
+          limit: z.number().min(1).max(100).default(50),
+          cursor: z.string().cuid().optional(),
+        })
+        .optional(),
+    )
+    .query(async ({ ctx, input }) => {
+      const limit = input?.limit ?? 50;
+      const items = await ctx.db.customerSubscription.findMany({
+        where: {
+          ...(input?.status ? { status: input.status } : {}),
+        },
+        include: {
+          plan: { include: { services: true } },
+          property: {
+            include: {
+              customer: { include: { user: { select: { email: true } } } },
+            },
+          },
+          provider: {
+            include: { services: true, user: { select: { email: true } } },
+          },
+          customer: true,
+        },
+        take: limit + 1,
+        ...(input?.cursor ? { cursor: { id: input.cursor }, skip: 1 } : {}),
+        orderBy: { createdAt: 'desc' },
+      });
+      return paginate(items, limit);
+    }),
+
+  assignSubscriptionProvider: adminProcedure
+    .input(
+      z.object({
+        subscriptionId: z.string().cuid(),
+        providerId: z.string().cuid().nullable(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { hasContractedRates, providerServesZip } =
+        await import('../lib/rate-cards');
+
+      const subscription = await ctx.db.customerSubscription.findUnique({
+        where: { id: input.subscriptionId },
+        include: {
+          plan: { include: { services: true } },
+          property: true,
+        },
+      });
+      if (!subscription) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Subscription not found',
+        });
+      }
+
+      if (!input.providerId) {
+        return ctx.db.customerSubscription.update({
+          where: { id: input.subscriptionId },
+          data: { assignedProviderId: null },
+          include: { plan: true, property: true, provider: true },
+        });
+      }
+
+      const provider = await ctx.db.providerProfile.findUnique({
+        where: { id: input.providerId },
+        include: { services: true },
+      });
+      if (!provider) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Provider not found',
+        });
+      }
+
+      const serviceIds = subscription.plan.services.map((s) => s.serviceId);
+      if (!provider.verified || !provider.stripeTransfersEnabled) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Provider must be verified with Connect payouts enabled',
+        });
+      }
+      if (!providerServesZip(provider.serviceAreaZips, subscription.property.zip)) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Provider does not serve this property ZIP',
+        });
+      }
+      if (!hasContractedRates(provider.services, serviceIds)) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message:
+            'Set contracted customPrice on every plan visit before assigning this crew',
+        });
+      }
+
+      return ctx.db.customerSubscription.update({
+        where: { id: input.subscriptionId },
+        data: { assignedProviderId: input.providerId },
+        include: { plan: true, property: true, provider: true },
+      });
+    }),
+
+  setProviderServicePrices: adminProcedure
+    .input(
+      z.object({
+        providerId: z.string().cuid(),
+        services: z.array(
+          z.object({
+            serviceId: z.string().cuid(),
+            customPrice: z.number().positive().nullable(),
+          }),
+        ),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const profile = await ctx.db.providerProfile.findUnique({
+        where: { id: input.providerId },
+      });
+      if (!profile) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Provider not found',
+        });
+      }
+
+      await ctx.db.$transaction(
+        input.services.map((item) =>
+          ctx.db.providerService.upsert({
+            where: {
+              providerId_serviceId: {
+                providerId: input.providerId,
+                serviceId: item.serviceId,
+              },
+            },
+            update: { customPrice: item.customPrice ?? null },
+            create: {
+              providerId: input.providerId,
+              serviceId: item.serviceId,
+              customPrice: item.customPrice ?? null,
+            },
+          }),
+        ),
+      );
+
+      return ctx.db.providerService.findMany({
+        where: { providerId: input.providerId },
+        include: { service: { include: { category: true } } },
+      });
+    }),
+
+  getSupplyCoverage: adminProcedure.query(async ({ ctx }) => {
+    const { HOUSTON_ZIP_GROUPS } = await import('@repo/validators');
+    const { hasContractedRates, providerServesZip } = await import(
+      '../lib/rate-cards'
+    );
+
+    const [providers, plans, subscriptions] = await Promise.all([
+      ctx.db.providerProfile.findMany({
+        include: {
+          services: { include: { service: true } },
+          user: { select: { email: true } },
+        },
+        orderBy: { businessName: 'asc' },
+      }),
+      ctx.db.subscriptionPlan.findMany({
+        where: { active: true },
+        include: { services: true },
+      }),
+      ctx.db.customerSubscription.findMany({
+        where: { status: { in: ['ACTIVE', 'PAUSED'] } },
+        select: { assignedProviderId: true },
+      }),
+    ]);
+
+    const clusters = HOUSTON_ZIP_GROUPS.map((group) => {
+      const zips = group.zips.map((item) => item.zip);
+      const covering = providers.filter((provider) =>
+        zips.some((zip) => providerServesZip(provider.serviceAreaZips, zip)),
+      );
+      const verifiedPayoutReady = covering.filter(
+        (provider) => provider.verified && provider.stripeTransfersEnabled,
+      );
+      const withRateCards = covering.filter((provider) =>
+        plans.some((plan) =>
+          hasContractedRates(
+            provider.services,
+            plan.services.map((s) => s.serviceId),
+          ),
+        ),
+      );
+      return {
+        id: group.id,
+        name: group.name,
+        zipCount: zips.length,
+        providerCount: covering.length,
+        verifiedPayoutReady: verifiedPayoutReady.length,
+        rateCardReady: withRateCards.length,
+      };
+    });
+
+    return {
+      targetProviders: 15,
+      verifiedProviders: providers.filter((p) => p.verified).length,
+      payoutReady: providers.filter(
+        (p) => p.verified && p.stripeTransfersEnabled,
+      ).length,
+      assignedSubscriptions: subscriptions.filter((s) => s.assignedProviderId)
+        .length,
+      unassignedSubscriptions: subscriptions.filter((s) => !s.assignedProviderId)
+        .length,
+      clusters,
+      providers: providers.map((provider) => ({
+        id: provider.id,
+        userId: provider.userId,
+        businessName: provider.businessName,
+        email: provider.email || provider.user.email,
+        verified: provider.verified,
+        stripeTransfersEnabled: provider.stripeTransfersEnabled,
+        zipCount: provider.serviceAreaZips
+          ? provider.serviceAreaZips.split(',').filter(Boolean).length
+          : 0,
+        rateCards: plans.map((plan) => ({
+          planId: plan.id,
+          planName: plan.name,
+          signed: hasContractedRates(
+            provider.services,
+            plan.services.map((s) => s.serviceId),
+          ),
+        })),
+      })),
+    };
+  }),
 });

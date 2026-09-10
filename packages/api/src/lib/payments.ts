@@ -22,6 +22,7 @@ import {
   notifyDirectBook,
   notifySubscriptionCreated,
   notifyTipReceived,
+  notifyPayoutSent,
 } from './notifications';
 
 export async function getOrCreateStripeCustomer(opts: {
@@ -760,10 +761,12 @@ export async function payoutForCompletedJob(jobId: string) {
       },
     });
 
-    return db.transfer.update({
+    const paid = await db.transfer.update({
       where: { id: record.id },
       data: { status: 'PAID', stripeTransferId: transfer.id },
     });
+    notifyPayoutSent(provider.userId, amountCents).catch(console.error);
+    return paid;
   } catch (err) {
     console.error(`Transfer failed for job ${jobId}:`, err);
     await db.transfer.update({

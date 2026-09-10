@@ -41,7 +41,7 @@ export function StatsSection() {
               <p className="text-4xl font-bold tracking-tight text-brand-lime sm:text-5xl">
                 <Counter
                   value={stat.value}
-                  decimals={'decimals' in stat ? stat.decimals : 0}
+                  decimals={'decimals' in stat ? Number(stat.decimals) : 0}
                   suffix={stat.suffix}
                 />
               </p>

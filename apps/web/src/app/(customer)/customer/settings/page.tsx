@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { toast } from "sonner";
 import { trpc } from "../../../../lib/trpc";
 import { clearToken } from "../../../../lib/auth";
@@ -38,6 +39,7 @@ import {
   ChevronRight,
   Mail,
 } from "lucide-react";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "@repo/validators";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -219,6 +221,23 @@ export default function SettingsPage() {
   const handleSignOut = async () => {
     await clearToken();
     router.push("/");
+  };
+
+  const handleDeleteAccount = async () => {
+    if (
+      !window.confirm(
+        "Delete your account? Login and personal details are removed. Job and payment records may be kept for tax and disputes.",
+      )
+    ) {
+      return;
+    }
+    try {
+      await trpc.auth.deleteAccount.mutate();
+      await clearToken();
+      router.push("/");
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Could not delete account");
+    }
   };
 
   if (loading) {
@@ -655,6 +674,23 @@ export default function SettingsPage() {
         </div>
       </SectionPanel>
 
+      <SectionPanel title="Support and legal">
+        <div className="space-y-2 text-sm">
+          <a
+            href={SUPPORT_MAILTO}
+            className="block text-brand-navy hover:underline dark:text-brand-lime"
+          >
+            Email {SUPPORT_EMAIL}
+          </a>
+          <Link href="/privacy" className="block hover:underline">
+            Privacy Policy
+          </Link>
+          <Link href="/terms" className="block hover:underline">
+            Terms of Service
+          </Link>
+        </div>
+      </SectionPanel>
+
       {/* ── Sign Out ── */}
       <Button
         variant="outline"
@@ -667,6 +703,13 @@ export default function SettingsPage() {
         </span>
         <ChevronRight className="w-4 h-4 text-muted-foreground" />
       </Button>
+      <button
+        type="button"
+        onClick={handleDeleteAccount}
+        className="text-sm text-red-500 hover:underline"
+      >
+        Delete account
+      </button>
 
       {/* Delete confirmation dialog */}
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>

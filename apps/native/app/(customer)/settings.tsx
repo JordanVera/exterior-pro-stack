@@ -22,6 +22,7 @@ import { SectionTitle } from '@/components/ui/SectionTitle';
 import { Card } from '@/components/ui/Card';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { colors } from '@/lib/theme';
+import { legalUrl, SUPPORT_MAILTO } from '@/lib/support';
 
 type PropertyFormData = {
   id?: string;
@@ -71,6 +72,32 @@ export default function CustomerSettingsScreen() {
       Alert.alert('Error', error.message);
     },
   });
+
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Delete Account',
+      'This removes your login and personal details. Job and payment records may be kept for tax and disputes. This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await trpc.auth.deleteAccount.mutate();
+              await signOut();
+              router.replace('/login');
+            } catch (error: any) {
+              Alert.alert(
+                'Could not delete',
+                error.message || 'Email support@exteriorpro.app',
+              );
+            }
+          },
+        },
+      ],
+    );
+  };
 
   const handleSignOut = () => {
     Alert.alert('Sign Out', 'Are you sure you want to sign out?', [
@@ -230,7 +257,21 @@ export default function CustomerSettingsScreen() {
           <SectionTitle>Support</SectionTitle>
           <Card className="overflow-hidden p-0">
             <Pressable
-              onPress={() => Linking.openURL('mailto:support@exteriorpro.com')}
+              onPress={() => Linking.openURL(legalUrl('/privacy'))}
+              className="flex-row justify-between items-center px-5 py-4 border-b border-line active:opacity-70"
+            >
+              <Text className="text-base text-white">Privacy Policy</Text>
+              <Ionicons name="open-outline" size={18} color={colors.muted} />
+            </Pressable>
+            <Pressable
+              onPress={() => Linking.openURL(legalUrl('/terms'))}
+              className="flex-row justify-between items-center px-5 py-4 border-b border-line active:opacity-70"
+            >
+              <Text className="text-base text-white">Terms of Service</Text>
+              <Ionicons name="open-outline" size={18} color={colors.muted} />
+            </Pressable>
+            <Pressable
+              onPress={() => Linking.openURL(SUPPORT_MAILTO)}
               className="flex-row justify-between items-center px-5 py-4 border-b border-line active:opacity-70"
             >
               <Text className="text-base text-white">Contact support</Text>
@@ -243,13 +284,16 @@ export default function CustomerSettingsScreen() {
           </Card>
         </View>
 
-        <View className="mt-8">
+        <View className="mt-8 gap-3">
           <PrimaryButton
             label="Sign Out"
             icon="log-out"
             onPress={handleSignOut}
             variant="danger"
           />
+          <Pressable onPress={handleDeleteAccount} className="items-center py-3">
+            <Text className="text-sm text-red-400">Delete account</Text>
+          </Pressable>
         </View>
       </ScrollView>
 

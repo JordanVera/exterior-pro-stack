@@ -1,7 +1,7 @@
 import '../global.css';
 import { useCallback, useEffect } from 'react';
 import { View } from 'react-native';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import {
@@ -15,7 +15,10 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider, useAuth } from '@/lib/auth';
 import { queryClient } from '@/lib/query';
 import { colors } from '@/lib/theme';
-import { setupNotificationHandlers } from '@/lib/push-notifications';
+import {
+  getLastNotificationResponse,
+  setupNotificationHandlers,
+} from '@/lib/push-notifications';
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
@@ -25,6 +28,17 @@ function RootLayoutNav() {
   // Setup notification handlers with role-based routing
   useEffect(() => {
     const subscription = setupNotificationHandlers(user);
+    getLastNotificationResponse().then((response) => {
+      if (!response || !user) return;
+      const data = response.notification.request.content.data;
+      const jobId = typeof data?.jobId === 'string' ? data.jobId : null;
+      if (!jobId) return;
+      if (data?.type === 'JOB_MESSAGE') {
+        router.push(`/jobs/messages/${jobId}`);
+        return;
+      }
+      router.push(`/jobs/${jobId}`);
+    });
     return () => subscription.remove();
   }, [user]);
 

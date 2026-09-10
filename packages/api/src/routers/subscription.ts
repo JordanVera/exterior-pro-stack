@@ -15,6 +15,8 @@ import {
   fulfillPlanSubscriptionFromStripe,
 } from '../lib/payments';
 import { getStripePublishableKey, requireStripe } from '../lib/stripe';
+import { planIsSellableInZip } from '../lib/rate-cards';
+import { notifySubscriptionCancelled } from '../lib/notifications';
 
 function asStripeError(err: unknown): never {
   const message = err instanceof Error ? err.message : 'Payments unavailable';
@@ -67,6 +69,18 @@ async function requireSubscribeContext(
     throw new TRPCError({ code: 'NOT_FOUND', message: 'Plan not found' });
   }
 
+  const sellable = await planIsSellableInZip(ctx.db, {
+    planId: plan.id,
+    zip: property.zip,
+  });
+  if (!sellable) {
+    throw new TRPCError({
+      code: 'PRECONDITION_FAILED',
+      message:
+        'This plan is not available at that property yet. A local crew has to sign the visit rate card first. You can still post a one-time job.',
+    });
+  }
+
   const existing = await ctx.db.customerSubscription.findFirst({
     where: {
       customerId: profile.id,
@@ -91,7 +105,9 @@ export const subscriptionRouter = router({
     merchantDisplayName: 'Exterior Pro',
   })),
 
-  listPlans: publicProcedure.query(async ({ ctx }) => {
+  listPlans: publicProcedure
+    .input(z.object({ propertyId: z.string().cuid().optional() }).optional())
+    .query(async ({ ctx, input }) => {
     const plans = await ctx.db.subscriptionPlan.findMany({
       where: { active: true },
       include: {
@@ -104,8 +120,24 @@ export const subscriptionRouter = router({
       orderBy: { monthlyPrice: 'asc' },
     });
 
-    // Transform to match frontend expectations
-    return plans.map((plan) => ({
+    let zip: string | null = null;
+    if (input?.propertyId) {
+      const property = await ctx.db.property.findUnique({
+        where: { id: input.propertyId },
+        select: { zip: true },
+      });
+      zip = property?.zip ?? null;
+    }
+
+    const availability = await Promise.all(
+      plans.map(async (plan) =>
+        zip
+          ? planIsSellableInZip(ctx.db, { planId: plan.id, zip })
+          : false,
+      ),
+    );
+
+    return plans.map((plan, index) => ({
       id: plan.id,
       name: plan.name,
       description: plan.description,
@@ -133,6 +165,7 @@ export const subscriptionRouter = router({
       })),
       createdAt: plan.createdAt,
       updatedAt: plan.updatedAt,
+      sellable: availability[index] ?? false,
     }));
   }),
 
@@ -370,6 +403,12 @@ export const subscriptionRouter = router({
         where: { id: input.subscriptionId },
         data: { status: 'CANCELLED' },
         include: { plan: true, property: true },
+      }).then(async (updated) => {
+        notifySubscriptionCancelled(
+          ctx.user.userId,
+          updated.plan.name,
+        ).catch(console.error);
+        return updated;
       });
     }),
 

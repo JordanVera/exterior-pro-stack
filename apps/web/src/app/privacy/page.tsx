@@ -15,29 +15,33 @@ export default function PrivacyPage() {
       </p>
       <h1 className="text-3xl font-bold">Privacy Policy</h1>
       <p className="mt-2 text-sm text-neutral-500">
-        Last updated: August 16, 2026
+        Last updated: September 10, 2026
       </p>
       <div className="mt-8 space-y-4 text-sm leading-relaxed text-neutral-700 dark:text-neutral-300">
         <p>
           Exterior Pro collects the information needed to operate a
-          property-services marketplace: phone number, name, email, property
-          addresses, job details, payment records, and device push tokens.
+          property-services marketplace: name, email, optional contact phone,
+          property addresses, job details, payment records, and device push
+          tokens.
         </p>
         <h2 className="pt-4 text-lg font-semibold text-neutral-900 dark:text-white">
           How we use it
         </h2>
         <p>
-          We use this data to authenticate you, match jobs with providers,
-          process payments through Stripe, send email (and optional SMS) about
-          jobs, and improve the product. We do not sell personal information.
+          We use this data to authenticate you (email one-time codes), match
+          jobs with providers, process payments through Stripe, send email and
+          push notifications about jobs, and improve the product. We do not
+          sell personal information. Phone numbers are optional contact details
+          so crews and customers can call each other — they are not used for
+          login or text messages.
         </p>
         <h2 className="pt-4 text-lg font-semibold text-neutral-900 dark:text-white">
           Processors
         </h2>
         <p>
-          Payment data is processed by Stripe. Login codes and email are sent
-          via Brevo. Job SMS may be sent via Twilio when a phone number is on
-          file. Hosting and logs may be processed by Vercel.
+          Payment data is processed by Stripe. Login codes and transactional
+          email are sent via Brevo. Hosting and logs may be processed by
+          Vercel.
         </p>
         <h2 className="pt-4 text-lg font-semibold text-neutral-900 dark:text-white">
           Retention

@@ -22,7 +22,8 @@ export function LandingFooter() {
             <BrandLogo width={110} height={42} />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
               Recurring plans and on-demand jobs for everything outside your
-              walls, run by verified local crews.
+              walls. We serve Greater Houston — Heights, Inner Loop, Katy, and
+              the surrounding metro.
             </p>
           </div>
 

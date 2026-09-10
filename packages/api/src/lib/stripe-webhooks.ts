@@ -9,6 +9,10 @@ import {
   reverseTransfersForPayment,
 } from "./payments";
 import { syncProviderConnectStatus } from "./connect";
+import {
+  notifySubscriptionCancelled,
+  notifySubscriptionRenewed,
+} from "./notifications";
 
 function metadataOf(obj: { metadata?: Stripe.Metadata | null }) {
   const meta = obj.metadata ?? {};
@@ -113,6 +117,10 @@ export async function handleStripeEvent(event: Stripe.Event) {
           },
         });
       }
+      notifySubscriptionRenewed(
+        subscription.customer.userId,
+        subscription.plan.name,
+      ).catch(console.error);
       break;
     }
 
@@ -149,10 +157,20 @@ export async function handleStripeEvent(event: Stripe.Event) {
 
     case "customer.subscription.deleted": {
       const subscription = event.data.object as Stripe.Subscription;
+      const existing = await db.customerSubscription.findFirst({
+        where: { stripeSubscriptionId: subscription.id },
+        include: { plan: true, customer: true },
+      });
       await db.customerSubscription.updateMany({
         where: { stripeSubscriptionId: subscription.id },
         data: { status: "CANCELLED" },
       });
+      if (existing) {
+        notifySubscriptionCancelled(
+          existing.customer.userId,
+          existing.plan.name,
+        ).catch(console.error);
+      }
       break;
     }
 

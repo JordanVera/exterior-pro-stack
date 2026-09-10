@@ -7,6 +7,7 @@ import {
   deletePropertyImage,
   refreshPropertyImage,
 } from "../lib/property-image";
+import { geocodeAddress } from "../lib/geocode";
 
 export const propertyRouter = router({
   /** List all properties for the current customer */
@@ -73,7 +74,15 @@ export const propertyRouter = router({
         },
       });
 
-      return refreshPropertyImage({ db: ctx.db, property });
+      const coords = await geocodeAddress(property);
+      const located = coords
+        ? await ctx.db.property.update({
+            where: { id: property.id },
+            data: coords,
+          })
+        : property;
+
+      return refreshPropertyImage({ db: ctx.db, property: located });
     }),
 
   /** Update a property */
@@ -99,10 +108,15 @@ export const propertyRouter = router({
       const { id, ...data } = input;
       const updated = await ctx.db.property.update({ where: { id }, data });
 
-      // Only re-fetch when the address actually moved; editing notes shouldn't
-      // cost a maps request.
       if (addressChanged(property, updated)) {
-        return refreshPropertyImage({ db: ctx.db, property: updated });
+        const coords = await geocodeAddress(updated);
+        const located = coords
+          ? await ctx.db.property.update({
+              where: { id },
+              data: coords,
+            })
+          : updated;
+        return refreshPropertyImage({ db: ctx.db, property: located });
       }
       return updated;
     }),
