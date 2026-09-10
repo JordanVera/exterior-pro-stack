@@ -134,7 +134,7 @@ export default function LoginScreen() {
                 <Animated.View key={step} entering={FadeInDown.duration(300)}>
                   <View className="items-center my-4">
                     <Image
-                      source={require('../../assets/logo-stacked-lime.png')}
+                      source={require('../../assets/logo-stacked-green.png')}
                       style={{ width: 160, height: 50 }}
                       resizeMode="contain"
                     />

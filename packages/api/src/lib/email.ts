@@ -44,7 +44,7 @@ function verificationEmailHtml(opts: {
   const { ttlMinutes, appUrl } = opts;
   const code = escapeHtml(opts.code);
   const host = escapeHtml(siteHost(appUrl));
-  const logoUrl = `${appUrl}/logos/logo-stacked-lime.png`;
+  const logoUrl = `${appUrl}/logos/logo-stacked-green.png`;
   const digitCells = opts.code
     .split('')
     .map((digit, i, digits) => {

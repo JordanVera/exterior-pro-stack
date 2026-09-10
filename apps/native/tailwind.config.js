@@ -15,7 +15,7 @@ module.exports = {
       },
       colors: {
         brand: {
-          lime: "#C8F542",
+          lime: "#0ab463",
           navy: "#0B1F33",
           ink: "#0A1208",
           night: "#070B12",

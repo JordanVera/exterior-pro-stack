@@ -24,13 +24,13 @@ export const metadata: Metadata = {
     description,
     type: 'website',
     siteName: 'Exterior Pro',
-    images: ['/logos/logo-stacked-lime.png'],
+    images: ['/logos/logo-stacked-green.png'],
   },
   twitter: {
     card: 'summary_large_image',
     title,
     description,
-    images: ['/logos/logo-stacked-lime.png'],
+    images: ['/logos/logo-stacked-green.png'],
   },
 };
 
